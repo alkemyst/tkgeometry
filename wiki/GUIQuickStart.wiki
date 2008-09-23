@@ -2,7 +2,7 @@
 
 = Introduction =
 
-The following notes provide instructions on how to play with the tracker geometry GUI. Unless you know exactly what you're doing, this is the preferred method of interacting with the tracker geometry simulation tool.
+The following notes provide instructions on how to play with the tracker geometry GUI. Unless you know what you're doing, this is the preferred method of interacting with the tracker geometry simulation tool.
 
 
 = Details =
@@ -61,10 +61,10 @@ So far, no change that was made to the configuration of the chosen geometry has 
 
 *Restore Default Files:* This menu entry acts as a sort of insurance in case you save a default configuration that you're not happy about for some reason. It will replace the _entire_ contents of _defaultgeometry.cfg_ and _defaultsettings.cfg_ with those of _geometry.cfg_ and _settings.cfg_, respectively, from the resource directory for the chosen geometry. After that, the defaults are back to what they were when the application was first installed.
 
-*N.B.* Do _not_ modify _geometry.cfg_ or _settings.cfg_ unless you really know what you're doing. If you don't, you will in all likelihood get what you deserve.
+*N.B.* Do _not_ modify _geometry.cfg_ or _settings.cfg_ by hand unless you really know what you're doing. If you don't, you will in all likelihood get what you deserve.
 
 == Summary Page ==
 
 After the simulation has come to an end, you'll be able to examine the results here. If you like what you see, you can go back to the parameter page and save the configuration from there. If you don't, you can go back to adjust the parameters or start from scratch and choose a different model from the geometry page.
 
-*N.B.* Clicking on _Done_ or _Cancel_ will remove all of the generated output files. Going back to the parameter page and saving the settings there is the _only_ way of saving a configuration for later. The reason for this behaviour is that the configuration files can be named by the user (as opposed to being auto-generated), take up the least space and allow a user to reproduce the results themselves reliably anyway.
+*N.B.* Clicking on _Done_ or _Cancel_ will remove all of the generated output files. Going back to the parameter page and saving the settings there is the _only_ way of saving a configuration for later. The reason for this behaviour is that the configuration files can be named by the user (as opposed to being auto-generated), take up the least space and still allow a user to reproduce the results themselves reliably.
