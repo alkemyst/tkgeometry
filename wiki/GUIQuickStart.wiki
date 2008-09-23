@@ -1,0 +1,70 @@
+#summary Quick start guide for the Tracker Geometry user interface
+
+= Introduction =
+
+The following notes provide instructions on how to play with the tracker geometry GUI. Unless you know exactly what you're doing, this is the preferred method of interacting with the tracker geometry simulation tool.
+
+
+= Details =
+
+The GUI is a wizard-style interface intended to take you through the configuration and simulation of a chosen tracker geometry in three steps. The geometries themselves cannot be changed.
+
+== Geometry Page ==
+
+Pick an available geometry from the radio button box here, and you will be able to proceed to try your hand at customising it.
+
+The page displays the following information about the chosen geometry:
+
+ * A diagram illustrating the number of barrels and endcaps, as well as the number of layers and discs within each.
+
+ * A short text description of the geometry.
+
+*N.B.* Both of these are optional. If either or both are missing, don't panic - they are information pieces with no real impact on the simulation. It's quite likely that the rest of the application will still load and run without problems. The only problem that you will be guaranteed to face is that you may have to guess what the chosen geometry looks like...
+
+== Parameter Page ==
+
+This is the centrepiece of the user interface. It displays all of the customisable parameters, starting with the tracker name. Then there are boxes that bundle the barrel and endcap module options and four text fields for cost and power consumption that expect numerical input.
+
+At the bottom above the navigation buttons is a status bar. If something goes wrong or doesn't react, the status bar is the first place to check as it displays most of the error messages that may occur. (The next step would be to have a look at stdout.)
+
+Once you're happy with the parameters, clicking on _Go_ will transfer control to the simulation, wait for it to terminate, and displayy the results on the next page.
+
+=== Dressing the Barrels ===
+
+The dropdown menu to the far left lists the barrels found in the chosen geometry by name. The current selection in this menu controls the rest of the layer options.
+
+The related list boxes to the right displays the number of layers in the chosen barrel. Since this number is known in advance, the layer box is read-only. Selecting a layer controls what is shown in the spinners and module type list box, however.
+
+You can adjust the number of chips and segments on a single module _per layer_ by changing the values in those spinners. The module type list box is there to select the type of the modules (single sided or _rphi_, double sided or _stereo_, or _pt_), also per layer. 
+
+*N.B.* If the default options for the modules in the selected geometry have never been changed and saved, some of the layers may not yet have a type assigned to them. It may be worth noting that, once a type has been selected, it will be very easy to change it but quite complicated to go back to _none_ because it is not possible to simply toggle the selection. So - if you want to leave some of the layer types unassigned on purpose (for whatever reason) it's probably best to think about which ones they're going to be beforehand.
+
+=== Dressing the Endcaps ===
+
+As in the layer options, the ring options box starts with a dropdown menu of endcap names that control the rest of the box. Unlike the barrels and layers case, the number of rings is not known beforehand, though, but calculated during the simulation.
+
+So the ring options for a chosen endcap work as follows. If the endcap is submitted to the simulation with no rings at all, it doesn't mean that there will be none in the end result. It means there will be no _dressed_ rings. So what you do by adding rings to your configuration is in fact listing those that have module options set by you, while all the others will use default values. If you add more rings than the simulation will construct for the end result, the settings for those redundant rings will be ignored.
+
+You add a ring, not surprisingly, by clicking the *+* button below the list box. You can delete the last ring on the list by clicking the *-* button. A newly added ring has default values for the number of chips and segments on its modules, and no type. You can then adjust those settings as you would those for a layer module.
+
+=== The _Settings_ Menu ===
+
+So far, no change that was made to the configuration of the chosen geometry has been permanent. The settings menu allows you to save, load, overwrite and restore your own settings.
+
+*Initial Defaults:* If you don't need to load settings from file but just want to go back to the configuration as it was when the application started, this menu entry will make it happen. There are no files involved at this point, the configuration is simply read from a cache that was initialised as the application loaded the resources.
+
+*Load Settings...:* Since the simulation in the background uses two different config files, you have to load two files as well if you want to apply a saved configuration to your geometry. So choose the file with the geometry settings first, click _Ok_, then choose the file that dresses the modules from the second dialog that pops up immediately after the first. The changes are applied immediately, and visible on the parameter page. Clicking on _Cancel_ in any of the two popups will terminate the entire load action immediately.
+
+*Save Settings...:* Much like the _Load Settings..._ menu entry, this one uses two popups, one after the other, to write the complete configuration to the correct files. You state or choose a name for the geometry configuration file in the first popup, and do the same for the module settings in the second one. Again, clicking _Cancel_ in any of the two popups will terminate the entire action.
+
+*Save As Default:* Clicking on this menu entry will overwrite the files _defaultgeometry.cfg_ and _defaultsettings.cfg_ in the _settings_ subfolder of the selected geometry with the configuration currently displayed on the screen. Since the startup configuration is read from these two for each available geometry, this amounts to setting new starting values for the parameters.
+
+*Restore Default Files:* This menu entry acts as a sort of insurance in case you save a default configuration that you're not happy about for some reason. It will replace the _entire_ contents of _defaultgeometry.cfg_ and _defaultsettings.cfg_ with those of _geometry.cfg_ and _settings.cfg_, respectively, from the resource directory for the chosen geometry. After that, the defaults are back to what they were when the application was first installed.
+
+*N.B.* Do _not_ modify _geometry.cfg_ or _settings.cfg_ unless you really know what you're doing. If you don't, you will in all likelihood get what you deserve.
+
+== Summary Page ==
+
+After the simulation has come to an end, you'll be able to examine the results here. If you like what you see, you can go back to the parameter page and save the configuration from there. If you don't, you can go back to adjust the parameters or start from scratch and choose a different model from the geometry page.
+
+*N.B.* Clicking on _Done_ or _Cancel_ will remove all of the generated output files. Going back to the parameter page and saving the settings there is the _only_ way of saving a configuration for later. The reason for this behaviour is that the configuration files can be named by the user (as opposed to being auto-generated), take up the least space and allow a user to reproduce the results themselves reliably anyway.
