@@ -27,7 +27,7 @@ This is the centrepiece of the user interface. It displays all of the customisab
 
 At the bottom above the navigation buttons is a status bar. If something goes wrong or doesn't react, the status bar is the first place to check as it displays most of the error messages that may occur. (The next step would be to have a look at stdout.)
 
-Once you're happy with the parameters, clicking on _Go_ will transfer control to the simulation, wait for it to terminate, and displayy the results on the next page.
+Once you're happy with the parameters, clicking on _Go_ will transfer control to the simulation, wait for it to terminate, and display the results in a popup window.
 
 === Dressing the Barrels ===
 
@@ -41,11 +41,15 @@ You can adjust the number of chips and segments on a single module _per layer_ b
 
 === Dressing the Endcaps ===
 
-As in the layer options, the ring options box starts with a dropdown menu of endcap names that control the rest of the box. Unlike the barrels and layers case, the number of rings is not known beforehand, though, but calculated during the simulation.
+As in the layer options, the ring options box starts with a dropdown menu of endcap names that control the rest of the box. Since the number of discs is a property of the selected endcap, there is an additional dropdown menu that lets you choose the disc you want to look at. Unlike the barrels and layers case, the number of rings is not known beforehand, though, but calculated during the simulation.
 
 So the ring options for a chosen endcap work as follows. If the endcap is submitted to the simulation with no rings at all, it doesn't mean that there will be none in the end result. It means there will be no _dressed_ rings. So what you do by adding rings to your configuration is in fact listing those that have module options set by you, while all the others will use default values. If you add more rings than the simulation will construct for the end result, the settings for those redundant rings will be ignored.
 
 You add a ring, not surprisingly, by clicking the *+* button below the list box. You can delete the last ring on the list by clicking the *-* button. A newly added ring has default values for the number of chips and segments on its modules, and no type. You can then adjust those settings as you would those for a layer module.
+
+Rings do not directly depend on discs, in the sense that the number of dressed rings is set per endcap, not per disc. So a ring that has been added to the list will appear on the list of rings for _every_ disc. The values of the parameters _chips across_ and _segments along_, as well as the module type, can (and should) be set separately for each _(disc,ring)_ combination, though.
+
+This is potentially tedious so it makes sense to set your preferred defaults for the rings across the endcap discs and then save the configuration to file before customising any further. This way, you can load a base configuration defined by you the next time you play around with that particular geometry.
 
 === The _Settings_ Menu ===
 
@@ -63,8 +67,12 @@ So far, no change that was made to the configuration of the chosen geometry has 
 
 *N.B.* Do _not_ modify _geometry.cfg_ or _settings.cfg_ by hand unless you really know what you're doing. If you don't, you will in all likelihood get what you deserve.
 
-== Summary Page ==
+== Summary Popup ==
 
-After the simulation has come to an end, you'll be able to examine the results here. If you like what you see, you can go back to the parameter page and save the configuration from there. If you don't, you can go back to adjust the parameters or start from scratch and choose a different model from the geometry page.
+After the simulation has come to an end, you'll be able to examine the results here. The popup is non-modal and will stay open until you either close it explicitly, or close the entire application.
 
-*N.B.* Clicking on _Done_ or _Cancel_ will remove all of the generated output files. Going back to the parameter page and saving the settings there is the _only_ way of saving a configuration for later. The reason for this behaviour is that the configuration files can be named by the user (as opposed to being auto-generated), take up the least space and still allow a user to reproduce the results themselves reliably.
+If you like what you see, you can save the summary with the _Save..._ button. It will open a file dialog where you give it a directory name that you want to keep the files in. You should choose a separate directory for each saved summary: the files that make up the HTML page have standard names. So saving them in a directory that already contains older summary files, the new batch will overwrite the old one.
+
+If the results are not what you expected, you can go back to the parameter page to adjust the parameters or start from scratch and choose a different model from the geometry page. The new summary will replace the old popup contents once the simulation has finished. If you closed the popup, it will reappear.
+
+*N.B.* Clicking on _Done_ or _Cancel_ in the main GUI or _Close_ in the popup will remove all of the generated output files. The _only_ way of saving results summaries is by using the _Save..._ button in the summary popup. However, a better way of saving a configuration for later is often to use the _Save Settings..._ entry in the _Settings..._ menu on the parameter page: if you keep the configuration, you can reproduce the result. So unless you need the results to show them to someone, saving the configuration is a much more organised way of keeping track of settings since it can be used as a starting point for further experimentation.
