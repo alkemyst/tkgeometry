@@ -1,4 +1,4 @@
-#summary Quick start guide for the Tracker Geometry user interface
+#summary Quick start user guide for the Tracker Geometry user interface
 
 = Introduction =
 
