@@ -1,13 +1,40 @@
 #summary Quick start user guide for the Tracker Geometry user interface
 
-= Introduction =
+= Overview =
 
 The following notes provide instructions on how to play with the tracker geometry GUI. Unless you know what you're doing, this is the preferred method of interacting with the tracker geometry simulation tool.
 
+-----
+-----
 
-= Details =
+= The Fiddly Bits =
 
 The GUI is a wizard-style interface intended to take you through the configuration and simulation of a chosen tracker geometry in three steps. The geometries themselves cannot be changed.
+
+== Dependencies ==
+
+Besides Linux, you will need:
+
+  * The _boost_ libraries for the simulation
+  * _Qt 3.3.8b_ or up for the GUI
+  * A working copy of _root_
+
+== Installation and Setup ==
+
+Check out the sources from Google Code:
+
+`svn checkout http://tkgeometry.googlecode.com/svn/trunk/ tkgeometry`
+
+Go to `tkgeometry/` and compile the project by typing `make`.
+
+Run the GUI by executing the `./play.sh` script.
+
+-----
+-----
+
+= The User Interface =
+
+The rest of the page will take you through the various choices and options included in the GUI.
 
 == Geometry Page ==
 
@@ -20,6 +47,8 @@ The page displays the following information about the chosen geometry:
  * A short text description of the geometry.
 
 *N.B.* Both of these are optional. If either or both are missing, don't panic - they are information pieces with no real impact on the simulation. It's quite likely that the rest of the application will still load and run without problems. The only problem that you will be guaranteed to face is that you may have to guess what the chosen geometry looks like...
+
+-----
 
 == Parameter Page ==
 
@@ -66,6 +95,8 @@ So far, no change that was made to the configuration of the chosen geometry has 
 *Restore Default Files:* This menu entry acts as a sort of insurance in case you save a default configuration that you're not happy about for some reason. It will replace the _entire_ contents of _defaultgeometry.cfg_ and _defaultsettings.cfg_ with those of _geometry.cfg_ and _settings.cfg_, respectively, from the resource directory for the chosen geometry. After that, the defaults are back to what they were when the application was first installed.
 
 *N.B.* Do _not_ modify _geometry.cfg_ or _settings.cfg_ by hand unless you really know what you're doing. If you don't, you will in all likelihood get what you deserve.
+
+-----
 
 == Summary Popup ==
 
