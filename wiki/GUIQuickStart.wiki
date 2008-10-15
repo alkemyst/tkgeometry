@@ -2,20 +2,20 @@
 
 = Overview =
 
-The following notes provide instructions on how to play with the tracker geometry GUI. Unless you know what you're doing, this is the preferred method of interacting with the tracker geometry simulation tool.
+The following notes provide instructions on how to play with the tracker geometry GUI. Unless you know what you're doing, this is the preferred method of interacting with the tracker geometry generation tool.
 
 -----
 -----
 
 = The Fiddly Bits =
 
-The GUI is a wizard-style interface intended to take you through the configuration and simulation of a chosen tracker geometry in three steps. The geometries themselves cannot be changed.
+The GUI is a wizard-style interface intended to take you through the configuration and generation of a chosen tracker geometry in three steps. The geometries themselves cannot be changed.
 
 == Dependencies ==
 
 Besides Linux, you will need:
 
-  * The _boost_ libraries for the simulation
+  * The _boost_ libraries for the geometry generator
   * _Qt 3.3.8b_ or up for the GUI
   * A working copy of _root_
 
@@ -70,7 +70,7 @@ You can adjust the number of chips and segments on a single module _per layer_ b
 
 === Dressing the Endcaps ===
 
-As in the layer options, the ring options box starts with a dropdown menu of endcap names that control the rest of the box. Since the number of discs is a property of the selected endcap, there is an additional dropdown menu that lets you choose the disc you want to look at. Unlike the barrels and layers case, the number of rings is not known beforehand, though, but calculated during the simulation.
+As in the layer options, the ring options box starts with a dropdown menu of endcap names that control the rest of the box. Since the number of discs is a property of the selected endcap, there is an additional dropdown menu that lets you choose the disc you want to look at. Unlike the barrels and layers case, the number of rings is not known beforehand, though, but calculated while generating the geometry.
 
 So the ring options for a chosen endcap work as follows. If the endcap is submitted to the simulation with no rings at all, it doesn't mean that there will be none in the end result. It means there will be no _dressed_ rings. So what you do by adding rings to your configuration is in fact listing those that have module options set by you, while all the others will use default values. If you add more rings than the simulation will construct for the end result, the settings for those redundant rings will be ignored.
 
@@ -100,10 +100,10 @@ So far, no change that was made to the configuration of the chosen geometry has 
 
 == Summary Popup ==
 
-After the simulation has come to an end, you'll be able to examine the results here. The popup is non-modal and will stay open until you either close it explicitly, or close the entire application.
+After the geometry with the chosen settings has been generated, you'll be able to examine the results here. The popup is non-modal and will stay open until you either close it explicitly, or close the entire application.
 
 If you like what you see, you can save the summary with the _Save..._ button. It will open a file dialog where you give it a directory name that you want to keep the files in. You should choose a separate directory for each saved summary: the files that make up the HTML page have standard names. So saving them in a directory that already contains older summary files, the new batch will overwrite the old one.
 
-If the results are not what you expected, you can go back to the parameter page to adjust the parameters or start from scratch and choose a different model from the geometry page. The new summary will replace the old popup contents once the simulation has finished. If you closed the popup, it will reappear.
+If the results are not what you expected, you can go back to the parameter page to adjust the parameters or start from scratch and choose a different model from the geometry page. The new summary will replace the old popup contents once the geometry generator has finished. If you closed the popup, it will reappear.
 
 *N.B.* Clicking on _Done_ or _Cancel_ in the main GUI or _Close_ in the popup will remove all of the generated output files. The _only_ way of saving results summaries is by using the _Save..._ button in the summary popup. However, a better way of saving a configuration for later is often to use the _Save Settings..._ entry in the _Settings..._ menu on the parameter page: if you keep the configuration, you can reproduce the result. So unless you need the results to show them to someone, saving the configuration is a much more organised way of keeping track of settings since it can be used as a starting point for further experimentation.
