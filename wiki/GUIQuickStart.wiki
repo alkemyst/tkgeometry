@@ -25,6 +25,12 @@ Check out the sources from Google Code:
 
 `svn checkout http://tkgeometry.googlecode.com/svn/trunk/ tkgeometry`
 
+*or*
+
+Download the tarball from the [http://code.google.com/p/tkgeometry/downloads/list download page] and unpack it with:
+
+`tar zxvf tkgeometry_1_0.tar.gz`
+
 Go to `tkgeometry/` and compile the project by typing `make`.
 
 Run the GUI by executing the `./play.sh` script.
