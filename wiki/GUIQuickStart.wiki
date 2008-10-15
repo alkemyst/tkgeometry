@@ -31,6 +31,8 @@ Download the tarball from the [http://code.google.com/p/tkgeometry/downloads/lis
 
 `tar zxvf tkgeometry_1_0.tar.gz`
 
+Regardless of the method you used to get the code, you should now have a new directory `tkgeometry/`.
+
 Go to `tkgeometry/` and compile the project by typing `make`.
 
 Run the GUI by executing the `./play.sh` script.
