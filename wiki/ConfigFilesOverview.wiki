@@ -1,0 +1,15 @@
+#summary An overview of the different configuration files with links to more detailed pages.
+
+= Configuration Files in _tkgeometry_ and _tkmaterial_ =
+
+When using the command line to run _tkgeometry_ or _tkmaterial_, the configuration files describing the geometry, the module settings and the involved materials of a specific tracker model are key. They allow the user to customise and fine-tune the model until it fits a given set of requirements, or to compare and contrast different options when modelling tracker properties.
+
+The granularity of these options goes from fairly coarse to fairly fine. It is possible to change the number of barrels or endcaps, or the number of layers and discs per barrel and endcap. The size of a barrel or endcap, or the distance between barrels and endcaps can be modified. The number of strips or segments on a module can be adjusted by layer, by disc or by ring, as can its type. Finally, the list and the amount of materials needs to be specified by module type, by service or support structure category and by classifying it as a local or as a travelling component.
+
+All of these options are bundled in the configuration files. The geometry configuration file describes the large-scale structure of the tracker. The settings file looks at layout variations for differents types of modules. And the material file assigns a mixture of physical components - and therefore weight - to the various available volume categories.
+
+= The Geometry Configuration File =
+
+= The Settings File =
+
+= The Material File =
