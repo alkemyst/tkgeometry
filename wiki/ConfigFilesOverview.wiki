@@ -14,20 +14,40 @@ All of these options are bundled in the configuration files. The geometry config
 
 Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces.
 
+--Tracker block
+
+--Barrel block
+
+--Endcap block
+
+--Support block
+
 ---
 
 = The Settings File =
+
+--BarrelType block
+
+--EndcapType block
 
 ---
 
 = The Material File =
 
 --type keyword
+
 --nStripsAcross keyword
+
 --nSegments keyword
+
 --L/E marker
+
 --units
+
 --M marker
+
 --S marker
+
 --D marker
+
 --V/W/X/Y/Z markers (one each)
