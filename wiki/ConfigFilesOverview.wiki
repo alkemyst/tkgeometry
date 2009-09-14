@@ -8,10 +8,26 @@ The granularity of these options goes from fairly coarse to fairly fine. It is p
 
 All of these options are bundled in the configuration files. The geometry configuration file describes the large-scale structure of the tracker. The settings file looks at layout variations for differents types of modules. And the material file assigns a mixture of physical components - and therefore weight - to the various available volume categories.
 
+---
+
 = The Geometry Configuration File =
 
 Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces.
 
+---
+
 = The Settings File =
 
+---
+
 = The Material File =
+
+--type keyword
+--nStripsAcross keyword
+--nSegments keyword
+--L/E marker
+--units
+--M marker
+--S marker
+--D marker
+--V/W/X/Y/Z markers (one each)
