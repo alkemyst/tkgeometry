@@ -8,19 +8,55 @@ The granularity of these options goes from fairly coarse to fairly fine. It is p
 
 All of these options are bundled in the configuration files. The geometry configuration file describes the large-scale structure of the tracker. The settings file looks at layout variations for differents types of modules. And the material file assigns a mixture of physical components - and therefore weight - to the various available volume categories.
 
+_All configuration files are case sensitive._ They support both C-style and shell-style comments starting with '//' and '#', respectively. As expected, everything after the comment sign is ignored until the end of the line is reached.
+
 ---
 
 = The Geometry Configuration File =
 
 Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces.
 
---Tracker block
+*_Tracker_ block*
 
---Barrel block
+The tracker block must be declared before all other components. There is exactly one such block in a geometry configuration file - no more, no less. Generally speaking, it looks something like this:
 
---Endcap block
+Tracker _trackername_ {
+   zError = _value_;
+   smallDelta = _value_;
+   bigDelta = _value_;
+   overlap = _value_;
+   etaCut = _value_;
+   ptCost = _value_;
+   stripCost = _value_;
+   ptPower = _value_;
+   stripPower = _value_;
+}
 
---Support block
+Whitespace is usually ignored, semicolons and curly braces are used as delimiters for parsing. The parameters describe the following properties:
+
+_zError_: 
+
+_smallDelta_: 
+
+_bigDelta_: 
+
+_overlap_: 
+
+_etaCut_: 
+
+_ptCost_: 
+
+_stripCost_: 
+
+_ptPower_: 
+
+_stripPower_: 
+
+*_Barrel_ block*
+
+*_Endcap_ block*
+
+*_Support_ block*
 
 ---
 
