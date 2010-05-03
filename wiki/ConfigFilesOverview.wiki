@@ -36,7 +36,7 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 
 *zError*:
 
-*smallDelta*:
+*smallDelta*: This describes the distance in Rho of two adjacent modules on the same rod. Namely, the _centre-to-centre_ distance of the two. Since this is a global default value for the entire tracker, it needs to be chosen in a way that prevents collisions in double-sided modules (which have another customisable distance between their two sensor surfaces). A re-declaration of this value in a _Barrel_ block for a specific layer will override the default for that layer. (Endcap solution pending...)
 
 *bigDelta*:
 
@@ -44,13 +44,13 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 
 *etaCut*:
 
-*ptCost*:
+*ptCost*: The estimated cost of a sqare cm of pt module, in CHF.
 
-*stripCost*:
+*stripCost*: The estimated cost of a sqare cm of rphi strip module, in CHF.
 
-*ptPower*:
+*ptPower*: The estimated power consumption in mW for a single channel on a pt module.
 
-*stripPower*:
+*stripPower*: The estimaded power consumption in mW for a single cannel on a rphi strip module.
 
 ==_Barrel_ block==
 
