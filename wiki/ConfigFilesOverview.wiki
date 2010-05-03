@@ -34,23 +34,23 @@ Tracker _trackername_ {
 
 Whitespace is usually ignored, semicolons and curly braces are used as delimiters for parsing. The parameters describe the following properties:
 
-===zError===
+*_zError_*:
 
-===smallDelta=== 
+*_smallDelta_*:
 
-===bigDelta===
+*_bigDelta_*:
 
-===overlap===
+*_overlap_*:
 
-===etaCut===
+*_etaCut_*:
 
-===ptCost===
+*_ptCost_*:
 
-===stripCost===
+*_stripCost_*:
 
-===ptPower===
+*_ptPower_*:
 
-===stripPower===
+*_stripPower_*:
 
 ==_Barrel_ block==
 
