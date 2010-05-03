@@ -10,7 +10,7 @@ All of these options are bundled in the configuration files. The geometry config
 
 _All configuration files are case sensitive._ They support both C-style and shell-style comments starting with '//' and '#', respectively. As expected, everything after the comment sign is ignored until the end of the line is reached.
 
----
+----
 
 = The Geometry Configuration File =
 
@@ -58,7 +58,7 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 
 ==_Support_ block==
 
----
+----
 
 = The Settings File =
 
@@ -66,7 +66,7 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 
 --EndcapType block
 
----
+----
 
 = The Material File =
 
