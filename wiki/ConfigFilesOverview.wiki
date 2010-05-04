@@ -14,7 +14,7 @@ _All configuration files are case sensitive._ They support both C-style and shel
 
 = The Geometry Configuration File =
 
-Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces.
+Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces. All numerical values are in _mm_ unless specified explicitly.
 
 _As a rule, layer or disc indices start at 1._
 
@@ -44,11 +44,11 @@ Tracker _trackername_ {
 
 Whitespace is usually ignored, semicolons and curly braces are used as delimiters for parsing. The parameters describe the following properties:
 
-*zError*:
+*zError*: The range of z+ around the origin where a collision is most likely to occur. This value has an influence on how the modules in a layer or disc are laid out with respect to overlap.
 
-*smallDelta*: This describes the distance in Rho of two adjacent modules on the same rod. Namely, the _centre-to-centre_ distance of the two. Since this is a global default value for the entire tracker, it needs to be chosen in a way that prevents collisions between double-sided modules (which have another customisable distance between their two sensor surfaces). A re-declaration of this value in a _Barrel_ block for a specific layer will override the default for that layer. (Endcap solution pending...)
+*smallDelta*: This describes the half the distance in Rho of two adjacent modules on the same rod. Namely, the _centre-to-centre_ distance of the two. Since this is a global default value for the entire tracker, it needs to be chosen in a way that prevents collisions between double-sided modules (which have another customisable distance between their two sensor surfaces). A re-declaration of this value in a _Barrel_ block for a specific layer will override the default for that layer. (Endcap solution pending...)
 
-*bigDelta*:
+*bigDelta*: similar to _smallDelta_, this gives half the centre-to-centre distance of two rods in the same layer. The value in the _Tracker_ block is a global default that can be overridden by a re-declaration for a specific layer in one of the _Barrel_ blocks. (Endcap solution pending...)
 
 *overlap*:
 
