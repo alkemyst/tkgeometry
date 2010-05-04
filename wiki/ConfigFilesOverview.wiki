@@ -52,7 +52,7 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 
 *overlap*: The minimum overlap in z for two adjacent modules.
 
-*etaCut*: 
+*etaCut*: The eta range that should be covered by the sensor surfaces. Modules created outside etaCut are discarded in the final layout.
 
 *ptCost*: The estimated cost of a _sqare cm_ of pt module, in _CHF_.
 
