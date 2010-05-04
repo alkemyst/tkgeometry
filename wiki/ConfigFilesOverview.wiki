@@ -70,7 +70,7 @@ A Barrel block bundles a number of parameters related to how the layer geometry 
 
 Barrel blocks may appear _after_ the tracker block _in any order_. There must be _at least one_, but there is _no upper limit_. The barrels that these blocks describe are built up in the order of the blocks as they appear in the configuration file. This order is completely up to the user - as is the responsibility to make sure they more or less fit together.
 
-_tkgeometry_ supports various types of layers.
+_tkgeometry_ supports various types of layers. The standard one goes across z=0 and extends to the same length into z+ and z-. Short layers that lie entirely to one side of z=0 are also possible, as well as declaring a layer _stacked_, i.e. duplicating it at a radius very close to that of the original to obtain a layer pair. All of these things can be combined to cover a range of layouts.
 
 ==_Endcap_ block==
 
