@@ -72,6 +72,49 @@ Barrel blocks may appear _after_ the tracker block _in any order_. There must be
 
 _tkgeometry_ supports various types of layers. The standard one goes across z=0 and extends to the same length into z+ and z-. Short layers that lie entirely to one side of z=0 are also possible, as well as declaring a layer _stacked_, i.e. duplicating it at a radius very close to that of the original to obtain a layer pair. All of these things can be combined to cover a range of layouts.
 
+A barrel block looks more or less like this:
+
+Barrel _barrelname_ {
+
+   //mandatory
+
+   nLayers = _value_;
+
+   nModules = _value_;
+
+   innerRadius = _value_;
+
+   outerRadius = _value_;
+
+   //optional
+
+   aspectRatio = _value_;
+
+   minimumZ = _value_;
+
+   phiSegments = _value_;
+
+   smallDelta[_layerindex_] = _value;
+
+   option = Stacked;
+}
+
+The mandatory parameters have the following meaning:
+
+*_barrelname_*:
+
+*nLayers*: 
+
+*nModules*: 
+
+*innerRadius*: 
+
+*outerRadius*: 
+
+The optional parameters are explained below:
+
+*aspectRatio*: 
+
 ==_Endcap_ block==
 
 ==_Support_ block==
