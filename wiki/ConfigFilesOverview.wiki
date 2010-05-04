@@ -44,6 +44,8 @@ Tracker _trackername_ {
 
 Whitespace is usually ignored, semicolons and curly braces are used as delimiters for parsing. The parameters describe the following properties:
 
+*_trackername_*: This is the name that will be given to the entire layout. It may also be used to name output (directories or files) in some cases.
+
 *zError*: The range of z+ around the origin where a collision is most likely to occur. This value has an influence on how the modules in a layer or disc are laid out: specifically, with respect to overlap.
 
 *smallDelta*: This describes the half the distance in Rho of two adjacent modules on the same rod. Namely, the _centre-to-centre_ distance of the two. Since this is a global default value for the entire tracker, it needs to be chosen in a way that prevents collisions between double-sided modules (which have another customisable distance between their two sensor surfaces). A re-declaration of this value in a _Barrel_ block for a specific layer will override the default for that layer. (Endcap solution pending...)
@@ -63,6 +65,12 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 *stripPower*: The estimaded power consumption _in mW_ for a single cannel on a rphi strip module.
 
 ==_Barrel_ block==
+
+A Barrel block bundles a number of parameters related to how the layer geometry should look.
+
+Barrel blocks may appear after the tracker block in any order. There must be at least one, but there is no upper limit. The barrels that these blocks describe are built up in the order of the blocks as they appear in the configuration file. This order is completely up to the user - as is the responsibility to make sure they more or less fit together.
+
+_tkgeometry_ supports various types of layers.
 
 ==_Endcap_ block==
 
