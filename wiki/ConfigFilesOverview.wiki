@@ -68,7 +68,7 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 
 A Barrel block bundles a number of parameters related to how the layer geometry should look. It says next to nothing definitive about the modules in them. Anything apart from their surface aspect ratio, their number along a rod and some options that help the layer building algorithms optimise their placement is left to the settings file. What the barrel block mainly does is define the dimensions of the barrel itself and give some information about positioning the layers within.
 
-Barrel blocks may appear after the tracker block in any order. There must be at least one, but there is no upper limit. The barrels that these blocks describe are built up in the order of the blocks as they appear in the configuration file. This order is completely up to the user - as is the responsibility to make sure they more or less fit together.
+Barrel blocks may appear _after_ the tracker block _in any order_. There must be _at least one_, but there is _no upper limit_. The barrels that these blocks describe are built up in the order of the blocks as they appear in the configuration file. This order is completely up to the user - as is the responsibility to make sure they more or less fit together.
 
 _tkgeometry_ supports various types of layers.
 
