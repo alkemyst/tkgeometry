@@ -24,13 +24,21 @@ The tracker block must be declared before all other components. There is exactly
 
 Tracker _trackername_ {
    zError = _value_;
+
    smallDelta = _value_;
+
    bigDelta = _value_;
+
    overlap = _value_;
+
    etaCut = _value_;
+
    ptCost = _value_;
+
    stripCost = _value_;
+
    ptPower = _value_;
+
    stripPower = _value_;
 }
 
