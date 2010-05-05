@@ -94,7 +94,7 @@ Barrel _barrelname_ {
 
    phiSegments = _value_;
 
-   smallDelta[_layerindex_] = _value;
+   smallDelta{{{[}}}_layerindex_{{{]}}} = _value;
 
    option = Stacked;
 }
