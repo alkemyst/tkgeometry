@@ -115,6 +115,20 @@ The optional parameters are explained below:
 
 *aspectRatio*: 
 
+*minimumZ*: 
+
+*phiSegments*: (barrel-wide division!)
+
+*smallDelta*: 
+
+*bigDelta*: 
+
+*size*: 
+
+*option*: 
+
+*directive*: 
+
 ==_Endcap_ block==
 
 ==_Support_ block==
