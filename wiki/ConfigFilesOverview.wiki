@@ -155,11 +155,11 @@ The default directive for all layers is *A*.
 
 = The Settings File =
 
-==BarrelType Block==
+==_BarrelType_ Block==
 
 ----
 
-==EndcapType Block==
+==_EndcapType Block_==
 
 ----
 ----
@@ -169,6 +169,8 @@ The default directive for all layers is *A*.
 --units
 
 --L/E marker
+
+----
 
 ==Modules==
 
@@ -183,11 +185,15 @@ The default directive for all layers is *A*.
 
 --M marker (A, B, C, D division)
 
+----
+
 ==Services==
 
 --S marker (static)
 
 --D marker (mapping)
+
+----
 
 ==Supports==
 
