@@ -105,9 +105,9 @@ The mandatory parameters have the following meaning:
 
 *_barrelname_*: The name of the barrel. Can be any alphanumeric string. Mostly to identify individual barrels to the user.
 
-*nLayers*: The number of layers in the barrel.
+*nLayers*: The number of layers in the barrel. The first and last of them are built up around _innerRadius_ and _outerRadius_, respectively. The rest is distributed at equal intervals in between, taking into account constraints from directives and other options.
 
-*nModules*: 
+*nModules*: The number of modules in z+ on a single rod. In other words, half the number of modules across the full length of a layer.
 
 *innerRadius*: 
 
