@@ -119,11 +119,11 @@ The optional parameters are explained below:
 
 *minimumZ*: If this parameter is given as anything greater than zero, it means that the barrel layers are short and don't cross z=0. The given value then indicates the _starting point of a rod_. The number of modules given in mandatory parameter _nModules_ is then placed from there on outwards (in z). A mirror image of the layer is later built up in z-. If the parameter is omitted, the application assumes a standard layer crossing z=0 and places the first module on a rod around the origin, covering both z+ and z- outward from there.
 
-*phiSegments*: (barrel-wide division!)
+*phiSegments*: The number of symmetric segments that make up a full circle for a layer cylinder. Note that this is a _barrel-wide_ division - the individual layers are split up according to the same rule so that the entire barrel comes apart in wedges of equal size. The _default is 4_.
 
-*smallDelta*: 
+*smallDelta*: If defined, this parameter overrides the global value from the _Tracker_ block for the layer given by _layerindex_.
 
-*bigDelta*: 
+*bigDelta*: Similar to _smallDelta_, this overrides the global value from the _Tracker_ block for the layer given by _layerindex_.
 
 *size*: 
 
