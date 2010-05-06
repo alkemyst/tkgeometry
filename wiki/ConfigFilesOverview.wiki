@@ -11,6 +11,7 @@ All of these options are bundled in the configuration files. The geometry config
 _All configuration files are case sensitive._ They support both C-style and shell-style comments starting with '//' and '#', respectively. As expected, everything after the comment sign is ignored until the end of the line is reached.
 
 ----
+----
 
 = The Geometry Configuration File =
 
@@ -18,7 +19,7 @@ Geometry configuration files are structured as a series of blocks. Each of these
 
 _As a rule, layer or disc indices start at 1._
 
-==_Tracker_ block==
+==_Tracker_ Block==
 
 The tracker block must be declared before all other components. It lists a number of global parameters and geometry settings of the overall tracker layout. There is exactly one such block in a geometry configuration file - no more, no less. Generally speaking, it looks something like this:
 
@@ -66,7 +67,9 @@ Whitespace is usually ignored, semicolons and curly braces are used as delimiter
 
 *stripPower*: The estimaded power consumption _in mW_ for a single cannel on a rphi strip module.
 
-==_Barrel_ block==
+----
+
+==_Barrel_ Block==
 
 A Barrel block bundles a number of parameters related to how the layer geometry should look. It says next to nothing definitive about the modules in them. Anything apart from their surface aspect ratio, their number along a rod and some options that help the layer building algorithms optimise their placement is left to the settings file. What the barrel block mainly does is define the dimensions of the barrel itself and give some information about positioning the layers within.
 
@@ -139,36 +142,53 @@ Barrel _barrelname_ {
 
 The default directive for all layers is *A*.
 
-==_Endcap_ block==
+----
 
-==_Support_ block==
+==_Endcap_ Block==
 
+----
+
+==_Support_ Block==
+
+----
 ----
 
 = The Settings File =
 
---BarrelType block
+==BarrelType Block==
 
---EndcapType block
+----
 
+==EndcapType Block==
+
+----
 ----
 
 = The Material File =
 
+--units
+
+--L/E marker
+
+==Modules==
+
+===Types===
 --type keyword
 
 --nStripsAcross keyword
 
 --nSegments keyword
 
---L/E marker
+===Materials===
 
---units
+--M marker (A, B, C, D division)
 
---M marker
+==Services==
 
---S marker
+--S marker (static)
 
---D marker
+--D marker (mapping)
+
+==Supports==
 
 --V/W/X/Y/Z markers (one each)
