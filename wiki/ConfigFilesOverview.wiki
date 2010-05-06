@@ -117,7 +117,7 @@ The optional parameters are explained below:
 
 *aspectRatio*: This defines the shape and size of a module since the diameter of a round wafer is always the same. The _default is 1.0_, i.e. square modules.
 
-*minimumZ*: If this parameter is given as anything greater than zero, it means that the barrel layers are short and don't cross z=0.
+*minimumZ*: If this parameter is given as anything greater than zero, it means that the barrel layers are short and don't cross z=0. The given value then indicates the _starting point of a rod_. The number of modules given in mandatory parameter _nModules_ is then placed from there on outwards (in z). A mirror image of the layer is later built up in z-. If the parameter is omitted, the application assumes a standard layer crossing z=0 and places the first module on a rod around the origin, covering both z+ and z- outward from there.
 
 *phiSegments*: (barrel-wide division!)
 
