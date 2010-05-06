@@ -101,9 +101,9 @@ Barrel _barrelname_ {
 
 The mandatory parameters have the following meaning:
 
-*_barrelname_*:
+*_barrelname_*: The name of the barrel. Can be any alphanumeric string. Mostly to identify individual barrels to the user.
 
-*nLayers*: 
+*nLayers*: The number of layers in the barrel.
 
 *nModules*: 
 
