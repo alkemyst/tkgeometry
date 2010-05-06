@@ -42,7 +42,9 @@ Tracker _trackername_ {
    stripPower = _value_;
 }
 
-Whitespace is usually ignored, semicolons and curly braces are used as delimiters for parsing. The parameters describe the following properties:
+Whitespace is usually ignored, semicolons and curly braces are used as delimiters for parsing. 
+
+===Parameters===
 
 *_trackername_*: This is the name that will be given to the entire layout. It may also be used to name output (directories or files) in some cases.
 
@@ -101,7 +103,7 @@ Barrel _barrelname_ {
    option{{{[}}}_layerindex_{{{]}}} = Stacked;
 }
 
-===The mandatory parameters have the following meaning:===
+===Mandatory Parameters===
 
 *_barrelname_*: The name of the barrel. Can be any alphanumeric string. Mostly to identify individual barrels to the user.
 
@@ -113,7 +115,7 @@ Barrel _barrelname_ {
 
 *outerRadius*: The maximum radius of the barrel and the average radius of the last layer.
 
-===The optional parameters are explained below:===
+===Optional Parameters===
 
 *aspectRatio*: This defines the shape and size of a module since the diameter of a round wafer is always the same. The _default is 1.0_, i.e. square modules.
 
