@@ -109,15 +109,15 @@ The mandatory parameters have the following meaning:
 
 *nModules*: The number of modules in z+ on a single rod. In other words, half the number of modules across the full length of a layer.
 
-*innerRadius*: 
+*innerRadius*: The minimum radius of the barrel and the average radius of the first layer.
 
-*outerRadius*: 
+*outerRadius*: The maximum radius of the barrel and the average radius of the last layer.
 
 The optional parameters are explained below:
 
-*aspectRatio*: 
+*aspectRatio*: This defines the shape and size of a module since the diameter of a round wafer is always the same. The _default is 1.0_, i.e. square modules.
 
-*minimumZ*: 
+*minimumZ*: If this parameter is given as anything greater than zero, it means that the barrel layers are short and don't cross z=0.
 
 *phiSegments*: (barrel-wide division!)
 
