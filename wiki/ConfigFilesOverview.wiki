@@ -79,7 +79,7 @@ _tkgeometry_ supports various types of layers. The standard one goes across z=0 
 
 The application uses default values for any optional parameters that are not specified explicitly.
 
-A barrel block looks more or less like this:
+A _Barrel_ block more or less looks like this:
 
 Barrel _barrelname_ {
 
@@ -148,7 +148,25 @@ The default directive for all layers is *A*.
 
 Like the _Barrel_ block, an _Endcap_ block bundles a number of parameters related to how the disc geometry should look while leaving most module specifics to the settings file. It defines the dimensions of the endcap itself and gives a few pointers towards how to distribute the modules within a disc.
 
-Also like the _Barrel_ blocks, endcaps can be declared _in any order_ as long as the declaration appears after the _Tracker_ block.
+Also like the _Barrel_ blocks, endcaps can be declared _in any order_ as long as the declaration appears after the _Tracker_ block. There is _no upper limit_ to the number of endcaps, but they're _not mandatory_ either: if none is defined, the application will simply produce a _barrel-only_ layout. Once again, their order in the configuration file and the responsibility to make them fit together is entirely up to the user.
+
+(what is declared is actually the z+ side of the endcap - the z- side is a mirror image of it; the number of rings is not given explicitly but computed internally from the size of the disc and the size of the modules; parameters given for ring indices that would place the ring outside the disc are ignored)
+
+As above, the application uses default values for any optional parameters that are not specified explicitly.
+
+An _Endcap_ block more or less looks like this:
+
+Endcap _endcapname_ {
+
+   //mandatory
+
+   //optional
+
+}
+
+===Mandatory Parameters===
+
+===Optional Parameters===
 
 ----
 
