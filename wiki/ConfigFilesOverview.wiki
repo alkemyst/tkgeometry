@@ -98,7 +98,7 @@ Barrel _barrelname_ {
 
    smallDelta{{{[}}}_layerindex_{{{]}}} = _value;
 
-   option = Stacked;
+   option{{{[}}}_layerindex_{{{]}}} = Stacked;
 }
 
 The mandatory parameters have the following meaning:
@@ -125,9 +125,9 @@ The optional parameters are explained below:
 
 *bigDelta*: Similar to _smallDelta_, this overrides the global value from the _Tracker_ block for the layer given by _layerindex_.
 
-*size*: 
+*size*: This defines the surface area of a module if the application should not simply use the entire wafer to create it. The combination of _aspectRatio_ and this parameter completely describes shape and size of a module in that case, while module size is implied by the size of the wafer in the standard one.
 
-*option*: 
+*option*: Currently, the only supported option is _Stacked_. This causes a layer to be duplicated at a short radial distance from the original, creating a layer pair. As an example, if the barrel has four layers and layer 3 is declared as stacked, the result will be layer 1 at _innerRadius_, layer 4 at _outerRadius_, layer 2 and _two copies_ of layer 3 in between: layer 2 at 1/3 of the radial range and the copies of layer 3 around 2/3 of the radial range.
 
 *directive*: 
 
