@@ -146,6 +146,10 @@ The default directive for all layers is *A*.
 
 ==_Endcap_ Block==
 
+Like the _Barrel_ block, an _Endcap_ block bundles a number of parameters related to how the disc geometry should look while leaving most module specifics to the settings file. It defines the dimensions of the endcap itself and gives a few pointers towards how to distribute the modules within a disc.
+
+Also like the _Barrel_ blocks, endcaps can be declared _in any order_ as long as the declaration appears after the _Tracker_ block.
+
 ----
 
 ==_Support_ Block==
