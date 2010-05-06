@@ -72,6 +72,8 @@ Barrel blocks may appear _after_ the tracker block _in any order_. There must be
 
 _tkgeometry_ supports various types of layers. The standard one goes across z=0 and extends to the same length into z+ and z-. Short layers that lie entirely to one side of z=0 are also possible, as well as declaring a layer _stacked_, i.e. duplicating it at a radius very close to that of the original to obtain a layer pair. All of these things can be combined to cover a range of layouts.
 
+The application uses default values for any optional parameters that are not specified explicitly.
+
 A barrel block looks more or less like this:
 
 Barrel _barrelname_ {
