@@ -182,7 +182,7 @@ Endcap _endcapname_ {
 
    phiSegments = _value_;
 
-   shape = _Wedge_ || _Rectangular_;
+   shape = _wedge_ || _rectangular_;
 
    directive = _value;
 
@@ -208,11 +208,11 @@ Endcap _endcapname_ {
 
 ===Optional Parameters===
 
-*aspectRatio*: 
+*aspectRatio*: This defines the shape and size of a module in combination since the diameter of a round wafer is always the same. The _default is 1.0_, i.e. same height and width.
 
 *phiSegments*: 
 
-*shape*: 
+*shape*: Using one of the two keywords _wedge_ and _wectangular_, this is another fundamental shape parameter.
 
 *directive*: 
 
