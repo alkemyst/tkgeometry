@@ -190,17 +190,19 @@ Endcap _endcapname_ {
 
 ===Mandatory Parameters===
 
-*nDisks*: 
+*_endcapname_*: The name of the endcap pair. Can be any alphanumeric string. Mostly to identify individual endcap pairs to the user.
 
-*innerRadius*: 
+*nDisks*: The number of discs in z+. The total number of discs in both endcaps will be twice this number.
 
-*innerEta*: 
+*innerRadius*: The minimum radius of the endcap and the smallest radius of the first ring. Mutually exclusive with _innerEta_.
 
-*outerRadius*: 
+*innerEta*: (purpose) Mutually exclusive with _innerRadius_.
 
-*minimumZ*: 
+*outerRadius*: The maximum radius of the endcap and the greatest radius of the last ring.
 
-*barrelGap*: 
+*minimumZ*: (purpose) Mutually exclusive with _barrelGap_.
+
+*barrelGap*: (purpose) Mutually exclusive with _minimumZ_.
 
 *diskParity*: 
 
