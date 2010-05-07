@@ -165,13 +165,13 @@ Endcap _endcapname_ {
    nDisks = _value_;
 
    innerRadius = _value_;
-   *or*
+   _*or*_
    innerEta = _value_;
 
    outerRadius = _value_;
 
    minimumZ = _value_;
-   *or*
+   _*or*_
    barrelGap = _value_;
 
    diskParity = _value_;
