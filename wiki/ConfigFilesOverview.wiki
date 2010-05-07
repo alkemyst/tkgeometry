@@ -162,13 +162,65 @@ Endcap _endcapname_ {
 
    //mandatory
 
+   nDisks = _value_;
+
+   innerRadius = _value_;
+   *or*
+   innerEta = _value_;
+
+   outerRadius = _value_;
+
+   minimumZ = _value_;
+   *or*
+   barrelGap = _value_;
+
+   diskParity = _value_;
+
    //optional
+
+   aspectRatio = _value_;
+
+   phiSegments = _value_;
+
+   shape = _Wedge_ || _Rectangular_;
+
+   directive = _value;
 
 }
 
 ===Mandatory Parameters===
 
+*nDisks*: 
+
+*innerRadius*: 
+
+*innerEta*: 
+
+*outerRadius*: 
+
+*minimumZ*: 
+
+*barrelGap*: 
+
+*diskParity*: 
+
 ===Optional Parameters===
+
+*aspectRatio*: 
+
+*phiSegments*: 
+
+*shape*: 
+
+*directive*: 
+
+*removeRings*: 
+
+===Unimplemented===
+
+*smallDelta{{{[}}}_ringindex_{{{]}}}*: Once implemented, this will have an effect similar to that of _smallDelta{{{[}}}_layerindex_{{{]}}}_ in the _Barrel_ blocks.
+
+*bigDelta{{{[}}}_ringindex_{{{]}}}*: Once implemented, this will have an effect similar to that of _bigDelta{{{[}}}_layerindex_{{{]}}}_ in the _Barrel_ blocks.
 
 ----
 
