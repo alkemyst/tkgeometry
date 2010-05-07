@@ -150,7 +150,9 @@ Like the _Barrel_ block, an _Endcap_ block bundles a number of parameters relate
 
 Also like the _Barrel_ blocks, endcaps can be declared _in any order_ as long as the declaration appears after the _Tracker_ block. There is _no upper limit_ to the number of endcaps, but they're _not mandatory_ either: if none is defined, the application will simply produce a _barrel-only_ layout. Once again, their order in the configuration file and the responsibility to make them fit together is entirely up to the user.
 
-(what is declared is actually the z+ side of the endcap - the z- side is a mirror image of it; the number of rings is not given explicitly but computed internally from the size of the disc and the size of the modules; parameters given for ring indices that would place the ring outside the disc are ignored)
+What is declared in the _Endcap_ block is actually the z+ side of the endcap - the z- side is a mirror image of it. A disc is further subdivided into rings and then into modules. The number of rings is not given explicitly but computed internally from the size of the disc and the size of the modules. Unlike the barrel, endcap discs can consist of more than one type of module, and often do: if, say, ring 2 is defined as being of type _stereo_ (the rest of the rings being of type _rphi_, typically), then it is double-sided in _every_ disc of the endcap.
+
+An index for a parameter first and foremost names _a ring, not a disc_ for just this reason. The indexed property then applies across all discs for that particular ring. Parameters given for ring indices that would place the ring outside the disc are ignored.
 
 As above, the application uses default values for any optional parameters that are not specified explicitly.
 
