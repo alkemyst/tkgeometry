@@ -214,9 +214,9 @@ Endcap _endcapname_ {
 
 *shape*: Using one of the two keywords _wedge_ and _rectangular_, this is another fundamental parameter for the module shape.
 
-*directive*: In a first approximation, the number of modules around a ring is calculated automatically. Directives change this unknown number by a given number of modules _for every segment in phi_. The number of modules can be either increased (+) or decreased (-). The sintax for a directive is of the form _ringNr_(_+_|_-_)_moduleChangePerSegment_ - so a rule of _5+2_ would mean that two modules are added to the calculated number of every segment in ring five.
+*directive*: In a first approximation, the number of modules around a ring is calculated automatically. Directives change this unknown number by a given number of modules _for every segment in phi_. The number of modules can be either increased (+) or decreased (-). The sintax for a directive is of the form _ringNr_(+|-)_moduleChangePerSegment_ - so a rule of _5+2_ would mean that two modules are added to the calculated number in every segment of ring five.
 
-*removeRings*: 
+*removeRings*: This parameter allows the user to remove some of the rings from selected discs after the overall endcap layout has been created. The rule syntax is of the form D_number_R_number(+|-) - so a rule stating _D1R4+_ would remove remove the fourth ring and all those above it from disc one. (A rule of _D1R4-_ would remove the fourth ring and all those below.)
 
 ===Unimplemented===
 
