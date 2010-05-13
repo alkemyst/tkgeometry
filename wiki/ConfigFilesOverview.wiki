@@ -258,9 +258,41 @@ Support {
 
 ==_BarrelType_ Block==
 
+(Description)
+
+BarrelType block
+
+BarrelType _barrelname_ {
+
+   nStripsAcross[_layerindex_] = _value_;
+   nSegments[_layerindex_] = _value_;
+   nSides[_layerindex_] = _value_;
+   type[_layerindex_] = _value_;
+   stereoDistance[_layerindex_] = _value_;
+   stereoRotation[_layerindex_] = _value_;
+
+}
+
+===Parameters===
+
+*nStripsAcross*: (explanation) Mandatory, _should be a multiple of *256*._
+
+*nSegments*: (explanation) Mandatory.
+
+*nSides*: (explanation) Mandatory, directly coupled to _type_.
+
+*type*: (explanation) Mandatory, directly coupled to _nSides_.
+
+*stereoDistance*: (explanation) Only necessary if _type_ is either _pt_ or _stereo_.
+
+*stereoRotation*: (explanation) Only necessary if _type_ is _stereo_.
+
+
 ----
 
 ==_EndcapType_ Block==
+
+(Description)
 
 ----
 
