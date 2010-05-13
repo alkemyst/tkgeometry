@@ -267,6 +267,8 @@ Essentially, _BarrelType_ blocks describe the modules that a barrel is built of 
 
 All of these indications are stated _per layer_. They need not be stated for every layer in the barrel, just for those that are different from the default values as far as channels and module type are concerned.
 
+If parameters are declared for one of the layers, there's a certain number of them that must be listed in a sort of all-or-nothing scheme. Those are labelled as _mandatory_ in the detailed parameter list below. If the layer is a default one, _none_ of the parameters are necessary, not even those that would be mandatory otherwise.
+
 _The name of a _BarrelType_ block must much up with that of a _Barrel_ block in the geometry configuration file._
 
 _BarrelType_ block generally look somewhat similar to this one:
@@ -295,7 +297,7 @@ BarrelType _barrelname_ {
 
 *nSides*: The number of sensor surfaces in the modules: *1* for _rphi_ modules, *2* for _pt_ or _stereo_ modules. The _default is *1*_. Mandatory, directly coupled to _type_.
 
-*type*: (explanation) Mandatory, directly coupled to _nSides_.
+*type*: The module type of the indicated layer - one of the strings _rphi_, _pt_ or _stereo_. The _default is _rphi_. Mandatory, directly coupled to _nSides_.
 
 *stereoDistance*: (explanation) Only necessary if _type_ is either _pt_ or _stereo_.
 
