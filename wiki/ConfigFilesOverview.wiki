@@ -17,7 +17,7 @@ _All configuration files are case sensitive._ They support both C-style and shel
 
 Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces. All numeric values are in _mm_ unless specified explicitly.
 
-_As a rule, layer or disc indices start at 1._
+_As a rule, barrel, layer or disc indices start at 1._
 
 ==_Tracker_ Block==
 
