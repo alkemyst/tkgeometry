@@ -263,9 +263,11 @@ As in geometry configuration files, numeric values indicating sizes are in _mm_ 
 
 ==_BarrelType_ Block==
 
-(Description)
+Essentially, _BarrelType_ blocks describe the modules that a barrel is built of in more detail. They don't know anything about where those modules are located in space, but they specify how they are subdivided in terms of channels, whether the modules of a given layer are single- or double-sided, and, if so, how far the two sensors are apart.
 
-BarrelType block
+All of these indications are stated _per layer_. They need not be stated for every layer in the barrel, just for those that are different from the default values as far as channels and module type are concerned.
+
+_The name of a _BarrelType_ block must much up with that of a _Barrel_ block in the geometry configuration file._
 
 BarrelType _barrelname_ {
 
@@ -304,7 +306,7 @@ BarrelType _barrelname_ {
 
 _EndcapType_ blocks are very similar to _BarrelType_ blocks - not surprising given that they both describe the same sort of module settings. The main thing to keep in mind for them is that single indices _always refer to rings_ while pair indices refer to _ring first, disc second_.
 
-Settings for indices that go beyond the available ring range are ignored.
+Settings for indices that go beyond the available ring range are ignored. _The name of an _EndcapType_ block must much up with that of a _Endcap_ block in the geometry configuration file._
 
 EndcapType _endcapname_ {
 
