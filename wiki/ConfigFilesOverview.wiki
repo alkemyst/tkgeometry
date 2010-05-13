@@ -254,11 +254,17 @@ Support {
 
 = The Settings File =
 
+(General description)
+
 ==_BarrelType_ Block==
 
 ----
 
-==_EndcapType Block_==
+==_EndcapType_ Block==
+
+----
+
+==_Output_ Block==
 
 ----
 ----
