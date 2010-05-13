@@ -292,11 +292,41 @@ BarrelType _barrelname_ {
 
 ==_EndcapType_ Block==
 
-(Description)
+_EndcapType_ blocks are very similar to _BarrelType_ blocks - not surprising given that they both describe the same sort of module settings. The main thing to keep in mind for them is that single indices _always refer to rings_ while pair indices refer to _ring first, disc second_.
+
+Settings for indices that go beyond the available ring range are ignored.
+
+EndcapType _endcapname_ {
+
+   nStripsAcross[_ringindex_] = _value_;
+   nSegments[_ringindex_] = _value_;
+   nSides[_ringindex_] = _value_;
+   type[_ringindex_] = _value_;
+   stereoDistance[_ringindex_] = _value_;
+   stereoRotation[_ringindex_] = _value_;
+
+   nStripsAcross[_ringindex, discindex_] = _value_;
+   nSegments[_ringindex, discindex_] = _value_;
+   nSides[_ringindex, discindex_] = _value_;
+   type[_ringindex, discindex_] = _value_;
+   stereoDistance[_ringindex, discindex_] = _value_;
+   stereoRotation[_ringindex, discindex_] = _value_;
+
+                     .
+                     .
+                     .
+
+}
+
+===Parameters===
+
+*See _BarrelType_ blocks* for a description - they're all the same.
 
 ----
 
 ==_Output_ Block==
+
+
 
 ----
 ----
