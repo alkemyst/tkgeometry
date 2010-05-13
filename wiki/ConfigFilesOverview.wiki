@@ -242,11 +242,9 @@ Support {
 
    midZ[_barrelindex_] = _value_;
 
+          {{{.
              .
-
-             .
-
-             .
+             .}}}
 }
 
 ===Parameters===
@@ -336,11 +334,9 @@ EndcapType _endcapname_ {
 
    stereoRotation[_ringindex, discindex_] = _value_;
 
+                  {{{.
                      .
-
-                     .
-
-                     .
+                     .}}}
 
 }
 
