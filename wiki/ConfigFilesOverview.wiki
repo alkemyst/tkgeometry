@@ -269,6 +269,8 @@ All of these indications are stated _per layer_. They need not be stated for eve
 
 _The name of a _BarrelType_ block must much up with that of a _Barrel_ block in the geometry configuration file._
 
+_BarrelType_ block generally look somewhat similar to this one:
+
 BarrelType _barrelname_ {
 
    nStripsAcross[_layerindex_] = _value_;
@@ -287,11 +289,11 @@ BarrelType _barrelname_ {
 
 ===Parameters===
 
-*nStripsAcross*: (explanation) Mandatory, _should be a multiple of *256*._
+*nStripsAcross*: The number of strip channels across a module. The _default is *512*_. Mandatory, _should be a multiple of *256*._
 
-*nSegments*: (explanation) Mandatory.
+*nSegments*: The number of strip segments along a module. The _default is *1*_. Mandatory.
 
-*nSides*: (explanation) Mandatory, directly coupled to _type_.
+*nSides*: The number of sensor surfaces in the modules: *1* for _rphi_ modules, *2* for _pt_ or _stereo_ modules. The _default is *1*_. Mandatory, directly coupled to _type_.
 
 *type*: (explanation) Mandatory, directly coupled to _nSides_.
 
@@ -306,7 +308,9 @@ BarrelType _barrelname_ {
 
 _EndcapType_ blocks are very similar to _BarrelType_ blocks - not surprising given that they both describe the same sort of module settings. The main thing to keep in mind for them is that single indices _always refer to rings_ while pair indices refer to _ring first, disc second_.
 
-Settings for indices that go beyond the available ring range are ignored. _The name of an _EndcapType_ block must much up with that of a _Endcap_ block in the geometry configuration file._
+Settings for indices that go beyond the available ring range are ignored. _The name of an _EndcapType_ block must much up with that of an _Endcap_ block in the geometry configuration file._
+
+Here's an overwiew of what _EndcapType_ blocks should look like:
 
 EndcapType _endcapname_ {
 
