@@ -15,7 +15,7 @@ _All configuration files are case sensitive._ They support both C-style and shel
 
 = The Geometry Configuration File =
 
-Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces. All numeric values are in _mm_ unless specified explicitly.
+Geometry configuration files are structured as a series of blocks. Each of these starts with one of a list of keywords indicating its function and, in some cases, a name tag. The block contents are enclosed in curly braces. Numeric values indicating sizes are in _mm_ unless specified explicitly.
 
 _As a rule, barrel, layer or disc indices start at 1._
 
@@ -254,7 +254,11 @@ Support {
 
 = The Settings File =
 
-(General description)
+Settings files are also structured as a series of blocks, in the same way as geometry configuration files. The block syntax is very similar as well, with keywords at the start indicating the type of block and curly braces and semicolons used as delimiters for parsing.
+
+Each named block in the settings file _must_ correspond to a named block in the geometry configuration file. That is not to say, though, that each named block in the geometry configuration file must have a corresponding block in the settings file as well. Named blocks in the settings file are only necessary if they describe a setup that is different from the default - if it isn't, the application will not go looking for settings that aren't there.
+
+As in geometry configuration files, numeric values indicating sizes are in _mm_ unless specified explicitly. _Barrel, layer or disc indices always start at 1 as well._
 
 ==_BarrelType_ Block==
 
