@@ -228,7 +228,26 @@ Endcap _endcapname_ {
 
 ==_Support_ Block==
 
-Support structures and services around the modules are, for the most part, placed automatically.
+Support structures and services around the modules are, for the most part, placed automatically - all of these are outside the overall layer and disc volumes. However, one of the application features allows users to define their own additional barrel supports within the length of the layers. The position of those needs to be declared in a _Support_ block.
+
+The _Support_ block is optional: there is either _none or exactly one_.
+
+An entry in the _Support_ block takes an optional barrel index defining the dimensions of the support in more detail. If _barrelindex_ is not specified, the structure reaches across all layers from above the first of the first barrel to below the last of the last barrel. If there is an index, the supports structure only extends across the given barrel. Barrels are numbered internally based on the radius of their layers, _not_ in the order that they are specified in the configuration file.
+
+If a support is placed beyond the end of the barrels, it is ignored.
+
+Support {
+
+   midZ = _value_;
+   midZ[_barrelindex_] = _value_;
+             .
+             .
+             .
+}
+
+===Parameters===
+
+*midZ*: This value indicates the position of a user-defined support structure in z+. A mirror image of the structure in z- will be created in addition unless the support is placed in z=0 - which is not recommended because the material budget estimate will be terrible.
 
 ----
 ----
