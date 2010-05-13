@@ -239,9 +239,13 @@ If a support is placed beyond the end of the barrels, it is ignored.
 Support {
 
    midZ = _value_;
+
    midZ[_barrelindex_] = _value_;
+
              .
+
              .
+
              .
 }
 
@@ -269,10 +273,15 @@ BarrelType block
 BarrelType _barrelname_ {
 
    nStripsAcross[_layerindex_] = _value_;
+
    nSegments[_layerindex_] = _value_;
+
    nSides[_layerindex_] = _value_;
+
    type[_layerindex_] = _value_;
+
    stereoDistance[_layerindex_] = _value_;
+
    stereoRotation[_layerindex_] = _value_;
 
 }
@@ -303,21 +312,34 @@ Settings for indices that go beyond the available ring range are ignored.
 EndcapType _endcapname_ {
 
    nStripsAcross[_ringindex_] = _value_;
+
    nSegments[_ringindex_] = _value_;
+
    nSides[_ringindex_] = _value_;
+
    type[_ringindex_] = _value_;
+
    stereoDistance[_ringindex_] = _value_;
+
    stereoRotation[_ringindex_] = _value_;
 
+
    nStripsAcross[_ringindex, discindex_] = _value_;
+
    nSegments[_ringindex, discindex_] = _value_;
+
    nSides[_ringindex, discindex_] = _value_;
+
    type[_ringindex, discindex_] = _value_;
+
    stereoDistance[_ringindex, discindex_] = _value_;
+
    stereoRotation[_ringindex, discindex_] = _value_;
 
                      .
+
                      .
+
                      .
 
 }
