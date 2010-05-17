@@ -388,11 +388,15 @@ In order to model how material amounts propagate along a layer or disc and then 
 
 *L* stands for _local_, *E* for _exiting_. Local materials are assigned to the volumes of the category itself, but they don't propagate out along the service volumes. Exiting materials do just that - the amount is added to the neighbouring service volume and to every other one that is connected to it directly or indirectly.
 
+Apart from type descriptions, all entries in a material configuration file start with a _marker_. This is a letter that puts the entry in one of the categories of _module_, one of the service types, or one of the support types.
+
 It may be worth noting that _material files are not tied to a specific tracker layout_. This means that as long as there are entries for all the necessary categories (as explained below), a material file can be _re-used for a different layout without modifications_.
 
 ----
 
 ==Modules==
+
+The module section consists of type declarations and module materials.
 
 ===Types===
 --type keyword
@@ -409,6 +413,8 @@ It may be worth noting that _material files are not tied to a specific tracker l
 
 ==Services==
 
+Materials that are part of the service volumes come in two different flavours. The first is very simple - it describes a material that is local to the service volumes and doesn't propagate anywhere else. The second is a _mapping_ from an amount of material in the last (outmost) module of a barrel or disc to another amount of material in the neighbouring service volume.
+
 --S marker (static)
 
 --D marker (mapping)
@@ -417,7 +423,7 @@ It may be worth noting that _material files are not tied to a specific tracker l
 
 ==Supports==
 
-Since support materials have no exiting elements by definition, they are listed in the same way as the static materials for services: a marker, an amount and a unit, followed by a semicolon. There are five different markers for five different subcategories of support structures:
+Since support materials have no exiting elements by definition, they are listed in the same way as the static materials for services: a marker, a name tag, an amount and a unit, followed by a semicolon. There are five different markers for five different subcategories of support structures:
   * *V*: Barrel support tubes
   * *W*: User-defined barrel supports
   * *X*: Barrel support discs
@@ -426,7 +432,7 @@ Since support materials have no exiting elements by definition, they are listed 
 
 So apart from the marker, an entry looks the same as for static service materials:
 
-_marker amount unit_; *i.e.* X 2.5 mm;
+_marker materialname amount unit_; *i.e.* X CF 2.5 mm;
 
 ----
 ----
