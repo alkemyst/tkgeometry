@@ -443,6 +443,6 @@ _tag density radiationlength interactionlength_
 
 *i.e*
 
-SenSi 2.33 21.82 108.4
+SenSi   2.33   21.82   108.4
 
 The units are always the same, so they don't need to be written explicitly. They are *g/cm^3^* for the density and *g/cm^2^* for radiation and interaction length. The application converts back and forth between them and those in the material configuration file automatically.
