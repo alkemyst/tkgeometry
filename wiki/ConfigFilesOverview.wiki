@@ -8,6 +8,8 @@ The granularity of these options goes from fairly coarse to fairly fine. It is p
 
 All of these options are bundled in the configuration files. The geometry configuration file describes the large-scale structure of the tracker. The settings file looks at layout variations for differents types of modules. And the material file assigns a mixture of physical components - and therefore weight - to the various available volume categories.
 
+These first three are written (or modified) by the user. There is a fourth, called _mattab.list_, that is part of the application. This is simply a global list of all available materials.
+
 _All configuration files are case sensitive._ They support both C-style and shell-style comments starting with '//' and '#', respectively. As expected, everything after the comment sign is ignored until the end of the line is reached.
 
 ----
@@ -374,7 +376,7 @@ Output {
 
 Once all modules in a tracker layout are in place and all services and support structures have been built around them, the material file tells the application what the volumes are actually made of. Essentially, it is a long list of material descriptors and amounts, grouped in a number of categories.
 
-The syntax of a material file is different to that of the geometry and settings files. Information is parsed _per line_, most lines must end in a semicolon. Curly braces are not used to encapsulate blocks since the information is not grouped by barrel or endcap, but in a more general way.
+The syntax of a material file is different to that of the geometry and settings files. Information is parsed _per line_, most lines must end in a semicolon. Curly braces are not used to encapsulate blocks since the information is not grouped by barrel or endcap, but in a more general way. Whitespace does matter in the sense that it is often used to separate the different parts of an entry and should not be missing completely in those places.
 
 The amount of material listed on a line can be one of four different units. Internally, everything is _converted to grammes_ from the given unit and the size of the volume if necessary. The following explains how each of the units is interpreted when the material is assigned:
   * *g*: The amount is added to _all_ volumes in the category _unchanged_. This is the _default_ - if no unit is given for an entry, the application assumes grammes.
@@ -415,4 +417,32 @@ It may be worth noting that _material files are not tied to a specific tracker l
 
 ==Supports==
 
---V/W/X/Y/Z markers (one each)
+Since support materials have no exiting elements by definition, they are listed in the same way as the static materials for services: a marker, an amount and a unit, followed by a semicolon. There are five different markers for five different subcategories of support structures:
+  * *V*: Barrel support tubes
+  * *W*: User-defined barrel supports
+  * *X*: Barrel support discs
+  * *Y*: Endcap supports
+  * *Z*: Outer support tube
+
+So apart from the marker, an entry looks the same as for static service materials:
+
+_marker amount unit_; *i.e.* X 2.5 mm;
+
+----
+----
+
+=The Global Material List=
+
+The global material list in _mattab.list_ contains one entry for each available material with some of its properties, namely _density_, _radiation length_ and _interaction length_. The name of this file _must not be changed_, but the user may add materials as needed. This is actually pretty likely, since every material used in a custom material configuration file _must_ also be listed here. The simple reason for this is that the only overlap between the two files are the material tags (which must match in order to cross-reference between the two). The rest of the information is not duplicated anywhere - but all of it is needed by the application.
+
+The file can be found in the _config/_ subfolder of _tkmaterial_ and must not be moved or deleted.
+
+An entry in _mattab.list_ looks fairly straightforward:
+
+_tag density radiationlength interactionlength_
+
+*i.e*
+
+SenSi 2.33 21.82 108.4
+
+The units are always the same, so they don't need to be written explicitly. They are *g/cm^3^* for the density and *g/cm^2^* for radiation and interaction length. The application converts back and forth between them and those in the material configuration file automatically.
