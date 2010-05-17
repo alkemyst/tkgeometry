@@ -372,9 +372,21 @@ Output {
 
 = The Material File =
 
---units
+Once all modules in a tracker layout are in place and all services and support structures have been built around them, the material file tells the application what the volumes are actually made of. Essentially, it is a long list of material descriptors and amounts, grouped in a number of categories.
 
---L/E marker
+The syntax of a material file is different to that of the geometry and settings files. Information is parsed _per line_, most lines must end in a semicolon. Curly braces are not used to encapsulate blocks since the information is not grouped by barrel or endcap, but in a more general way.
+
+The amount of material listed on a line can be one of four different units. Internally, everything is _converted to grammes_ from the given unit and the size of the volume if necessary. The following explains how each of the units is interpreted when the material is assigned:
+  * *g*: The amount is added to _all_ volumes in the category _unchanged_. This is the _default_ - if no unit is given for an entry, the application assumes grammes.
+  * *mm*: A thickness is typically used for the sensors. Depending on whether the material is in a _barrel_ or on an _endcap_, this value is interpreted as being either _vertical_ or _horizontal_. If it is in any of the inactive surfaces, that surface's _isVertical_ flag is used to determine the most sensible orientation of the volume thickness.
+  * *g/m*: This unit is most appropriate for things like copper cables or tubes - which is why it's most common when describing services. As with _mm_, the _orientation of the volume_ determines whether the final length of material is interpreted as being laid out horizontally or vertically. _Unlike_ millimetres, though, the orientation of the material is _aligned_ with the volume orientation and _not_ at a right angle from it.
+  * *mm3*: The given volume is _converted to grammes_ using the density in the global materials list. The result is then added to _all_ volumes in the category _without further changes_.
+
+In order to model how material amounts propagate along a layer or disc and then out to the services, it is important to know if a material entry is entirely local to the volumes in the _active surfaces_ category or if it will have an impact on the amount of material present in the _services_ category. To this end, entries in some of the categories end with either *L* or *E*.
+
+*L* stands for _local_, *E* for _exiting_. Local materials are assigned to the volumes of the category itself, but they don't propagate out along the service volumes. Exiting materials do just that - the amount is added to the neighbouring service volume and to every other one that is connected to it directly or indirectly.
+
+It may be worth noting that _material files are not tied to a specific tracker layout_. This means that as long as there are entries for all the necessary categories (as explained below), a material file can be _re-used for a different layout without modifications_.
 
 ----
 
