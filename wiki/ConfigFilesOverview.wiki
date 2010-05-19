@@ -409,6 +409,8 @@ The module section consists of type declarations and module materials.
 
 --M marker (A, B, C, D division)
 
+--SenSi is vital!
+
 ----
 
 ==Services==
@@ -417,7 +419,7 @@ Materials that are part of the service volumes come in two different flavours. T
 
 --S marker (static)
 
---D marker (mapping)
+--D marker (mapping; dynamic)
 
 ----
 
