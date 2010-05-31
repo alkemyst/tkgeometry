@@ -315,9 +315,9 @@ BarrelType _barrelname_ {
 
 *type*: The module type of the indicated layer. Typically one of the strings _rphi_, _pt_ or _stereo_, but it can be any string value as long as the type is consistent with those declared in the materials file. The _default is rphi_. Mandatory, directly coupled to _nSides_.
 
-*stereoDistance*: The _surface-to-surface_ distance of the two sensors in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is either _pt_, _stereo_, or a user-defined double-sided one.
+*stereoDistance*: The _surface-to-surface_ distance of the two sensors in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is either _pt_, _stereo_, or a _user-defined double-sided_ one.
 
-*stereoRotation*: The rotation angle _in degrees_ of one sensor against the other in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is _stereo_ or a user-defined double-sided one where one of the two sensors is rotated by a certain angle with respect to the other.
+*stereoRotation*: The rotation angle _in degrees_ of one sensor against the other in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is _stereo_ or a _user-defined double-sided_ one where _one of the two sensors is rotated_ by a certain angle with respect to the other.
 
 
 ----
