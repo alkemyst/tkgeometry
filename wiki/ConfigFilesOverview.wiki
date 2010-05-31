@@ -267,7 +267,7 @@ As in geometry configuration files, numeric values indicating sizes are in _mm_ 
 
 Essentially, _BarrelType_ blocks describe the modules that a barrel is built of in more detail. They don't know anything about where those modules are located in space, but they specify how they are subdivided in terms of channels, whether the modules of a given layer are single- or double-sided, and, if so, how far the two sensors are apart.
 
-All of these indications are stated _per layer_. They need not be stated for every layer in the barrel, just for those that are different from the default values as far as channels and module type are concerned.
+All of these indications are stated _per layer_ and, on occasion, _position_. They need not be stated for every layer in the barrel, just for those that are different from the default values as far as channels and module type are concerned. A _layer_, _position_ pair refers to the modules in one specific layer, at a specific position along a rod. (The lower indices are those closer to z=0.) If settings for a _layer_, _position_ pair are specified, they override those for the rest of the layer in the given position. If no other settings are specified for that layer, they simply override the default values at that position.
 
 If parameters are declared for one of the layers, there's a certain number of them that must be listed in a sort of all-or-nothing scheme. Those are labelled as _mandatory_ in the detailed parameter list below. If the layer is a default one, _none_ of the parameters are necessary, not even those that would be mandatory otherwise.
 
@@ -301,6 +301,8 @@ BarrelType _barrelname_ {
 
    stereoRotation{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
 
+                     ...
+
 }
 
 ===Parameters===
@@ -309,13 +311,13 @@ BarrelType _barrelname_ {
 
 *nSegments*: The number of strip segments along a module. The _default is *1*_. Mandatory.
 
-*nSides*: The number of sensor surfaces in the modules: *1* for _rphi_ modules, *2* for _pt_ or _stereo_ modules. The _default is *1*_. Mandatory, directly coupled to _type_.
+*nSides*: The number of sensor surfaces in the modules: *1* for _rphi_ or other single-sided modules, *2* for _pt_, _stereo_ or other double-sided ones. The _default is *1*_. Mandatory, directly coupled to _type_.
 
-*type*: The module type of the indicated layer - one of the strings _rphi_, _pt_ or _stereo_. The _default is _rphi_. Mandatory, directly coupled to _nSides_.
+*type*: The module type of the indicated layer. Typically one of the strings _rphi_, _pt_ or _stereo_, but it can be any string value as long as the type is consistent with those declared in the materials file. The _default is rphi_. Mandatory, directly coupled to _nSides_.
 
-*stereoDistance*: The _surface-to-surface_ distance of the two sensors in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is either _pt_ or _stereo_.
+*stereoDistance*: The _surface-to-surface_ distance of the two sensors in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is either _pt_, _stereo_, or a user-defined double-sided one.
 
-*stereoRotation*: The rotation angle _in degrees_ of one sensor against the other in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is _stereo_.
+*stereoRotation*: The rotation angle _in degrees_ of one sensor against the other in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is _stereo_ or a user-defined double-sided one where one of the two sensors is rotated by a certain angle with respect to the other.
 
 
 ----
