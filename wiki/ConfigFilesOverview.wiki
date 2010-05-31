@@ -430,7 +430,13 @@ The module section consists of type declarations and module materials.
 
 Materials that are part of the service volumes come in two different flavours. The first is very simple - it describes a material that is local to the service volumes and doesn't propagate anywhere else. The second is a _mapping_ from an amount of material in the last (outmost) module of a barrel or disc to another amount of material in the neighbouring service volume.
 
---S marker (static)
+Materials that are local to the service volumes (same amount in all of them) are called _static_ materials. Their line marker within the materials file is *S*.
+
+The syntax of a static service material entry is very simple: no channel-dependent or travelling parts, no *L* or *E* marker at the end. Just the following information:
+
+_marker materialname amount unit_; *i.e.* S CF 4 mm;
+
+As always, the unit is optional and defaults to grammes. If it is a different one, the amount of material will be scaled depending on the size of the service volume.
 
 --D marker (mapping; dynamic)
 
@@ -438,7 +444,7 @@ Materials that are part of the service volumes come in two different flavours. T
 
 ==Supports==
 
-Since support materials have no exiting elements by definition, they are listed in the same way as the static materials for services: a marker, a name tag, an amount and a unit, followed by a semicolon. There are five different markers for five different subcategories of support structures:
+Since support materials have no exiting elements by definition, they are listed in the same way as the static materials for services: a marker, a name tag, an amount and a unit, followed by a semicolon. There are five different markers for _five different subcategories_ of support structures:
   * *V*: Barrel support tubes
   * *W*: User-defined barrel supports
   * *X*: Barrel support discs
