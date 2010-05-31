@@ -277,17 +277,17 @@ _BarrelType_ block generally look somewhat similar to this one:
 
 BarrelType _barrelname_ {
 
-   nStripsAcross[_layerindex_] = _value_;
+   nStripsAcross{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   nSegments[_layerindex_] = _value_;
+   nSegments{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   nSides[_layerindex_] = _value_;
+   nSides{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   type[_layerindex_] = _value_;
+   type{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   stereoDistance[_layerindex_] = _value_;
+   stereoDistance{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   stereoRotation[_layerindex_] = _value_;
+   stereoRotation{{{[}}}_layerindex_{{{]}}} = _value_;
 
 }
 
@@ -318,30 +318,30 @@ Here's an overwiew of what _EndcapType_ blocks should look like:
 
 EndcapType _endcapname_ {
 
-   nStripsAcross[_ringindex_] = _value_;
+   nStripsAcross{{{[}}}_ringindex_{{{]}}} = _value_;
 
-   nSegments[_ringindex_] = _value_;
+   nSegments{{{[}}}_ringindex_{{{]}}} = _value_;
 
-   nSides[_ringindex_] = _value_;
+   nSides{{{[}}}_ringindex_{{{]}}} = _value_;
 
-   type[_ringindex_] = _value_;
+   type{{{[}}}_ringindex_{{{]}}} = _value_;
 
-   stereoDistance[_ringindex_] = _value_;
+   stereoDistance{{{[}}}_ringindex_{{{]}}} = _value_;
 
-   stereoRotation[_ringindex_] = _value_;
+   stereoRotation{{{[}}}_ringindex_{{{]}}} = _value_;
 
 
-   nStripsAcross[_ringindex, discindex_] = _value_;
+   nStripsAcross{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
-   nSegments[_ringindex, discindex_] = _value_;
+   nSegments{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
-   nSides[_ringindex, discindex_] = _value_;
+   nSides{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
-   type[_ringindex, discindex_] = _value_;
+   type{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
-   stereoDistance[_ringindex, discindex_] = _value_;
+   stereoDistance{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
-   stereoRotation[_ringindex, discindex_] = _value_;
+   stereoRotation{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
                      ...
 
