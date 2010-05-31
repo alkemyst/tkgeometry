@@ -331,6 +331,7 @@ EndcapType _endcapname_ {
    stereoRotation{{{[}}}_ringindex_{{{]}}} = _value_;
 
 
+
    nStripsAcross{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
    nSegments{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
