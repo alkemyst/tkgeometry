@@ -242,7 +242,7 @@ Support {
 
    midZ = _value_;
 
-   midZ[_barrelindex_] = _value_;
+   midZ{{{[}}}_barrelindex_{{{]}}} = _value_;
 
              ...
 
