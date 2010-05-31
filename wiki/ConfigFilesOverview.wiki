@@ -289,6 +289,18 @@ BarrelType _barrelname_ {
 
    stereoRotation{{{[}}}_layerindex_{{{]}}} = _value_;
 
+   nStripsAcross{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+
+   nSegments{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+
+   nSides{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+
+   type{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+
+   stereoDistance{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+
+   stereoRotation{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+
 }
 
 ===Parameters===
@@ -329,8 +341,6 @@ EndcapType _endcapname_ {
    stereoDistance{{{[}}}_ringindex_{{{]}}} = _value_;
 
    stereoRotation{{{[}}}_ringindex_{{{]}}} = _value_;
-
-
 
    nStripsAcross{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
