@@ -438,8 +438,21 @@ _marker materialname amount unit_; *i.e.* S CF 4 mm;
 
 As always, the unit is optional and defaults to grammes. If it is a different one, the amount of material will be scaled depending on the size of the service volume.
 
---D marker (mapping; dynamic)
-The mapping from active surfaces to services is a bit more complicated.
+The mapping from active surfaces to services is a bit more complicated. An entry starts with the marker *D* and ends with an *E* or *L* marker (and a semicolon). In between, it lists _two quantities_ - the first an amount of a material in the active surfaces, the second what this amount _translates to_ within the adjacent service volume.
+
+The two materials that make up the mapping may be the same with different quantities, different materials but the same quantity, both exactly the same or both completely different. The units don't need to match either - undeclared units default to grammes, even if one of them is specified as being something else.
+
+The *L/E* marker has the same function as in the entries for module materials. An _L_ causes the mapped material to stay local to the first service volume, an _E_ will make sure it is propagated along the connected services and out of the tracker.
+
+To summarise, an entry for a mapping at the module-service boundary consists of the following elements:
+
+_marker amount unit tag amount unit tag l-eflag;_
+
+In other words (and as an example):
+
+D 1 g Cu 10 g/m Cu E;
+
+meaning that for every gramme of copper in the last active surfaces on the rods, there will be 10g/m of copper in the adjacent service volume that propagate out along the other services.
 
 ----
 
