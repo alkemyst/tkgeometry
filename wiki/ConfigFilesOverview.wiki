@@ -409,7 +409,7 @@ It may be worth noting that _material files are not tied to a specific tracker l
 
 ==Modules==
 
-The module section consists of type declarations and module materials. The type declaration, along with the default number of strips and segments per module, comes first. Any material listed afterwards is assumed to be part of the set for that type.
+The module section consists of type declarations and module materials. The type declaration, along with the default number of strips and segments per module, comes first. Any material listed afterwards is assumed to be part of the set for that type until a new type declaration changes this.
 
 ===Types===
 --type keyword
