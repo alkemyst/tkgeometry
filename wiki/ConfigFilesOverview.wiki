@@ -105,7 +105,7 @@ Barrel _barrelname_ {
 
    smallDelta{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   option{{{[}}}_layerindex_{{{]}}} = Stacked;
+   option = _layerindex_/Stacked-_displacement_;
 }
 
 ===Mandatory Parameters===
@@ -134,7 +134,9 @@ Barrel _barrelname_ {
 
 *size*: This defines the surface area of a module if the application should not simply use the entire wafer to create it. The combination of _aspectRatio_ and this parameter completely describes shape and size of a module in that case, while module size is implied by the size of the wafer in the standard one.
 
-*option*: Currently, the only supported option is _Stacked_. This causes a layer to be duplicated at a short radial distance from the original, creating a layer pair. As an example, if the barrel has four layers and layer 3 is declared as stacked, the result will be layer 1 at _innerRadius_, layer 4 at _outerRadius_, layer 2 and _two copies_ of layer 3 in between: layer 2 at 1/3 of the radial range and the copies of layer 3 around 2/3 of the radial range.
+*option*: Currently, the only supported option is _Stacked_. This causes a layer to be _duplicated_ at a short radial distance _displacement_ from the original, creating a _layer pair_. As an example, if the barrel has four layers and layer 3 is declared as stacked, the result will be a total of five layers, one of which is a copy of layer 3. As for their placement, layer 1 will be at _innerRadius_, layer 4 at _outerRadius_, layer 2 and _two copies_ of layer 3 in between: layer 2 at 1/3 of the radial range and the copies of layer 3 around 2/3 of the radial range.
+
+*Please note* that the application only accepts _negative_ values for the displacement of the copy, i.e. the copy will _always_ be created _below_ the original. Therefore, special care needs to be taken if the first layer of the innermost barrel is declared as _Stacked_: collisions of the resulting layer pair with the pixel detector need to be avoided.
 
 *directive*: Directives are declared using a syntax of *_layerindex_/_constraint_* and give indications on where the radius of the specified layer should ideally be. The _constraint_ part of the directive can be either a _number_ or one of the letters *F*, *S*, *E*, or *A*. If it is a number, the specified layer is built at that radius, no questions asked. The letters have the following meaning:
   * *F*: Fixed. The radius of the layer is calculated from the number of layers and the radius range. It is not adjusted afterwards - even though an odd number of rods will cause a collision between the first and the last rod. (They'll end up on the same side with respect to the average layer radius.)
@@ -285,9 +287,9 @@ BarrelType _barrelname_ {
 
    type{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   stereoDistance{{{[}}}_layerindex_{{{]}}} = _value_;
+   dsDistance{{{[}}}_layerindex_{{{]}}} = _value_;
 
-   stereoRotation{{{[}}}_layerindex_{{{]}}} = _value_;
+   dsRotation{{{[}}}_layerindex_{{{]}}} = _value_;
 
    nStripsAcross{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
 
@@ -297,9 +299,9 @@ BarrelType _barrelname_ {
 
    type{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
 
-   stereoDistance{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+   dsDistance{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
 
-   stereoRotation{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
+   dsRotation{{{[}}}_layerindex_, _position_{{{]}}} = _value_;
 
                      ...
 
@@ -315,9 +317,9 @@ BarrelType _barrelname_ {
 
 *type*: The module type of the indicated layer. Typically one of the strings _rphi_, _pt_ or _stereo_, but it can be any string value as long as the type is consistent with those declared in the materials file. The _default is rphi_. Mandatory, directly coupled to _nSides_.
 
-*stereoDistance*: The _surface-to-surface_ distance of the two sensors in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is either _pt_, _stereo_, or a _user-defined double-sided_ one.
+*dsDistance*: The _surface-to-surface_ distance of the two sensors in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is either _pt_, _stereo_, or a _user-defined double-sided_ one.
 
-*stereoRotation*: The rotation angle _in degrees_ of one sensor against the other in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is _stereo_ or a _user-defined double-sided_ one where _one of the two sensors is rotated_ by a certain angle with respect to the other.
+*dsRotation*: The rotation angle _in degrees_ of one sensor against the other in double-sided modules. If left unspecified, a _default value of *0.0*_ is used. Only necessary if _type_ is _stereo_ or a _user-defined double-sided_ one where _one of the two sensors is rotated_ by a certain angle with respect to the other.
 
 
 ----
@@ -340,9 +342,9 @@ EndcapType _endcapname_ {
 
    type{{{[}}}_ringindex_{{{]}}} = _value_;
 
-   stereoDistance{{{[}}}_ringindex_{{{]}}} = _value_;
+   dsDistance{{{[}}}_ringindex_{{{]}}} = _value_;
 
-   stereoRotation{{{[}}}_ringindex_{{{]}}} = _value_;
+   dsRotation{{{[}}}_ringindex_{{{]}}} = _value_;
 
    nStripsAcross{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
@@ -352,9 +354,9 @@ EndcapType _endcapname_ {
 
    type{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
-   stereoDistance{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
+   dsDistance{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
-   stereoRotation{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
+   dsRotation{{{[}}}_ringindex, discindex_{{{]}}} = _value_;
 
                      ...
 
