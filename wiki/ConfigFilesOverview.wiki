@@ -414,11 +414,28 @@ It may be worth noting that _material files are not tied to a specific tracker l
 The module section consists of type declarations and module materials. The type declaration, along with the default number of strips and segments per module, comes first. Any material listed afterwards is assumed to be part of the set for that type until a new type declaration changes this.
 
 ===Types===
---type keyword
 
---nStripsAcross keyword
+The type of a set of module materials is set using the _type_ keyword, followed by a default module size with respect to strips and segments:
 
---nSegments keyword
+type = _typename_
+
+nStripsAcross = _number_;
+
+nSegmentsAcross = _number_;
+
+Type declarations remain valid until they are reset by a new type keyword, once again followed by the default number of strips and segments for a module.
+
+_There is one exception to this_: as the _stereo_ standard double-sided type depends directly on its single-sided _rphi_ counterpart, a declaration of type _stereo_ *must not* give new default resolution values. They are the same as those of the *previously declared* _rphi_ standard single-sided type. The _stereo_ type is therefore an _extension_ of the _rphi_ type and cannot exist without it.
+
+Apart from this exception, all type declarations are independent of each other. They can have any user-defined name, _as long as they are consistent_ with those type names that appear in the _settings file_. In other words, if it is listed in the settings file for a layer, ring, position or disc, it _must_ show up in the materials file as well. If it doesn't, those modules will have _no materials assigned to them._
+
+On the other hand, a type that is declared in the materials file and not used in the settings file has no consequences at all. It (and its material list) will be parsed and made available to the application, but not used any further.
+
+*type*: 
+
+*nStripsAcross*: 
+
+*nSegments*: 
 
 ===Materials===
 
