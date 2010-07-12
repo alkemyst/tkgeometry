@@ -419,9 +419,9 @@ The type of a set of module materials is set using the _type_ keyword, followed 
 
 type = _typename_
 
-nStripsAcross = _number;_
+nStripsAcross = _number_ ;
 
-nSegmentsAcross = _number;_
+nSegmentsAcross = _number_ ;
 
 *type*: The type of module that the module materials that follow it refer to. Note that, for reasons of 'it seemed like a good idea at the time', _the_ type _keyword is the only keyword in the materials file that_ does not _end in a semicolon._ If you put a semicolon at the end of the line, it (and any whitespace between the name string and the semicolon) will be interpreted as part of the type name.
 
@@ -439,6 +439,10 @@ On the other hand, a type that is declared in the materials file and not used in
 
 
 ===Materials===
+
+Module materials are marked as such by the letter *M* at the beginning of the line. The _unique tag_ that identifies the material for lookup in the global material file comes next. They end with an *L/E* flag, followed by a semicolon.
+
+The interesting values are found between the tag and the _L/E_ flag.
 
 --M marker (A, B, C, D division)
 
