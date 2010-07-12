@@ -419,9 +419,9 @@ The type of a set of module materials is set using the _type_ keyword, followed 
 
 type = _typename_
 
-nStripsAcross = _number_;
+nStripsAcross = _number;_
 
-nSegmentsAcross = _number_;
+nSegmentsAcross = _number;_
 
 *type*: The type of module that the module materials that follow it refer to. Note that, for reasons of 'it seemed like a good idea at the time', _the_ type _keyword is the only keyword in the materials file that_ does not _end in a semicolon._ If you put a semicolon at the end of the line, it (and any whitespace between the name string and the semicolon) will be interpreted as part of the type name.
 
