@@ -267,17 +267,17 @@ As in geometry configuration files, numeric values indicating sizes are in _mm_ 
 
 ==_`BarrelType`_ Block==
 
-Essentially, _BarrelType_ blocks describe the modules that a barrel is built of in more detail. They don't know anything about where those modules are located in space, but they specify how they are subdivided in terms of channels, whether the modules of a given layer are single- or double-sided, and, if so, how far the two sensors are apart.
+Essentially, _`BarrelType`_ blocks describe the modules that a barrel is built of in more detail. They don't know anything about where those modules are located in space, but they specify how they are subdivided in terms of channels, whether the modules of a given layer are single- or double-sided, and, if so, how far the two sensors are apart.
 
 All of these indications are stated _per layer_ and, on occasion, _position_. They need not be stated for every layer in the barrel, just for those that are different from the default values as far as channels and module type are concerned. A _layer_, _position_ pair refers to the modules in one specific layer, at a specific position along a rod. (The lower indices are those closer to z=0.) If settings for a _layer_, _position_ pair are specified, they override those for the rest of the layer in the given position. If no other settings are specified for that layer, they simply override the default values at that position.
 
 If parameters are declared for one of the layers, there's a certain number of them that must be listed in a sort of all-or-nothing scheme. Those are labelled as _mandatory_ in the detailed parameter list below. If the layer is a default one, _none_ of the parameters are necessary, not even those that would be mandatory otherwise.
 
-_The name of a _BarrelType_ block must much up with that of a _Barrel_ block in the geometry configuration file._
+_The name of a _`BarrelType`_ block must much up with that of a _Barrel_ block in the geometry configuration file._
 
-_BarrelType_ block generally look somewhat similar to this one:
+_`BarrelType`_ block generally look somewhat similar to this one:
 
-BarrelType _barrelname_ {
+`BarrelType` _barrelname_ {
 
    nStripsAcross{{{[}}}_layerindex_{{{]}}} = _value_;
 
