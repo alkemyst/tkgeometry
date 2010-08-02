@@ -12,6 +12,14 @@ These first three are written (or modified) by the user. There is a fourth, call
 
 _All configuration files are case sensitive._ They support both C-style and shell-style comments starting with '//' and '#', respectively. As expected, everything after the comment sign is ignored until the end of the line is reached.
 
+[ConfigFilesOverview#The_Geometry_Configuration_File Down to geometry configuration file]
+
+[ConfigFilesOverview#The_Settings_File Down to settings file]
+
+[ConfigFilesOverview#The_Material_File Down to material file]
+
+[ConfigFilesOverview#The_Global_Material_List Down to global material list]
+
 ----
 ----
 
