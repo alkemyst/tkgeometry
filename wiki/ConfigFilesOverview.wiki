@@ -467,7 +467,9 @@ M CF 0 0 0 2 mm L;
 
 All units are _optional_. If none is specified, the application assumes grammes.
 
---SenSi is vital!
+There are no restrictions with respect to what materials can be declared or how many times they appear on the list: internally, all materials will be grouped by module type first, then by _A_, _B_, _C_ and _D_ component and by _L/E_ flag. So putting, say, aluminium on the list twice, once to represent a cooling component and once to represent something else, causes no problems at all even if both entries are exactly the same.
+
+_There is one *important exception* to this rule, however._ --SenSi is vital!
 
 ----
 
