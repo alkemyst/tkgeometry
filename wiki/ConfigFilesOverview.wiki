@@ -455,7 +455,7 @@ where _n_ is the _number of strips_, _m_ is the _number of segments_, and _p_ is
 
 So an entry for a module material looks like this:
 
-M _tag_ _amount A_ _unit A_ _amount B_ _unit B_ _amount C_ _unit C_ _amount D_ _unit D_ [L|E];
+M _tag_ _amount`_`A_ _unit`_`A_ _amount`_`B_ _unit`_`B_ _amount`_`C_ _unit`_`C_ _amount`_`D_ _unit`_`D_ [L|E];
 
 All units are _opional_. If none is specified, the application assumes grammes.
 
