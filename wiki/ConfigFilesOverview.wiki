@@ -262,6 +262,14 @@ Support {
 
 *midZ*: This value indicates the position of a user-defined support structure in z+. A mirror image of the structure in z- will be created in addition unless the support is placed in z=0 - which is not recommended because the material budget estimate will be terrible.
 
+[ConfigFilesOverview#Configuration_Files_in_tkgeometry_and_tkmaterial Up to top]
+
+[ConfigFilesOverview#The_Settings_File Down to settings file]
+
+[ConfigFilesOverview#The_Material_File Down to material file]
+
+[ConfigFilesOverview#The_Global_Material_List Down to global material list]
+
 ----
 ----
 
