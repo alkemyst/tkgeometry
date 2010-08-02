@@ -469,7 +469,7 @@ All units are _optional_. If none is specified, the application assumes grammes.
 
 There are no restrictions with respect to what materials can be declared or how many times they appear on the list: internally, all materials will be grouped by module type first, then by _A_, _B_, _C_ and _D_ component and by _L/E_ flag. So putting, say, aluminium on the list twice, once to represent a cooling component and once to represent something else, causes no problems at all even if both entries are exactly the same.
 
-_There is one *important exception* to this rule, however._ --SenSi is vital!
+_There is one *important exception* to this rule, however._ If the goal is to export the finished tracker model to CMSSW XML files, it is _vital_ that the material for the sensor surfaces be declared as _`SenSi`_ rather than ordinary silicon _for every type that appears in the tracker_. If there is no entry tagged _`SenSi`_ in the material file, CMSSW _will crash_ trying to load the resulting XML files.
 
 ----
 
