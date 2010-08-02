@@ -448,12 +448,16 @@ The interesting values are found between the tag and the _L/E_ flag. Internally,
 
 where _n_ is the _number of strips_, _m_ is the _number of segments_, and _p_ is the module _position on a rod_ or the _ring number_. So the four components _A, B, C_ and _D_ depend on the following factors:
 
-  * *A:* One of the so-called _travelling components_. On the one hand, the amount of material here depends on where along the rod or on which ring a module sits. The further out it is, the more material it inherits from those modules that are closer to the centre. On the other hand, the material assigned to this component will continue to travel outward until it reaches the layer-service boundary, where different conversion rules apply. Additionally, the final amount of material also scales with the granularity of the sensor surface, i.e. with the number of strips and segments.
-  * *B:* One of the so-called _local components_. This part does _not_ inherit or pass on anything, but it does scale up or down depending on how many strips and segments are found on the sensor surface.
+  * *A:* One of the so-called _travelling components_. On the one hand, the amount of material here depends on where along the rod or on which ring a module sits. The further out it is, the more material it inherits from those modules that are closer to the centre. On the other hand, the material assigned to this component will continue to travel outward until it reaches the layer-service boundary, where different conversion rules apply. Additionally, the final amount of material also scales with the granularity of the sensor surface, i.e. with the number of strips and segments. The specified amount refers to the _previously declared type default_ and will be scaled internally to the real module granularity.
+  * *B:* One of the so-called _local components_. This part does _not_ inherit or pass on anything, but it does scale up or down depending on how many strips and segments are found on the sensor surface. As for _A_, the specified amount refers to the _previously declared type default_ and will be scaled internally to the real module granularity.
   * *C:* The second _travelling component_. As for component _A_, the amount of material here depends on the position of the module on a rod or on the ring. Unlike component _A_, the granularity of the sensor surface has no impact on the final amount of material: the same is inherited and passed on by _any_ module of this type and position, regardless of how its sensor surface is subdivided.
   * *D:* The second _local component_. The most straightforward part of the four simply assigns a constant amount of material to every single tracker module that fits the type that this material declaration belongs to.
 
---M marker example
+So an entry for a module material looks like this:
+
+M _tag_ _amount A_ _unit A_ _amount B_ _unit B_ _amount C_ _unit C_ _amount D_ _unit D_ [L|E];
+
+All units are _opional_. If none is specified, the application assumes grammes.
 
 --SenSi is vital!
 
