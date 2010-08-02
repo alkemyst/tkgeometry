@@ -400,6 +400,15 @@ Output {
 
 *Path*: An absolute or relative output path. It need not exist beforehand.
 
+
+[ConfigFilesOverview#Configuration_Files_in_tkgeometry_and_tkmaterial Up to top]
+
+[ConfigFilesOverview#The_Geometry_Configuration_File Up to geometry configuration file]
+
+[ConfigFilesOverview#The_Material_File Down to material file]
+
+[ConfigFilesOverview#The_Global_Material_List Down to global material list]
+
 ----
 ----
 
@@ -532,6 +541,14 @@ So apart from the marker, an entry looks the same as for static service material
 
 _marker materialname amount unit_; *i.e.* X CF 2.5 mm;
 
+[ConfigFilesOverview#Configuration_Files_in_tkgeometry_and_tkmaterial Up to top]
+
+[ConfigFilesOverview#The_Geometry_Configuration_File Up to geometry configuration file]
+
+[ConfigFilesOverview#The_Settings_File Up to settings file]
+
+[ConfigFilesOverview#The_Global_Material_List Down to global material list]
+
 ----
 ----
 
@@ -548,3 +565,11 @@ _tag density radiationlength interactionlength_
 !SenSi 2.33 21.82 108.4
 
 The units are always the same, so they don't need to be written explicitly. They are *g/cm^3^* for the density and *g/cm^2^* for radiation and interaction length. The application converts back and forth between them and those in the material configuration file automatically.
+
+[ConfigFilesOverview#Configuration_Files_in_tkgeometry_and_tkmaterial Up to top]
+
+[ConfigFilesOverview#The_Geometry_Configuration_File Up to geometry configuration file]
+
+[ConfigFilesOverview#The_Settings_File Up to settings file]
+
+[ConfigFilesOverview#The_Material_File Up to material file]
