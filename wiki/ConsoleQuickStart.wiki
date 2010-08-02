@@ -1,0 +1,11 @@
+#summary List of command line options for _tkmaterial_
+
+= Console Quick Start Guide =
+
+This page gives an overview over the various command line options available to the _tkmaterial_ main executable. Running `./tkmaterial` without any options at all will print the same information on the command line in abbreviated form.
+
+== Boolean Flags ==
+
+== Input ==
+
+== Output Options ==
