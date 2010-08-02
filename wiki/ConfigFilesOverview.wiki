@@ -457,6 +457,14 @@ So an entry for a module material looks like this:
 
 M _tag_ _amount`_`A_ _unit`_`A_ _amount`_`B_ _unit`_`B_ _amount`_`C_ _unit`_`C_ _amount`_`D_ _unit`_`D_ [L|E];
 
+*i.e.*
+
+M Cu 0 0 0.944 g 2.2 g E;
+
+or maybe
+
+M CF 0 0 0 2 mm L;
+
 All units are _optional_. If none is specified, the application assumes grammes.
 
 --SenSi is vital!
@@ -519,6 +527,6 @@ An entry in _mattab.list_ looks fairly straightforward:
 
 _tag density radiationlength interactionlength_
 *i.e*
-SenSi 2.33 21.82 108.4
+`SenSi` 2.33 21.82 108.4
 
 The units are always the same, so they don't need to be written explicitly. They are *g/cm^3^* for the density and *g/cm^2^* for radiation and interaction length. The application converts back and forth between them and those in the material configuration file automatically.
