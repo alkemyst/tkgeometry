@@ -265,7 +265,7 @@ Each named block in the settings file _must_ correspond to a named block in the 
 
 As in geometry configuration files, numeric values indicating sizes are in _mm_ unless specified explicitly. _Indices (barrel, layer, position, ring or disc) always start at 1 as well._
 
-==_BarrelType_ Block==
+==_`BarrelType`_ Block==
 
 Essentially, _BarrelType_ blocks describe the modules that a barrel is built of in more detail. They don't know anything about where those modules are located in space, but they specify how they are subdivided in terms of channels, whether the modules of a given layer are single- or double-sided, and, if so, how far the two sensors are apart.
 
