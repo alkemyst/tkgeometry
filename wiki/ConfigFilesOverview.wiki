@@ -220,7 +220,7 @@ Endcap _endcapname_ {
 
 *directive*: In a first approximation, the number of modules around a ring is calculated automatically. Directives change this unknown number by a given number of modules _for every segment in phi_. The number of modules can be either increased (+) or decreased (-). The sintax for a directive is of the form _ringNr_(+|-)_moduleChangePerSegment_ - so a rule of _5+2_ would mean that two modules are added to the calculated number in every segment of ring five.
 
-*removeRings*: This parameter allows the user to remove some of the rings from selected discs after the overall endcap layout has been created. The rule syntax is of the form D _number_ R _number_ (+|-) - so a rule stating _!D1R4+_ would remove remove the fourth ring and all those above it from disc one. (A rule of _`D1R4`-_ would remove the fourth ring and all those below.)
+*removeRings*: This parameter allows the user to remove some of the rings from selected discs after the overall endcap layout has been created. The rule syntax is of the form D _number_ R _number_ (+|-) - so a rule stating _!D1R4+_ would remove remove the fourth ring and all those above it from disc one. (A rule of _!D1R4-_ would remove the fourth ring and all those below.)
 
 ===Unimplemented===
 
@@ -265,19 +265,19 @@ Each named block in the settings file _must_ correspond to a named block in the 
 
 As in geometry configuration files, numeric values indicating sizes are in _mm_ unless specified explicitly. _Indices (barrel, layer, position, ring or disc) always start at 1 as well._
 
-==_`BarrelType`_ Block==
+==_!BarrelType_ Block==
 
-Essentially, _`BarrelType`_ blocks describe the modules that a barrel is built of in more detail. They don't know anything about where those modules are located in space, but they specify how they are subdivided in terms of channels, whether the modules of a given layer are single- or double-sided, and, if so, how far the two sensors are apart.
+Essentially, _!BarrelType_ blocks describe the modules that a barrel is built of in more detail. They don't know anything about where those modules are located in space, but they specify how they are subdivided in terms of channels, whether the modules of a given layer are single- or double-sided, and, if so, how far the two sensors are apart.
 
 All of these indications are stated _per layer_ and, on occasion, _position_. They need not be stated for every layer in the barrel, just for those that are different from the default values as far as channels and module type are concerned. A _layer_, _position_ pair refers to the modules in one specific layer, at a specific position along a rod. (The lower indices are those closer to z=0.) If settings for a _layer_, _position_ pair are specified, they override those for the rest of the layer in the given position. If no other settings are specified for that layer, they simply override the default values at that position.
 
 If parameters are declared for one of the layers, there's a certain number of them that must be listed in a sort of all-or-nothing scheme. Those are labelled as _mandatory_ in the detailed parameter list below. If the layer is a default one, _none_ of the parameters are necessary, not even those that would be mandatory otherwise.
 
-_The name of a _`BarrelType`_ block must much up with that of a _Barrel_ block in the geometry configuration file._
+_The name of a _!BarrelType_ block must much up with that of a _Barrel_ block in the geometry configuration file._
 
-_`BarrelType`_ block generally look somewhat similar to this one:
+_!BarrelType_ block generally look somewhat similar to this one:
 
-`BarrelType` _barrelname_ {
+!BarrelType _barrelname_ {
 
    nStripsAcross{{{[}}}_layerindex_{{{]}}} = _value_;
 
@@ -324,15 +324,15 @@ _`BarrelType`_ block generally look somewhat similar to this one:
 
 ----
 
-==_`EndcapType`_ Block==
+==_!EndcapType_ Block==
 
-_`EndcapType`_ blocks are very similar to _`BarrelType`_ blocks - not surprising given that they both describe the same sort of module settings. The main thing to keep in mind for them is that single indices _always refer to rings_ while pair indices refer to _ring first, disc second_.
+_!EndcapType_ blocks are very similar to _!BarrelType_ blocks - not surprising given that they both describe the same sort of module settings. The main thing to keep in mind for them is that single indices _always refer to rings_ while pair indices refer to _ring first, disc second_.
 
-Settings for indices that go beyond the available ring range are ignored. _The name of an _`EndcapType`_ block must much up with that of an _Endcap_ block in the geometry configuration file._
+Settings for indices that go beyond the available ring range are ignored. _The name of an _!EndcapType_ block must much up with that of an _Endcap_ block in the geometry configuration file._
 
-Here's an overwiew of what _`EndcapType`_ blocks should look like:
+Here's an overwiew of what _!EndcapType_ blocks should look like:
 
-`EndcapType` _endcapname_ {
+!EndcapType _endcapname_ {
 
    nStripsAcross{{{[}}}_ringindex_{{{]}}} = _value_;
 
@@ -364,7 +364,7 @@ Here's an overwiew of what _`EndcapType`_ blocks should look like:
 
 ===Parameters===
 
-*See _`BarrelType`_ blocks* for a description - they're all the same.
+*See _!BarrelType_ blocks* for a description - they're all the same.
 
 ----
 
@@ -469,7 +469,7 @@ All units are _optional_. If none is specified, the application assumes grammes.
 
 There are no restrictions with respect to what materials can be declared or how many times they appear on the list: internally, all materials will be grouped by module type first, then by _A_, _B_, _C_ and _D_ component and by _L/E_ flag. So putting, say, aluminium on the list twice, once to represent a cooling component and once to represent something else, causes no problems at all even if both entries are exactly the same.
 
-_There is one *important exception* to this rule, however._ If the goal is to export the finished tracker model to CMSSW XML files, it is _vital_ that the material for the sensor surfaces be declared as _`SenSi`_ rather than ordinary silicon _for every type that appears in the tracker_. If there is no entry tagged _`SenSi`_ in the material file, CMSSW _will crash_ trying to load the resulting XML files.
+_There is one *important exception* to this rule, however._ If the goal is to export the finished tracker model to CMSSW XML files, it is _vital_ that the material for the sensor surfaces be declared as _!SenSi_ rather than ordinary silicon _for every type that appears in the tracker_. If there is no entry tagged _!SenSi_ in the material file, CMSSW _will crash_ trying to load or run something on the resulting XML files.
 
 ----
 
@@ -529,6 +529,6 @@ An entry in _mattab.list_ looks fairly straightforward:
 
 _tag density radiationlength interactionlength_
 *i.e*
-`SenSi` 2.33 21.82 108.4
+!SenSi 2.33 21.82 108.4
 
 The units are always the same, so they don't need to be written explicitly. They are *g/cm^3^* for the density and *g/cm^2^* for radiation and interaction length. The application converts back and forth between them and those in the material configuration file automatically.
