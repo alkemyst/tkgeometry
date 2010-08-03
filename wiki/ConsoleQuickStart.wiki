@@ -2,10 +2,42 @@
 
 = Console Quick Start Guide =
 
-This page gives an overview over the various command line options available to the _tkmaterial_ main executable. Running `./tkmaterial` without any options at all will print the same information on the command line in abbreviated form.
+This page gives an overview over the various command line options available to the _tkmaterial_ main executable. Running _./tkmaterial_ without any options at all will print the same information on the command line in abbreviated form.
+
+The full call syntax for _tkmaterial_ is the following:
+
+_./tkmaterial [-umd] geomfile [settingsfile] [materialfile] [-t n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]_
+
+As usual, the parts in square brackets are optional.
+
+Depending on how many input files it gets, _tkmaterial_ will try to do as much modelling as possible. The output options and flags then determine what is analised and written to file - provided that the requested type of output can actually be generated from the given input information.
+
+The individual options are discussed in more detail below.
 
 == Boolean Flags ==
 
+*u:* 
+
+*m:* 
+
+*d:* 
+
 == Input ==
 
-== Output Options ==
+*geomfile:* 
+
+*settingsfile:* 
+
+*materialfile:* 
+
+== Analysis and Output Options ==
+
+*t:* 
+
+*h:* 
+
+*r:* 
+
+*g:* 
+
+*x:* 
