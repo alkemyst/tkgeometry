@@ -6,7 +6,7 @@ This page gives an overview over the various command line options available to t
 
 The full call syntax for _tkmaterial_ is the following:
 
-_./tkmaterial [!-umd] geomfile [!settingsfile] [!materialfile] [!-t n_of_tracks] [!-h [!htmlfile]] [!-r [!rootfile]] [!-g [!graphfile]] [!-x [!XMLsubdir]]_
+_./tkmaterial `[`-umd`]` geomfile `[`settingsfile`]` `[`materialfile`]` `[`-t n_of_tracks`]` `[`-h `[`htmlfile`]]` `[`-r `[`rootfile`]]` `[`-g `[`graphfile`]]` `[`-x `[`XMLsubdir`]]`_
 
 As usual, the parts in square brackets are optional.
 
