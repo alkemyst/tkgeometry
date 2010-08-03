@@ -16,11 +16,11 @@ The individual options are discussed in more detail below.
 
 == Boolean Flags ==
 
-*u:* 
+*u:* print geometry summary after volume creation (at runtime)
 
-*m:* 
+*m:* print material budget summary after volume creation (at runtime)
 
-*d:* 
+*d:* write detailed geometry to root file (instead of simplified layer and disc volumes) - WARNING: may cause root to crash later because it's trying to load too many volumes!
 
 == Input ==
 
