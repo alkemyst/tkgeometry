@@ -24,11 +24,11 @@ The individual options are discussed in more detail below.
 
 == Input ==
 
-*geomfile:* the name (and path, if necessary) of the [ConfigFilesOverview#The_Geometry_Configuration_File geometry configuration file]; _mandatory_
+*geomfile:* the name (and path, if necessary) of the [ConfigFilesOverview#The_Geometry_Configuration_File geometry configuration file]
 
-*settingsfile:* the name (and path, if necessary) of the [ConfigFilesOverview#The_Settings_File settings file]; _optional_
+*settingsfile:* the name (and path, if necessary) of the [ConfigFilesOverview#The_Settings_File settings file]
 
-*materialfile:* the name (and path, if necessary) of the [ConfigFilesOverview#The_Material_File material file]; _optional_
+*materialfile:* the name (and path, if necessary) of the [ConfigFilesOverview#The_Material_File material file]
 
 == Analysis and Output Options ==
 
