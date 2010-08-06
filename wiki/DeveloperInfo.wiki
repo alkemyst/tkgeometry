@@ -1,0 +1,21 @@
+#summary A series of class diagrams illustrating the structure of _tkmaterial_
+
+= Interface =
+
+--Interface diagram
+
+= Containers =
+
+--Container diagram
+
+= Input =
+
+--Input diagram
+
+= Algorithms =
+
+--Algorithm diagram
+
+= Output =
+
+-- Output diagram
