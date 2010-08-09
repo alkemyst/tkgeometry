@@ -116,6 +116,9 @@ Barrel _barrelname_ {
    smallDelta{{{[}}}_layerindex_{{{]}}} = _value_;
 
    option = _layerindex_/Stacked-_displacement_;
+
+   directive = _layerindex_/_constraint_;
+ 
 }
 
 ===Mandatory Parameters===
