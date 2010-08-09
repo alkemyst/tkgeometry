@@ -191,6 +191,8 @@ Endcap _endcapname_ {
    _*or*_
    barrelGap = _value_;
 
+   maximumZ = _value_;
+
    diskParity = _value_;
 
    //optional
@@ -220,6 +222,8 @@ Endcap _endcapname_ {
 *minimumZ*: The leftmost z of the z+ endcap. Mutually exclusive with _barrelGap_.
 
 *barrelGap*: The distance between the right-hand end of the barrel and the left-hand end of the endcap. Mutually exclusive with _minimumZ_.
+
+*maximumZ*: The rightmost z of the z+ endcap.
 
 *diskParity*: This parameter indicates whether the first ring in each disc should be shifted towards z=0 or away from it. The value is either *1* or *-1*: the first of these moves the ring towards z=0, the other one moves it away.
 
