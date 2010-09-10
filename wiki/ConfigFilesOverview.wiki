@@ -271,6 +271,48 @@ Support {
 
 *midZ*: This value indicates the position of a user-defined support structure in z+. A mirror image of the structure in z- will be created in addition unless the support is placed in z=0 - which is not recommended because the material budget estimate will be terrible.
 
+==_Pixel_ Block==
+
+The _Pixel_ block is optional, just like the _Support_ block. If given, it describes - in general terms - a pixel detector sitting inside the tracker. The associated materials will have an impact on the analysis of some of the tracker properties. The _Pixel_ block in the geometry file only describes the 3D layout, though, much the same as the _Barrel_ and _Endcap_ block do for the tracker.
+
+Internally, the pixel detector is made up of the same types of objects as the tracker around it. So almost all of the parameters are directly copied from those that are possible for the _Tracker_, _Barrel_ and _Endcap_ blocks. Unless otherwise noted, they use the same defaults as well.
+
+Pixel {
+
+   nLayers = _value_;
+
+   nModules = _value_;
+
+   nDisks = _value_;
+
+   etaCut = _value_;
+
+   innerRadius = _value_;
+
+   outerRadius = _value_;
+
+   phiSegments = _value_;
+
+   barrelGap = _value_;
+
+   maximumZ = _value_;
+
+   diskParity = _value_;
+
+   bmSize = _width_x_length_;
+
+   emSize = _width_x_length_;
+
+   directive = _rule_;
+
+   option = _layerindex_/Stacked-_displacement_;
+
+}
+
+===Parameters===
+
+
+
 ----
 
 [ConfigFilesOverview#Configuration_Files_in_tkgeometry_and_tkmaterial Up to top]
