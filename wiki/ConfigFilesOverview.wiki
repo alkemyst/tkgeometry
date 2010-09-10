@@ -327,13 +327,13 @@ Pixel {
 
 *outerRadius*: See _Barrel_ and _Endcap_ block parameters list for a description. _Mandatory_.
 
-*phiSegments*: 
+*phiSegments*: See _Barrel_ or _Endcap_ block parameter list for a description. _Optional_; the _default value is *4*_.
 
-*barrelGap*: 
+*barrelGap*: See _Endcap_ block parameter list for a description. _Mandatory_.
 
-*maximumZ*: 
+*maximumZ*: See
 
-*diskParity*: 
+*diskParity*: See _Endcap_ block parameter list for a description. _Mandatory_.
 
 *bmSize*: 
 
@@ -341,7 +341,7 @@ Pixel {
 
 *directive*: 
 
-*option*: 
+*option*: See _Barrel_ block parameter list for a description. _Optional_.
 
 ----
 
