@@ -323,9 +323,9 @@ Pixel {
 
 *etaCut*: See _Tracker_ block parameter list for a description. _Mandatory_.
 
-*innerRadius*: 
+*innerRadius*: See _Endcap_ block parameter list for a description. _Mandatory_.
 
-*outerRadius*: 
+*outerRadius*: See _Barrel_ and _Endcap_ block parameters list for a description. _Mandatory_.
 
 *phiSegments*: 
 
