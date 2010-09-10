@@ -323,17 +323,17 @@ Pixel {
 
 *etaCut*: See _Tracker_ block parameter list for a description. _Mandatory_.
 
-*innerRadius*: See _Endcap_ block parameter list for a description. _Mandatory_.
+*innerRadius*: See _Endcap_ block parameter list for a description. _Mandatory_ if the geometry includes an endcap.
 
 *outerRadius*: See _Barrel_ and _Endcap_ block parameters list for a description. _Mandatory_.
 
 *phiSegments*: See _Barrel_ or _Endcap_ block parameter list for a description. _Optional_; the _default value is *4*_.
 
-*barrelGap*: See _Endcap_ block parameter list for a description. _Mandatory_.
+*barrelGap*: See _Endcap_ block parameter list for a description. _Mandatory_ if the geometry includes an endcap.
 
-*maximumZ*: See
+*maximumZ*: See _Endcap_ block parameter list for a description. _Mandatory_ if the geometry includes an endcap.
 
-*diskParity*: See _Endcap_ block parameter list for a description. _Mandatory_.
+*diskParity*: See _Endcap_ block parameter list for a description. _Mandatory_ if the geometry includes an endcap.
 
 *bmSize*: 
 
