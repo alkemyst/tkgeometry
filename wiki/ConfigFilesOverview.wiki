@@ -36,6 +36,7 @@ _As a rule, barrel, layer or disc indices start at 1._
 The tracker block must be declared before all other components. It lists a number of global parameters and geometry settings of the overall tracker layout. There is exactly one such block in a geometry configuration file - no more, no less. Generally speaking, it looks something like this:
 
 Tracker _trackername_ {
+
    zError = _value_;
 
    smallDelta = _value_;
@@ -53,6 +54,7 @@ Tracker _trackername_ {
    ptPower = _value_;
 
    stripPower = _value_;
+
 }
 
 Whitespace is usually ignored, semicolons and curly braces are used as delimiters for parsing. 
@@ -277,6 +279,8 @@ The _Pixel_ block is optional, just like the _Support_ block. If given, it descr
 
 Internally, the pixel detector is made up of the same types of objects as the tracker around it. So almost all of the parameters are directly copied from those that are possible for the _Tracker_, _Barrel_ and _Endcap_ blocks. Unless otherwise noted, they use the same defaults as well.
 
+A pixel detector is defined as having _exactly one_ barrel and _a maximum of one_ pair of endcaps. The parameters that make up a _Pixel_ block are listed below:
+
 Pixel {
 
    nLayers = _value_;
@@ -311,7 +315,33 @@ Pixel {
 
 ===Parameters===
 
+*nLayers*: The number of layers in the barrel (see _Barrel_ block parameters). _Mandatory_.
 
+*nModules*: The number of modules along a barrel rod (see _Barrel_ block parameters). _Mandatory_.
+
+*nDisks*: The number of endcap discs in z+ (see _Endcap_ block parameters). _Optional_ in the sense that skipping this parameter defines a pixel geometry _without endcaps_.
+
+*etaCut*: See _Tracker_ block parameter list for a description. _Mandatory_.
+
+*innerRadius*: 
+
+*outerRadius*: 
+
+*phiSegments*: 
+
+*barrelGap*: 
+
+*maximumZ*: 
+
+*diskParity*: 
+
+*bmSize*: 
+
+*emSize*: 
+
+*directive*: 
+
+*option*: 
 
 ----
 
