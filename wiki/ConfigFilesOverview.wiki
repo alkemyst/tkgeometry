@@ -463,7 +463,7 @@ Here's an overwiew of what _!EndcapType_ blocks should look like:
 
 ===Parameters===
 
-*See _!BarrelType_ blocks* for a description - they're all the same.
+*See _!BarrelType_ block* for a description - they're all the same.
 
 ----
 
@@ -507,21 +507,11 @@ Output {
 
 ===Parameters===
 
-*type*: 
+*See _!BarrelType_ block* for a description of all but the last couple - they're exactly the same. The remaining two are the following:
 
-*nSides*: 
+*precisionRho*: This sets one of the measurement error of the module explicitly, replacing the one that was previously calculated from the module properties. Namely, it sets the error with respect to the strip pitch. _Mandatory_ - if it is omitted, the precision will be set to zero.
 
-*nStripsAcross*: 
-
-*nSegments*: 
-
-*dsDistance*: 
-
-*dsRotation*: 
-
-*precisionRho*: 
-
-*precisionZ*: 
+*precisionZ*: As with _precisionRho_, this sets another measurement error of the module explicitly. This time, it is the error with respect to the strip length. _Mandatory_ - if it is omitted, the precision will be set to zero.
 
 ----
 
