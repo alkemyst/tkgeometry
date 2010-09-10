@@ -485,6 +485,10 @@ Output {
 
 ==!PixelType Block==
 
+The _!PixelType_ block is the companion piece that goes with the _Pixel_ block in the geometry file, and is just as optional. Note, though, that it *has to be there* if a _Pixel_ block defines a pixel detector elsewhere.
+
+For the most part, the syntax and semantics of its parameters are exactly the same as for those related to the tracker. The most important restriction is this: _the entire pixel detector is defined as having only modules of a single type_. 
+
 !PixelType {
 
    type = _value_;
