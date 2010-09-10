@@ -279,7 +279,7 @@ The _Pixel_ block is optional, just like the _Support_ block. If given, it descr
 
 Internally, the pixel detector is made up of the same types of objects as the tracker around it. So almost all of the parameters are directly copied from those that are possible for the _Tracker_, _Barrel_ and _Endcap_ blocks. Unless otherwise noted, they use the same defaults as well.
 
-A pixel detector is defined as having _exactly one_ barrel and _a maximum of one_ pair of endcaps. The parameters that make up a _Pixel_ block are listed below:
+A pixel detector is defined as having _exactly one_ barrel and _a maximum of one_ pair of endcaps. It also uses _rectangular modules_ for _both_. The parameters that make up a _Pixel_ block are listed below:
 
 Pixel {
 
@@ -305,7 +305,7 @@ Pixel {
 
    bmSize = _width_x_length_;
 
-   emSize = _width_x_length_;
+   emSize = _width_x_height_;
 
    directive = _rule_;
 
@@ -335,11 +335,11 @@ Pixel {
 
 *diskParity*: See _Endcap_ block parameter list for a description. _Mandatory_ if the geometry includes an endcap.
 
-*bmSize*: 
+*bmSize*: The width and length of a barrel module, _in millimetres_. See the _size_ parameter for the _Barrel_ block for a more detailed description. _Mandatory_.
 
-*emSize*: 
+*emSize*: The width and height of an endcap module, _in millimetres_. See the _size_ parameter for the _Barrel_ block for a more detailed description. _Mandatory_ if the geometry includes an endcap.
 
-*directive*: 
+*directive*: This option combines those of the same name as described in the _Barrel_ and _Endcap_ parameter lists. The parser determines which part it refers to based on the syntax, which is different for barrels and endcaps. See the _Barrel_ and _Endcap_ parameter lists for details about both. _Optional_.
 
 *option*: See _Barrel_ block parameter list for a description. _Optional_.
 
@@ -482,6 +482,46 @@ Output {
 ===Parameters===
 
 *Path*: An absolute or relative output path. It need not exist beforehand.
+
+==!PixelType Block==
+
+!PixelType {
+
+   type = _value_;
+
+   nSides = _value_;
+
+   nStripsAcross = _value_;
+
+   nSegments = _value_;
+
+   dsDistance = _value_;
+
+   dsRotation = _value_;
+
+   precisionRho = _value_;
+
+   precisionZ = _value_;
+
+}
+
+===Parameters===
+
+*type*: 
+
+*nSides*: 
+
+*nStripsAcross*: 
+
+*nSegments*: 
+
+*dsDistance*: 
+
+*dsRotation*: 
+
+*precisionRho*: 
+
+*precisionZ*: 
 
 ----
 
