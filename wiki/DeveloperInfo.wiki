@@ -10,14 +10,22 @@ http://tkgeometry.googlecode.com/svn/wiki/img/interface.png
 
 --Container diagram
 
+http://tkgeometry.googlecode.com/svn/wiki/img/containers.png
+
 = Input =
 
 --Input diagram
+
+http://tkgeometry.googlecode.com/svn/wiki/img/input.png
 
 = Algorithms =
 
 --Algorithm diagram
 
+http://tkgeometry.googlecode.com/svn/wiki/img/algorithms.png
+
 = Output =
 
 -- Output diagram
+
+http://tkgeometry.googlecode.com/svn/wiki/img/output.png
