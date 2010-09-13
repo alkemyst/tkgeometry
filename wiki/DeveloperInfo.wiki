@@ -3,6 +3,7 @@
 = Interface =
 
 --Interface diagram
+[http://tkgeometry.googlecode.com/svn/wiki/img/interface.png Interface classes and their interconnections]
 
 = Containers =
 
