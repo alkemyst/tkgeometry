@@ -77,8 +77,8 @@ namespace insur {
         bool analyzeGeometry(std::string rootout = "", bool simplified = true);
         bool analyzeNeighbours(std::string graphout = "");
         bool analyzeMaterialBudget(std::string htmlout = "", int tracks = 50);
-        bool translateFullSystemToXML(std::string xmlout = "", bool wt = false);
-        //bool trackerSummary(std::string configFileName, std::string dressFileName);
+        bool translateFullSystemToXML(std::string xmlout = "");
+        bool trackerSummary(std::string configFileName, std::string dressFileName);
 #ifdef USING_ROOTWEB
 	// Functions using rootweb
 	bool analyzeGeometrySite(int tracks = 1000);
@@ -97,8 +97,7 @@ namespace insur {
         configParser cp;
         MatParser mp;
         Usher u;
-        MatCalc tkMaterialCalc;
-        MatCalc pxMaterialCalc;
+        MatCalc c;
         Analyzer a;
         Vizard v;
         tk2CMSSW t2c;

@@ -199,20 +199,16 @@ namespace insur {
                 if (!is) is = new InactiveSurfaces();
                 if (mb) delete mb;
                 mb  = new MaterialBudget(*tr, *is);
-                if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
-                if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
-                if (mp.initMatCalc(matfile, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-                    mb->materialsAll(tkMaterialCalc);
+                if (c.initDone()) c.reset();
+                if (mp.initMatCalc(matfile, c, mainConfiguration.getMattabDirectory())) {
+                    mb->materialsAll(c);
                     if (verbose) mb->print();
                     if (px) {
-                        // TODO: better handle the pixel material file name
-                        if (mp.initMatCalc(matfile+".pix", pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
                         if (!pi) pi = new InactiveSurfaces();
                         if (pm) delete pm;
                         pm = new MaterialBudget(*px, *pi);
-                        pm->materialsAll(pxMaterialCalc);
+                        pm->materialsAll(c);
                         if (verbose) pm->print();
-                        }
                     }
                     return true;
                 }
@@ -402,9 +398,9 @@ namespace insur {
      * @param xmlout The name - without path - of the designated output subdirectory
      * @return True if there were no errors during processing, false otherwise
      */
-    bool Squid::translateFullSystemToXML(std::string xmlout, bool wt) {
+    bool Squid::translateFullSystemToXML(std::string xmlout) {
         if (mb) {
-            t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlout, wt);
+            t2c.translate(c.getMaterialTable(), *mb, xmlout);
             return true;
         }
         else {
@@ -420,7 +416,7 @@ namespace insur {
      * @dressFileName The name - preferably without the path - of the module settings configuration file
      * @return True if there is an existing tracker to summarise, false otherwise.
      */
-  /*    bool Squid::trackerSummary(std::string configFileName, std::string dressFileName) {
+    bool Squid::trackerSummary(std::string configFileName, std::string dressFileName) {
         if (tr) {
             std::string myDirectory;
             std::string destConfigFile;
@@ -451,7 +447,7 @@ namespace insur {
             std::cout << "Squid::trackerSummary(): " << err_no_tracker << std::endl;
             return false;
         }
-	} */
+    }
     
     // private
     /**
@@ -534,12 +530,6 @@ namespace insur {
         if (mb) {
             a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
             v.histogramSummary(a, site);
-            if (pm) {
-	      // TODO: make this much neater!
-	      Analyzer* pixelAnalyzer = new Analyzer;
-	      pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
-	      v.histogramSummary(*pixelAnalyzer, site, "pixel");
-            }
             v.errorSummary(a, site);
             return true;
         }

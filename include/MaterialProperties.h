@@ -16,16 +16,6 @@
 #include <string>
 #include <iostream>
 #include <MaterialTable.h>
-
-class Material {
-public:
-  Material() {radiation=0; interaction=0;};
-  double radiation;
-  double interaction;
-  Material& operator+=(const Material &a);
-  const Material operator+(const Material &other) const;
-};
-
 namespace insur {
     /**
      * Errors and messages that may be reported during operations on member variables
@@ -79,7 +69,6 @@ namespace insur {
         double getExitingMass();
         double getRadiationLength();
         double getInteractionLength();
-        Material getMaterialLengths();
         // output calculations
         void calculateTotalMass(double offset = 0);
         void calculateLocalMass(double offset = 0);

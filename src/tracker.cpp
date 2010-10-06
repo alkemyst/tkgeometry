@@ -885,10 +885,8 @@ std::pair <XYZVector, double > Tracker::shootDirectionFixedPhi(double minEta, do
     return result;
 }
 
-/*
 // won't fix messages here: it is obsolete anyway
-void Tracker::analyze(int nTracks, // = 1000
-		      int section ) { // = Layer::NoSection 
+void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection */ ) {
     // A bunch of pointers
     std::map <std::string, int> modTypes;
     std::map <std::string, TH2D*> etaType;
@@ -1086,20 +1084,16 @@ void Tracker::analyze(int nTracks, // = 1000
     return;
 }
 
-*/
+void Tracker::writeSummary(std::string fileType /* = "html" */) {
+    std::string nullString("");
+    writeSummary(false, nullString, nullString, fileType);
+}
 
-//void Tracker::writeSummary(std::string fileType /* = "html" */) {
-//    std::string nullString("");
-//    writeSummary(false, nullString, nullString, fileType);
-//}
-
-/*
 void Tracker::writeSummary(bool configFiles,
 			   std::string configFile,
-			   std::string dressFile, std::string fileType , // ="html"
-			   std::string barrelModuleCoordinatesFile , // = ""
-			   std::string endcapModuleCoordinatesFile ) // = ""
-{
+			   std::string dressFile, std::string fileType /*= "html"*/,
+			   std::string barrelModuleCoordinatesFile /*=""*/,
+			   std::string endcapModuleCoordinatesFile /*=""*/) {
     
     // Just to start with
     createDirectories();
@@ -1564,12 +1558,10 @@ void Tracker::writeSummary(bool configFiles,
     // TODO: create a TString summary
 }
 
-*/
-
-//void Tracker::createPackageLayout(std::string dirName) {
-//    std::string layoutFile = dirName + "/layout.png";
-//    drawLayout(maxL_, maxR_, layoutFile);
-//}
+void Tracker::createPackageLayout(std::string dirName) {
+    std::string layoutFile = dirName + "/layout.png";
+    drawLayout(maxL_, maxR_, layoutFile);
+}
 
 
 // Prints the positions of barrel modules to file or cout
@@ -2122,9 +2114,9 @@ void Tracker::setModuleTypes() {
                 std::cerr << "ERROR! in function Tracker::setModuleTypes() "
                 <<"I found a !BarrelModule in the barrel" << std::endl;
             }
-            aModule->setResolutionRphi();
-            aModule->setResolutionZ();
-	    std::cerr << "setResolutionRphi() and setResolutionZ() called" << std::endl; // debug
+            aModule->setPrecisionRho();
+            aModule->setPrecisionZ();
+	    std::cerr << "setPrecisionRho() and setPrecisionZ() called" << std::endl; // debug
        }
     }
     
@@ -2198,7 +2190,7 @@ void Tracker::setModuleTypes() {
             std::cerr << "ERROR! in function Tracker::setModuleTypes() "
             << "I found a !EndcapModule in the end-caps" << std::endl;
         }
-	std::cerr << "setResolutionRphi() and setResolutionZ() called" << std::endl; // debug
+	std::cerr << "setPrecisionRho() and setPrecisionZ() called" << std::endl; // debug
     }
 }
 */
@@ -2279,21 +2271,21 @@ void Tracker::setModuleTypes(std::string sectionName,
             myTag << sectionName << std::dec ;
             myIndex = -1;
             if ( (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) ) {
-                myTag << "L" << setfill('0') << setw(2) << aBarrelModule->getLayer();
+                myTag << "L" << aBarrelModule->getLayer();
                 myIndex = aBarrelModule->getLayer();
                 mySpecialIndex.first= myIndex;
                 mySpecialIndex.second = aBarrelModule->getRing();
 		if (specialSecond[mySpecialIndex]) {
-		  myTag << "R" << setfill('0') << setw(2) << aBarrelModule->getRing();
+		  myTag << "R" << aBarrelModule->getRing();
 		}
             } else if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
-                myTag << "R" << setfill('0') << setw(2) << anEndcapModule->getRing();
+                myTag << "R" << anEndcapModule->getRing();
                 myIndex = anEndcapModule->getRing();
                 // If special rules are applied here, we add the disk id to the tag
                 mySpecialIndex.first = myIndex;
                 mySpecialIndex.second = anEndcapModule->getDisk();
                 if (specialSecond[mySpecialIndex]) {
-                    myTag << "D" << setfill('0') << setw(2) << anEndcapModule->getDisk();
+                    myTag << "D" << anEndcapModule->getDisk();
                 }
             } else {
                 // This shouldnt happen
@@ -2354,8 +2346,8 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setColor(colorPicker(aType));
             aModule->setReadoutType(myReadoutType);
 
-	    aModule->setResolutionRphi();
-	    aModule->setResolutionZ();
+	    aModule->setPrecisionRho();
+	    aModule->setPrecisionZ();
 
             // TODO: decide whether to use nStripAcross or nStripsAcross everywhere
             

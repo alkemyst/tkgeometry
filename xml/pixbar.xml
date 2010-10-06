@@ -6,14 +6,12 @@
  <Constant name="Rin1"              value="3.10*cm"/>
  <Constant name="Rin2"              value="18.00*cm"/>
  <Constant name="Rin3"              value="18.50*cm"/>
- <Constant name="RinSupTubCab"      value="15.00*cm"/>
  <Constant name="Rout1"             value="21.80*cm"/>
- <Constant name="Rout2"             value="21.00*cm"/>
+ <Constant name="Rout2"             value="19.00*cm"/>
  <Constant name="Zv1"               value="30.00*cm"/>
  <Constant name="Zv2"               value="56.00*cm"/>
  <Constant name="Zv3"               value="110.5*cm"/>
  <Constant name="Zv4"               value="282.0*cm"/>
- <Constant name="ZvSupTubCab"       value="248.0*cm"/>
  <Constant name="SupportL"          value="221.0*cm"/>
  <Constant name="SupportRin"        value="21.65*cm"/>
  <Constant name="SupportW"          value="20.00*cm"/>
@@ -75,210 +73,22 @@
  <Constant name="Conn2Rin"          value="11.00*cm"/>
  <Constant name="Conn1Z"            value="[FlangeZ]-[FlangeT]/2-[Conn1T]/2"/>
  <Constant name="Conn2Z"            value="[FlangeZ]+[FlangeT]/2+[Conn1T]/2"/>
- <Constant name="Conn3Rout"         value="19.0*cm"/>
- <Constant name="Conn3Rin"          value="18.0*cm"/>
- <Constant name="Conn4Rin"          value="18.0*cm"/>
+ <Constant name="Conn3Rout"         value="18.25*cm"/>
  <Constant name="ConnToSTT"         value="3.00*cm"/>
- <Constant name="ConnToSTRin"       value="18.0*cm"/>
- <Constant name="ConnToSTRout"      value="18.8*cm"/>
- <Constant name="Conn3T"            value="49.3*cm"/>
- <Constant name="Conn4T"            value="120.00*cm"/>
+ <Constant name="Conn3T"            value="8.00*cm"/>
+ <Constant name="Conn4T"            value="16.00*cm"/>
  <Constant name="ConnToSTZ"         value="30.50*cm"/>
- <Constant name="Conn3Z"            value="56.65*cm"/>
+ <Constant name="Conn3Z"            value="36.00*cm"/>
  <Constant name="Conn4Z"            value="[Conn3Z]+
                                            ([Conn3T]+[Conn4T])/2"/>
- <Constant name="ServiceRout"          value="21.0*cm"/>
- <Constant name="ServiceRin"          value="18.0*cm"/>
- <Constant name="ServT"             value="48.5*cm"/>
+ <Constant name="ServRout"          value="18.70*cm"/>
+ <Constant name="ServT"             value="226.0*cm"/>
  <Constant name="ServZ"             value="[Conn4Z]+
                                            ([Conn4T]+[ServT])/2"/>
-
- <Constant name="ServCablT"         value="32.2*cm"/>
- <Constant name="ServCablZ"         value="[ServZ]+[ServT]/2+[ServCablT]/2"/>
-
-
  <Constant name="RadialCoolZ"        value="29.5*cm"/>
  <Constant name="RadialCoolDZ"       value="1.0*cm"/>
  <Constant name="RadialCoolRin"      value="4.0*cm"/>
 
- <!-- Hybrid additional constants -->
- <!-- <Constant name="RadiusStack0"         value="25.0*cm"/>
- <Constant name="RadiusStack1"         value="35.0*cm"/>
-
- <Constant name="SeparationStack0"     value="1.0*mm"/>
- <Constant name="SeparationStack1"     value="1.0*mm"/>
-
- <Constant name="SensorWidthStack0"    value="100.0*mm"/>
- <Constant name="SensorWidthStack1"    value="100.0*mm"/>
-
- <Constant name="SensorThickStack0"    value="0.200*mm"/>
- <Constant name="SensorThickStack1"    value="0.200*mm"/>
-
- <Constant name="LaddersStack0"        value="((7*[RadiusStack0]/[SensorWidthStack0])+1)"/>
- <Constant name="LaddersStack1"        value="((7*[RadiusStack1]/[SensorWidthStack1]))"/>
-
- <Constant name="PhiOffsetStack0"      value="0*deg"/>
- <Constant name="PhiOffsetStack1"      value="0*deg"/>
-
- <Constant name="ModulesStack0"        value="32"/>
- <Constant name="ModulesStack1"        value="42"/>
-
- <Constant name="LayerDzStack0"        value="320.0*cm"/>
- <Constant name="LayerDzStack1"        value="420.0*cm"/>
-
- <Constant name="OverlapStack0"        value="0"/>
- <Constant name="OverlapStack1"        value="0"/>     
-
- <Constant name="ZOverlapStack0"       value="0.6*cm"/>
- <Constant name="ZOverlapStack1"       value="0.6*cm"/>
-
- <Constant name="StackOffsetStack0"    value="0.0*mm"/>
- <Constant name="StackOffsetStack1"    value="0.0*mm"/>
-
- <Constant name="StackOffsetTStack0"   value="0"/>
- <Constant name="StackOffsetTStack1"   value="0"/>  
-
- <Constant name="LayoutStack0"         value="1"/>
- <Constant name="LayoutStack1"         value="1"/> -->
-
- <!-- Longbarrel additional constants -->
- <Constant name="RadiusStack0"         value="32.0*cm"/>
- <Constant name="RadiusStack1"         value="36.0*cm"/>
- <Constant name="RadiusStack2"         value="48.0*cm"/>
- <Constant name="RadiusStack3"         value="52.0*cm"/>
- <Constant name="RadiusStack4"         value="64.3*cm"/>
- <Constant name="RadiusStack5"         value="68.3*cm"/>
- <Constant name="RadiusStack6"         value="80.3*cm"/>
- <Constant name="RadiusStack7"         value="84.3*cm"/>
- <Constant name="RadiusStack8"         value="98.5*cm"/>
- <Constant name="RadiusStack9"         value="102.5*cm"/>
-
- <Constant name="SeparationStack0"     value="1.0*mm"/>
- <Constant name="SeparationStack1"     value="1.0*mm"/>
- <Constant name="SeparationStack2"     value="1.0*mm"/>
- <Constant name="SeparationStack3"     value="1.0*mm"/>
- <Constant name="SeparationStack4"     value="1.0*mm"/>
- <Constant name="SeparationStack5"     value="1.0*mm"/>
- <Constant name="SeparationStack6"     value="1.0*mm"/>
- <Constant name="SeparationStack7"     value="1.0*mm"/>
- <Constant name="SeparationStack8"     value="1.0*mm"/>
- <Constant name="SeparationStack9"     value="1.0*mm"/>
-
- <Constant name="SensorWidthStack0"    value="100.0*mm"/>
- <Constant name="SensorWidthStack1"    value="100.0*mm"/>
- <Constant name="SensorWidthStack2"    value="100.0*mm"/>
- <Constant name="SensorWidthStack3"    value="100.0*mm"/>
- <Constant name="SensorWidthStack4"    value="100.0*mm"/>
- <Constant name="SensorWidthStack5"    value="100.0*mm"/>
- <Constant name="SensorWidthStack6"    value="100.0*mm"/>
- <Constant name="SensorWidthStack7"    value="100.0*mm"/>
- <Constant name="SensorWidthStack8"    value="100.0*mm"/>
- <Constant name="SensorWidthStack9"    value="100.0*mm"/>
-
- <Constant name="SensorThickStack0"    value="0.200*mm"/>
- <Constant name="SensorThickStack1"    value="0.200*mm"/>
- <Constant name="SensorThickStack2"    value="0.200*mm"/>
- <Constant name="SensorThickStack3"    value="0.200*mm"/>
- <Constant name="SensorThickStack4"    value="0.200*mm"/>
- <Constant name="SensorThickStack5"    value="0.200*mm"/>
- <Constant name="SensorThickStack6"    value="0.200*mm"/>
- <Constant name="SensorThickStack7"    value="0.200*mm"/>
- <Constant name="SensorThickStack8"    value="0.200*mm"/>
- <Constant name="SensorThickStack9"    value="0.200*mm"/>
-
- <Constant name="LaddersStack0"        value="24"/>
- <Constant name="LaddersStack1"        value="24"/>
- <Constant name="LaddersStack2"        value="34"/>
- <Constant name="LaddersStack3"        value="34"/>
- <Constant name="LaddersStack4"        value="46"/>
- <Constant name="LaddersStack5"        value="46"/>
- <Constant name="LaddersStack6"        value="56"/>
- <Constant name="LaddersStack7"        value="56"/>
- <Constant name="LaddersStack8"        value="68"/>
- <Constant name="LaddersStack9"        value="68"/>
-
- <Constant name="PhiOffsetStack0"      value="0*deg"/>
- <Constant name="PhiOffsetStack1"      value="0*deg"/>
- <Constant name="PhiOffsetStack2"      value="0*deg"/>
- <Constant name="PhiOffsetStack3"      value="0*deg"/>
- <Constant name="PhiOffsetStack4"      value="0*deg"/>
- <Constant name="PhiOffsetStack5"      value="0*deg"/>
- <Constant name="PhiOffsetStack6"      value="0*deg"/>
- <Constant name="PhiOffsetStack7"      value="0*deg"/>
- <Constant name="PhiOffsetStack8"      value="0*deg"/>
- <Constant name="PhiOffsetStack9"      value="0*deg"/>
-
- <Constant name="ModulesStack0"        value="42"/>
- <Constant name="ModulesStack1"        value="42"/>
- <Constant name="ModulesStack2"        value="54"/>
- <Constant name="ModulesStack3"        value="54"/>
- <Constant name="ModulesStack4"        value="54"/>
- <Constant name="ModulesStack5"        value="54"/>
- <Constant name="ModulesStack6"        value="54"/>
- <Constant name="ModulesStack7"        value="54"/>
- <Constant name="ModulesStack8"        value="54"/>
- <Constant name="ModulesStack9"        value="54"/>
-
- <Constant name="RingModules"        value="6"/>
- <Constant name="RingModules4"        value="[RingModules]"/>
- <Constant name="RingModules5"        value="[RingModules]"/>
- <Constant name="RingModules6"        value="[RingModules]"/>
- <Constant name="RingModules7"        value="[RingModules]"/>
-
- <Constant name="LayerDzStack0"        value="420.0*cm"/>
- <Constant name="LayerDzStack1"        value="420.0*cm"/>
- <Constant name="LayerDzStack2"        value="540.0*cm"/>
- <Constant name="LayerDzStack3"        value="540.0*cm"/>
- <Constant name="LayerDzStack4"        value="540.0*cm"/>
- <Constant name="LayerDzStack5"        value="540.0*cm"/>
- <Constant name="LayerDzStack6"        value="540.0*cm"/>
- <Constant name="LayerDzStack7"        value="540.0*cm"/>
- <Constant name="LayerDzStack8"        value="540.0*cm"/>
- <Constant name="LayerDzStack9"        value="540.0*cm"/>
-
- <Constant name="OverlapStack0"        value="0"/>
- <Constant name="OverlapStack1"        value="0"/>
- <Constant name="OverlapStack2"        value="0"/>
- <Constant name="OverlapStack3"        value="0"/>
- <Constant name="OverlapStack4"        value="0"/>
- <Constant name="OverlapStack5"        value="0"/>
- <Constant name="OverlapStack6"        value="0"/>      
- <Constant name="OverlapStack7"        value="0"/> 
- <Constant name="OverlapStack8"        value="0"/>      
- <Constant name="OverlapStack9"        value="0"/>      
-
- <Constant name="ZOverlapStack0"       value="0.6*cm"/>
- <Constant name="ZOverlapStack1"       value="0.6*cm"/>
- <Constant name="ZOverlapStack2"       value="0.6*cm"/>
- <Constant name="ZOverlapStack3"       value="0.6*cm"/>
- <Constant name="ZOverlapStack4"       value="0.6*cm"/>
- <Constant name="ZOverlapStack5"       value="0.6*cm"/>
- <Constant name="ZOverlapStack6"       value="0.6*cm"/> 
- <Constant name="ZOverlapStack7"       value="0.6*cm"/> 
- <Constant name="ZOverlapStack8"       value="0.6*cm"/> 
- <Constant name="ZOverlapStack9"       value="0.6*cm"/> 
-
- <Constant name="StackOffsetStack0"   value="0.0*mm"/>
- <Constant name="StackOffsetStack1"   value="0.0*mm"/>
- <Constant name="StackOffsetStack2"   value="0.0*mm"/>
- <Constant name="StackOffsetStack3"   value="0.0*mm"/>
- <Constant name="StackOffsetStack4"   value="0.0*mm"/>
- <Constant name="StackOffsetStack5"   value="0.0*mm"/>
- <Constant name="StackOffsetStack6"   value="0.0*mm"/>
- <Constant name="StackOffsetStack7"   value="0.0*mm"/>
- <Constant name="StackOffsetStack8"   value="0.0*mm"/>
- <Constant name="StackOffsetStack9"   value="0.0*mm"/>
-
- <Constant name="StackOffsetTStack0"   value="0"/>
- <Constant name="StackOffsetTStack1"   value="0"/>
- <Constant name="StackOffsetTStack2"   value="0"/>
- <Constant name="StackOffsetTStack3"   value="0"/>
- <Constant name="StackOffsetTStack4"   value="0"/>
- <Constant name="StackOffsetTStack5"   value="0"/>
- <Constant name="StackOffsetTStack6"   value="0"/>
- <Constant name="StackOffsetTStack7"   value="0"/>
- <Constant name="StackOffsetTStack8"   value="0"/>
- <Constant name="StackOffsetTStack9"   value="0"/>
 
 </ConstantsSection>
 
@@ -289,21 +99,23 @@
 
 <SolidSection label="pixbar.xml">
  <Polycone name="PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
-  <ZSection z="-[Zv4]"         rMin="[RinSupTubCab]"  rMax="[Rout2]" />
-  <ZSection z="-[ZvSupTubCab]" rMin="[RinSupTubCab]"  rMax="[Rout2]" />
-  <ZSection z="-[ZvSupTubCab]" rMin="[Rin2]"          rMax="[Rout2]" />
-  <ZSection z="-[Zv3]"         rMin="[Rin2]"          rMax="[Rout2]" />
-  <ZSection z="-[Zv3]"         rMin="[Rin2]"          rMax="[Rout1]" />
-  <ZSection z="-[Zv1]"         rMin="[Rin2]"          rMax="[Rout1]" />
-  <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />
+  <RZPoint r="[Rin1]" z="-[Zv1]"/>
+  <RZPoint r="[Rin2]" z="-[Zv1]"/>
+  <RZPoint r="[Rin2]" z="-[Zv2]"/>
+  <RZPoint r="[Rin3]" z="-[Zv2]"/>
+  <RZPoint r="[Rin3]" z="-[Zv4]"/>
+  <RZPoint r="[Rout2]" z="-[Zv4]"/>
+  <RZPoint r="[Rout2]" z="-[Zv3]"/>
+  <RZPoint r="[Rout1]" z="-[Zv3]"/>
   <!--mid point marker-->
-  <ZSection z="[Zv1]"          rMin="[Rin1]"          rMax="[Rout1]" />
-  <ZSection z="[Zv1]"          rMin="[Rin2]"          rMax="[Rout1]" />
-  <ZSection z="[Zv3]"          rMin="[Rin2]"          rMax="[Rout1]" />
-  <ZSection z="[Zv3]"          rMin="[Rin2]"          rMax="[Rout2]" />
-  <ZSection z="[ZvSupTubCab]"  rMin="[Rin2]"          rMax="[Rout2]" />
-  <ZSection z="[ZvSupTubCab]"  rMin="[RinSupTubCab]"  rMax="[Rout2]" />
-  <ZSection z="[Zv4]"          rMin="[RinSupTubCab]"  rMax="[Rout2]" />
+  <RZPoint r="[Rout1]" z="[Zv3]"/>
+  <RZPoint r="[Rout2]" z="[Zv3]"/>
+  <RZPoint r="[Rout2]" z="[Zv4]"/>
+  <RZPoint r="[Rin3]" z="[Zv4]"/>
+  <RZPoint r="[Rin3]" z="[Zv2]"/>
+  <RZPoint r="[Rin2]" z="[Zv2]"/>
+  <RZPoint r="[Rin2]" z="[Zv1]"/>
+  <RZPoint r="[Rin1]" z="[Zv1]"/>
  </Polycone> 
  <Tubs name="PixelBarrelSuppTub" rMin="[SupportRin]"     rMax="[Rout1]"
        dz="[SupportL]/2"         startPhi="0*deg"        deltaPhi="360*deg"/>
@@ -349,16 +161,14 @@
        dz="[Conn1T]/2"           startPhi="0*deg"        deltaPhi="360*deg"/>
  <Tubs name="PixelBarrelConn2"   rMin="[Conn2Rin]"       rMax="[Shield3Rin]"
        dz="[Conn1T]/2"           startPhi="0*deg"        deltaPhi="360*deg"/>
- <Tubs name="PixelBarrelConnToST"   rMin="[ConnToSTRin]" rMax="[ConnToSTRout]"
+ <Tubs name="PixelBarrelConnToST"   rMin="[Rin2]"           rMax="[Conn3Rout]"
        dz="[ConnToSTT]/2"           startPhi="0*deg"        deltaPhi="360*deg"/>
- <Tubs name="PixelBarrelConn3"   rMin="[Conn3Rin]"           rMax="[Conn3Rout]"
-       dz="[Conn3T]/2"           startPhi="285*deg"        deltaPhi="150*deg"/>
- <Tubs name="PixelBarrelConn4"   rMin="[Conn4Rin]"           rMax="[Conn3Rout]"
-       dz="[Conn4T]/2"           startPhi="285*deg"        deltaPhi="150*deg"/>
- <Tubs name="PixelBarrelService" rMin="[ServiceRin]"           rMax="[ServiceRout]"
-       dz="[ServT]/2"            startPhi="293*deg"        deltaPhi="134*deg"/>
- <Tubs name="PixelBarrelSupTubCables" rMin="[RinSupTubCab]" rMax="[Conn3Rout]"
-       dz="[ServCablT]/2"            startPhi="0*deg"        deltaPhi="360*deg"/>
+ <Tubs name="PixelBarrelConn3"   rMin="[Rin2]"           rMax="[Conn3Rout]"
+       dz="[Conn3T]/2"           startPhi="0*deg"        deltaPhi="360*deg"/>
+ <Tubs name="PixelBarrelConn4"   rMin="[Rin2]"           rMax="[Conn3Rout]"
+       dz="[Conn4T]/2"           startPhi="0*deg"        deltaPhi="360*deg"/>
+ <Tubs name="PixelBarrelService" rMin="[Rin3]"           rMax="[ServRout]"
+       dz="[ServT]/2"            startPhi="0*deg"        deltaPhi="360*deg"/>
 </SolidSection>
 
 <LogicalPartSection label="pixbar.xml">
@@ -440,21 +250,16 @@
  </LogicalPart>
  <LogicalPart name="PixelBarrelConn3" category="unspecified">
   <rSolid name="PixelBarrelConn3"/>
-  <rMaterial name="pixbarmaterial:SectorC"/>
+  <rMaterial name="pixbarmaterial:Pix_Bar_Conn2"/>
  </LogicalPart>
  <LogicalPart name="PixelBarrelConn4" category="unspecified">
   <rSolid name="PixelBarrelConn4"/>
-  <rMaterial name="pixbarmaterial:SectorB"/>
+  <rMaterial name="pixbarmaterial:Pix_Bar_Conn3"/>
  </LogicalPart>
  <LogicalPart name="PixelBarrelService" category="unspecified">
   <rSolid name="PixelBarrelService"/>
-  <rMaterial name="pixbarmaterial:SectorA"/>
+  <rMaterial name="pixbarmaterial:Pix_Bar_Services"/>
  </LogicalPart>
- <LogicalPart name="PixelBarrelSupTubCables" category="unspecified">
-  <rSolid name="PixelBarrelSupTubCables"/>
-  <rMaterial name="pixbarmaterial:PixelBarrelSupTubCables2"/>
- </LogicalPart>
-
 </LogicalPartSection>
 
 <PosPartSection label="pixbar.xml">
@@ -633,17 +438,6 @@
    <rParent name="pixbar:PixelBarrel"/>
    <rChild name="pixbar:PixelBarrelConn3"/>
   <rRotation name="pixbar:180D"/>
-  <Translation x="[zero]" y="[zero]" z="[Conn3Z]" />
- </PosPart>
- <PosPart copyNumber="3">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelConn3"/>
-  <Translation x="[zero]" y="[zero]" z="-[Conn3Z]" />
- </PosPart>
- <PosPart copyNumber="4">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelConn3"/>
-  <rRotation name="pixbar:180D"/>
   <Translation x="[zero]" y="[zero]" z="-[Conn3Z]" />
  </PosPart>
 
@@ -656,20 +450,8 @@
    <rParent name="pixbar:PixelBarrel"/>
    <rChild name="pixbar:PixelBarrelConn4"/>
   <rRotation name="pixbar:180D"/>
-  <Translation x="[zero]" y="[zero]" z="[Conn4Z]" />
- </PosPart>
- <PosPart copyNumber="3">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelConn4"/>
   <Translation x="[zero]" y="[zero]" z="-[Conn4Z]" />
  </PosPart>
- <PosPart copyNumber="4">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelConn4"/>
-  <rRotation name="pixbar:180D"/>
-  <Translation x="[zero]" y="[zero]" z="-[Conn4Z]" />
- </PosPart>
-
  <PosPart copyNumber="1">
    <rParent name="pixbar:PixelBarrel"/>
    <rChild name="pixbar:PixelBarrelService"/>
@@ -679,30 +461,7 @@
    <rParent name="pixbar:PixelBarrel"/>
    <rChild name="pixbar:PixelBarrelService"/>
   <rRotation name="pixbar:180D"/>
-  <Translation x="[zero]" y="[zero]" z="[ServZ]" />
- </PosPart>
- <PosPart copyNumber="3">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelService"/>
   <Translation x="[zero]" y="[zero]" z="-[ServZ]" />
- </PosPart>
- <PosPart copyNumber="4">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelService"/>
-  <rRotation name="pixbar:180D"/>
-  <Translation x="[zero]" y="[zero]" z="-[ServZ]" />
- </PosPart>
-
- <PosPart copyNumber="1">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelSupTubCables"/>
-  <Translation x="[zero]" y="[zero]" z="[ServCablZ]" />
- </PosPart>
- <PosPart copyNumber="2">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbar:PixelBarrelSupTubCables"/>
-  <rRotation name="pixbar:180D"/>
-  <Translation x="[zero]" y="[zero]" z="-[ServCablZ]" />
  </PosPart>
  <PosPart copyNumber="1">
    <rParent name="pixbar:PixelBarrel"/>
@@ -716,11 +475,6 @@
    <rParent name="pixbar:PixelBarrel"/>
    <rChild name="pixbarlayer2:PixelBarrelLayer2"/>
  </PosPart>
- <PosPart copyNumber="1">
-   <rParent name="pixbar:PixelBarrel"/>
-   <rChild name="pixbarlayer3:PixelBarrelLayer3"/>
- </PosPart>
 </PosPartSection>
 
 </DDDefinition>
-

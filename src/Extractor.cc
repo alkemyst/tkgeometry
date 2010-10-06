@@ -16,7 +16,7 @@ namespace insur {
      * @param mb A reference to the material budget that is to be analysed; used as input
      * @param d A reference to the bundle of vectors that will contain the information extracted during analysis; used for output
      */
-    void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool wt) {
+    void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d) {
         std::cout << "Starting analysis..." << std::endl;
         Tracker& tr = mb.getTracker();
         InactiveSurfaces& is = mb.getInactiveSurfaces();
@@ -63,28 +63,26 @@ namespace insur {
         rot.phiz = 0.0;
         r.push_back(rot);
         // define top-level barrel volume container (polycone)
-        if (!wt) {
-            shape.type = pc;
-            shape.name_tag = xml_tob;
-            analyseBarrelContainer(tr, shape.rzup, shape.rzdown);
+        shape.type = pc;
+        shape.name_tag = xml_tob;
+        analyseBarrelContainer(tr, shape.rzup, shape.rzdown);
+        s.push_back(shape);
+        std::cout << "Barrel container done." << std::endl;
+        // define top-level endcap volume containers (polycone)
+        analyseEndcapContainer(tr, shape.rzup, shape.rzdown);
+        if (!(shape.rzup.empty() || shape.rzdown.empty())) {
+            shape.name_tag = xml_tid;
             s.push_back(shape);
-            std::cout << "Barrel container done." << std::endl;
-            // define top-level endcap volume containers (polycone)
-            analyseEndcapContainer(tr, shape.rzup, shape.rzdown);
-            if (!(shape.rzup.empty() || shape.rzdown.empty())) {
-                shape.name_tag = xml_tid;
-                s.push_back(shape);
-            }
-            std::cout << "Endcap container done." << std::endl;
         }
+        std::cout << "Endcap container done." << std::endl;
         // translate entries in mt to elementary materials
         analyseElements(mt, e);
         std::cout << "Elementary materials done." << std::endl;
         // analyse barrel
-        analyseLayers(mt, bc, tr, c, l, s, p, a, r, t, ri, wt);
+        analyseLayers(mt, bc, tr, c, l, s, p, a, r, t, ri);
         std::cout << "Barrel layers done." << std::endl;
         // analyse endcaps
-        analyseDiscs(mt, ec, tr, c, l, s, p, a, r, t, ri, wt);
+        analyseDiscs(mt, ec, tr, c, l, s, p, a, r, t, ri);
         std::cout << "Endcap discs done." << std::endl;
         // barrel services
         analyseBarrelServices(is, c, l, s, p, t);
@@ -347,11 +345,8 @@ namespace insur {
      */
     void Extractor::analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-            std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+            std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri) {
         int layer;
-        std::string nspace;
-        if (wt) nspace = xml_newfileident;
-        else nspace = xml_fileident;
         std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
         std::vector<ModuleCap>::iterator iiter, iguard;
         // container inits
@@ -433,27 +428,27 @@ namespace insur {
                         shape.dz = iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
-                        logic.shape_tag = nspace + ":" + logic.name_tag;
-                        logic.material_tag = nspace + ":" + matname.str();
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                        logic.material_tag = xml_fileident + ":" + matname.str();
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
-                        pos.rotref = nspace + ":" + xml_barrel_tilt;
+                        pos.rotref = xml_fileident + ":" + xml_barrel_tilt;
                         if ((iiter->getModule().getMeanPoint().Rho() > (rmax - deltar / 2.0))
                                 || ((iiter->getModule().getMeanPoint().Rho() < ((rmin + rmax) / 2.0))
                                 && (iiter->getModule().getMeanPoint().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                         else pos.trans.dx = shape.dz - deltar / 2.0;
                         if (is_short) {
-                            pos.parent_tag = nspace + ":" + rname.str() + xml_plus;
+                            pos.parent_tag = xml_fileident + ":" + rname.str() + xml_plus;
                             pos.trans.dz = iiter->getModule().getMinZ() - ((zmax + zmin) / 2.0) + shape.dy;
                             p.push_back(pos);
-                            pos.parent_tag = nspace + ":" + rname.str() + xml_minus;
+                            pos.parent_tag = xml_fileident + ":" + rname.str() + xml_minus;
                             pos.trans.dz = -pos.trans.dz;
                             pos.copy = 2;
                             p.push_back(pos);
                             pos.copy = 1;
                         }
                         else {
-                            pos.parent_tag = nspace + ":" + rname.str();
+                            pos.parent_tag = xml_fileident + ":" + rname.str();
                             partner = findPartnerModule(iiter, iguard, iiter->getModule().getRing());
                             if (iiter->getModule().getMeanPoint().Z() > 0) {
                                 pos.trans.dz = iiter->getModule().getMaxZ() - shape.dy;
@@ -492,7 +487,7 @@ namespace insur {
                         s.push_back(shape);
                         pos.parent_tag = logic.shape_tag;
                         logic.name_tag = shape.name_tag;
-                        logic.shape_tag = nspace + ":" + logic.name_tag;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
@@ -509,7 +504,7 @@ namespace insur {
                                 rot.thetay = 90.0;
                                 rot.phiy = 90.0 + iiter->getModule().getStereoRotation();
                                 r.push_back(rot);
-                                pos.rotref = nspace + ":" + rot.name;
+                                pos.rotref = xml_fileident + ":" + rot.name;
                             }
                             p.push_back(pos);
                             pos.rotref.clear();
@@ -525,8 +520,8 @@ namespace insur {
                         s.push_back(shape);
                         pos.parent_tag = logic.shape_tag;
                         logic.name_tag = shape.name_tag;
-                        logic.shape_tag = nspace + ":" + logic.name_tag;
-                        logic.material_tag = nspace + ":" + xml_sensor_silicon;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                        logic.material_tag = xml_fileident + ":" + xml_sensor_silicon;
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
                         pos.trans.dz = 0.0;
@@ -581,7 +576,7 @@ namespace insur {
                 else shape.dz = zmax;
                 s.push_back(shape);
                 logic.name_tag = shape.name_tag;
-                logic.shape_tag = nspace + ":" + logic.name_tag;
+                logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
                 rspec.partselectors.push_back(logic.name_tag);
@@ -590,37 +585,11 @@ namespace insur {
                     shape.name_tag = rname.str() + xml_minus;
                     s.push_back(shape);
                     logic.name_tag = shape.name_tag;
-                    logic.shape_tag = nspace + ":" + logic.name_tag;
+                    logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                     l.push_back(logic);
                     rspec.partselectors.push_back(logic.name_tag);
                 }
                 ds = fromRim(rmax, shape.dy);
-                // extra containers for short layers
-                if (wt && is_short) {
-                    shape.type = tb;
-                    shape.dx = 0.0;
-                    shape.dy = 0.0;
-                    shape.rmin = rmin;
-                    shape.rmax = rmax;
-                    shape.name_tag = lname.str() + xml_plus;
-                    s.push_back(shape);
-                    logic.name_tag = shape.name_tag;
-                    logic.shape_tag = nspace + ":" + logic.name_tag;
-                    l.push_back(logic);
-                    pos.trans.dx = 0.0;
-                    pos.trans.dz = zmin + (zmax - zmin) / 2.0;
-                    pos.parent_tag = nspace + ":" + lname.str();
-                    pos.child_tag = logic.shape_tag;
-                    p.push_back(pos);
-                    shape.name_tag = lname.str() + xml_minus;
-                    s.push_back(shape);
-                    logic.name_tag = shape.name_tag;
-                    logic.shape_tag = nspace + ":" + logic.name_tag;
-                    l.push_back(logic);
-                    pos.trans.dz = -pos.trans.dz;
-                    pos.child_tag = logic.shape_tag;
-                    p.push_back(pos);
-                }
                 // layer
                 shape.type = tb;
                 shape.dx = 0.0;
@@ -633,7 +602,7 @@ namespace insur {
                 shape.dz = zmax;
                 s.push_back(shape);
                 logic.name_tag = shape.name_tag;
-                logic.shape_tag = nspace + ":" + logic.name_tag;
+                logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                 l.push_back(logic);
                 pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
                 pos.child_tag = logic.shape_tag;
@@ -641,7 +610,6 @@ namespace insur {
                 lspec.partselectors.push_back(logic.name_tag);
                 // rods in layer algorithm(s)
                 alg.parent = logic.shape_tag;
-                if (wt && is_short) alg.parent = alg.parent + xml_plus;
                 alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
                 pconverter.str("");
                 pconverter << (tr.getBarrelLayers()->at(layer - 1)->getTilt() + 90) << "*deg";
@@ -657,7 +625,7 @@ namespace insur {
                 pconverter << (rmax - ds - deltar / 2.0 - 2.0 * dt) << "*mm";
                 alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
                 pconverter.str("");
-                if (!wt && is_short) {
+                if (is_short) {
                     pconverter << (zmin + (zmax - zmin) / 2.0) << "*mm";
                     alg.parameters.push_back(numericParam(xml_zposition, pconverter.str()));
                     pconverter.str("");
@@ -671,13 +639,11 @@ namespace insur {
                 // extras for short layers
                 if (is_short) {
                     pconverter.str("");
-                    if (wt) alg.parent = logic.shape_tag + xml_minus;
-                    pconverter << nspace << ":" << rname.str() << xml_minus;
+                    pconverter << xml_fileident << ":" << rname.str() << xml_minus;
                     alg.parameters.front() = stringParam(xml_childparam, pconverter.str());
                     pconverter.str("");
-                    if (wt) pconverter << "0.0*mm";
-                    else pconverter << -(zmin + (zmax - zmin) / 2.0) << "*mm";
-                    alg.parameters.at(6) = numericParam(xml_zposition, pconverter.str());
+                    pconverter << -(zmin + (zmax - zmin) / 2.0) << "*mm";//
+                    alg.parameters.at(6) = numericParam(xml_zposition, pconverter.str());//
                     a.push_back(alg);
                 }
                 alg.parameters.clear();
@@ -712,11 +678,8 @@ namespace insur {
      */
     void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-            std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+            std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri) {
         int layer;
-        std::string nspace;
-        if (wt) nspace = xml_newfileident;
-        else nspace = xml_fileident;
         std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
         std::vector<ModuleCap>::iterator iiter, iguard;
         // container inits
@@ -807,8 +770,8 @@ namespace insur {
                         shape.dz = iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
-                        logic.shape_tag = nspace + ":" + logic.name_tag;
-                        logic.material_tag = nspace + ":" + matname.str();
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                        logic.material_tag = xml_fileident + ":" + matname.str();
                         l.push_back(logic);
                         // wafer
                         pos.parent_tag = logic.shape_tag;
@@ -817,7 +780,7 @@ namespace insur {
                         if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
-                        logic.shape_tag = nspace + ":" + logic.name_tag;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
@@ -835,7 +798,7 @@ namespace insur {
                                 rot.thetay = 90.0;
                                 rot.phiy = 90.0 + iiter->getModule().getStereoRotation();
                                 r.push_back(rot);
-                                pos.rotref = nspace + ":" + rot.name;
+                                pos.rotref = xml_fileident + ":" + rot.name;
                             }
                             p.push_back(pos);
                             pos.rotref.clear();
@@ -851,8 +814,8 @@ namespace insur {
                         shape.name_tag = mname.str() + xml_base_act;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
-                        logic.shape_tag = nspace + ":" + logic.name_tag;
-                        logic.material_tag = nspace + ":" + xml_sensor_silicon;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                        logic.material_tag = xml_fileident + ":" + xml_sensor_silicon;
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
                         pos.trans.dz = 0.0;
@@ -912,19 +875,19 @@ namespace insur {
                         shape.rmax = rinfo[*siter].rout;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
-                        logic.shape_tag = nspace + ":" + logic.name_tag;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
-                        pos.parent_tag = nspace + ":" + dname.str() + xml_plus;
+                        pos.parent_tag = xml_fileident + ":" + dname.str() + xml_plus;
                         pos.child_tag = logic.shape_tag;
                         if (rinfo[*siter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
                         else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
                         p.push_back(pos);
-                        pos.parent_tag = nspace + ":" + dname.str() + xml_minus;
+                        pos.parent_tag = xml_fileident + ":" + dname.str() + xml_minus;
                         p.push_back(pos);
                         rspec.partselectors.push_back(logic.name_tag);
                         alg.parent = logic.shape_tag;
-                        alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*siter].childname));
+                        alg.parameters.push_back(stringParam(xml_childparam, xml_fileident + ":" + rinfo[*siter].childname));
                         pconverter << (rinfo[*siter].modules / 2);
                         alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
                         pconverter.str("");
@@ -940,7 +903,7 @@ namespace insur {
                         alg.parameters.push_back(vectorParam(0, 0, shape.dz - rinfo[*siter].mthk / 2.0));
                         a.push_back(alg);
                         alg.parameters.clear();
-                        alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*siter].childname));
+                        alg.parameters.push_back(stringParam(xml_childparam, xml_fileident + ":" + rinfo[*siter].childname));
                         pconverter << (rinfo[*siter].modules / 2);
                         alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
                         pconverter.str("");
@@ -965,18 +928,18 @@ namespace insur {
                 shape.dz = (zmax - zmin) / 2.0;
                 s.push_back(shape);
                 logic.name_tag = shape.name_tag + xml_plus;
-                logic.shape_tag = nspace + ":" + shape.name_tag;
+                logic.shape_tag = xml_fileident + ":" + shape.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
                 pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd_plus;
-                pos.child_tag = nspace + ":" + logic.name_tag;
+                pos.child_tag = xml_fileident + ":" + logic.name_tag;
                 pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
                 p.push_back(pos);
                 dspec.partselectors.push_back(logic.name_tag);
                 logic.name_tag = shape.name_tag + xml_minus;
                 l.push_back(logic);
                 pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd_minus;
-                pos.child_tag = nspace + ":" + logic.name_tag;
+                pos.child_tag = xml_fileident + ":" + logic.name_tag;
                 p.push_back(pos);
                 dspec.partselectors.push_back(logic.name_tag);
             }
@@ -1000,10 +963,7 @@ namespace insur {
      * @param t A reference to the collection of topology information; used for output
      */
     void Extractor::analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
-        std::string nspace;
-        if (wt) nspace = xml_newfileident;
-        else nspace = xml_fileident;
+            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
         // container inits
         ShapeInfo shape;
         LogicalInfo logic;
@@ -1031,10 +991,10 @@ namespace insur {
             shape.rmax = shape.rmin + iter->getRWidth();
             s.push_back(shape);
             logic.name_tag = shapename.str();
-            logic.shape_tag = nspace + ":" + shapename.str();
-            logic.material_tag = nspace + ":" + matname.str();
+            logic.shape_tag = xml_fileident + ":" + shapename.str();
+            logic.material_tag = xml_fileident + ":" + matname.str();
             l.push_back(logic);
-            pos.parent_tag = nspace + ":" + xml_tracker;
+            pos.parent_tag = xml_fileident + ":" + xml_tracker;
             pos.child_tag = logic.shape_tag;
             pos.trans.dz = iter->getZOffset() + shape.dz;
             p.push_back(pos);
@@ -1054,10 +1014,7 @@ namespace insur {
      * @param t A reference to the collection of topology information; used for output
      */
     void Extractor::analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
-        std::string nspace;
-        if (wt) nspace = xml_newfileident;
-        else nspace = xml_fileident;
+            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
         // container inits
         ShapeInfo shape;
         LogicalInfo logic;
@@ -1085,10 +1042,10 @@ namespace insur {
             shape.rmax = shape.rmin + iter->getRWidth();
             s.push_back(shape);
             logic.name_tag = shapename.str();
-            logic.shape_tag = nspace + ":" + shapename.str();
-            logic.material_tag = nspace + ":" + matname.str();
+            logic.shape_tag = xml_fileident + ":" + shapename.str();
+            logic.material_tag = xml_fileident + ":" + matname.str();
             l.push_back(logic);
-            pos.parent_tag = nspace + ":" + xml_tracker;
+            pos.parent_tag = xml_fileident + ":" + xml_tracker;
             pos.child_tag = logic.shape_tag;
             pos.trans.dz = iter->getZOffset() + shape.dz;
             p.push_back(pos);
@@ -1108,10 +1065,7 @@ namespace insur {
      * @param t A reference to the collection of topology information; used for output
      */
     void Extractor::analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
-        std::string nspace;
-        if (wt) nspace = xml_newfileident;
-        else nspace = xml_fileident;
+            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
         // container inits
         ShapeInfo shape;
         LogicalInfo logic;
@@ -1146,10 +1100,10 @@ namespace insur {
             shape.rmax = shape.rmin + iter->getRWidth();
             s.push_back(shape);
             logic.name_tag = shapename.str();
-            logic.shape_tag = nspace + ":" + shapename.str();
-            logic.material_tag = nspace + ":" + matname.str();
+            logic.shape_tag = xml_fileident + ":" + shapename.str();
+            logic.material_tag = xml_fileident + ":" + matname.str();
             l.push_back(logic);
-            pos.parent_tag = nspace + ":" + xml_tracker;
+            pos.parent_tag = xml_fileident + ":" + xml_tracker;
             pos.child_tag = logic.shape_tag;
             if ((iter->getCategory() == MaterialProperties::o_sup) ||
                     (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
@@ -1440,10 +1394,8 @@ namespace insur {
      * @return The atomic number
      */
     int Extractor::Z(double x0, double A) {
-      // TODO: understand this: why do we need to
-      // get an integer value as output?
-      double d = 4 - 4 * (1.0 - 181.0 * A / x0);
-      if (d > 0) return int(floor((sqrt(d) - 2.0) / 2.0 + 0.5));
-      else return -1;
+        double d = 4 - 4 * (1.0 - 181.0 * A / x0);
+        if (d > 0) return floor((sqrt(d) - 2.0) / 2.0 + 0.5);
+        else return -1;
     }
 }

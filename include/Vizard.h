@@ -61,14 +61,12 @@ namespace insur {
     //clearStart="<tt>";
     //clearEnd="</tt>";
 
-    // gStyle stuff
-    static const int style_grid = 3;
-
     // Colors for plot background and such
     static const int color_plot_background = kWhite;
     static const int color_pad_background = kGray;
     static const int color_grid = kGreen-10;
     static const int color_hard_grid = kGray;
+
 
     // Pads to plot the tracker ortho views
     static const unsigned int padYZ = 1;
@@ -80,7 +78,6 @@ namespace insur {
     static const int coordPrecision = 0;
     static const int areaPrecision = 1;
     static const int occupancyPrecision = 1;
-    static const int rphiResolutionPrecision = 0;
     static const int pitchPrecision = 0;
     static const int stripLengthPrecision = 1;
     static const int millionChannelPrecision = 2;
@@ -118,7 +115,6 @@ namespace insur {
 	// TODO: all these functions should check if the corresponding data is present
 	// and return true or false, depending if they created the output or not
 	void histogramSummary(Analyzer& a, RootWSite& site);
-	void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
         bool errorSummary(Analyzer& a, RootWSite& site);
@@ -148,15 +144,10 @@ namespace insur {
                 TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
         TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
         double averageHistogramValues(TH1D& histo, double cutoff);
-        // deprecated:
-	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
-	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas);
 	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
 	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
-	bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
-	bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
-        int momentumColor(int iMomentum);
     };
 }
 #endif	/* _VIZARD_H */

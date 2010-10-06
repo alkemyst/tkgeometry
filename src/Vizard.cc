@@ -351,8 +351,7 @@ namespace insur {
         const std::string label = "label=";
         const std::string edge = "->";
     }
-   
-
+    
     /**
      * This function draws some of the histograms that were filled during material budget analysis and
      * embeds the resulting image in an HTML file for easy access. If no name is given for the output file,
@@ -580,18 +579,13 @@ namespace insur {
     }
     
 #ifdef USING_ROOTWEB
-
-    void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
-        histogramSummary(a, site, "");
-    }
-
     /**
      * This function draws some of the histograms that were filled during material budget analysis
      * with the rootweb library
      * @param a A reference to the analysing class that examined the material budget and filled the histograms
      * @param site the RootWSite object for the output
      */
-    void Vizard::histogramSummary(Analyzer& a, RootWSite& site, std::string name) {
+    void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
         // Initialize the page with the material budget
         RootWPage* myPage;
         RootWContent* myContent;
@@ -599,11 +593,8 @@ namespace insur {
         RootWImage* myImage;
         TCanvas* myCanvas;
         TVirtualPad* myPad;
-        std::string pageTitle="Material";
-        if (name!="") pageTitle+=" (" +name+")";
-        myPage = new RootWPage(pageTitle);
-        std::string pageAddress="material"+name+".html";
-        myPage->setAddress(pageAddress);
+        myPage = new RootWPage("Material");
+        myPage->setAddress("material.html");
         site.addPage(myPage);
         
         // 1D Overview
@@ -615,10 +606,7 @@ namespace insur {
         THStack* icontainer = new THStack("istack", "Interaction Length by Category");
         TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
         TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
-#ifdef MATERIAL_SHADOW
         TH2D *ir = NULL, *ii = NULL;
-#endif
-	TH2D *mapRad = NULL, *mapInt = NULL;
         
         // Output initialisation and headers
         myCanvas = new TCanvas("overviewMaterial");
@@ -773,12 +761,10 @@ namespace insur {
         myPad->SetFillColor(color_pad_background);
         myPad = myCanvas->GetPad(1);
         myPad->cd();
-
+        
         // Countour plots
-        myContent = new RootWContent("Material distributon", true);
+        myContent = new RootWContent("Contours", true);
         myPage->addContent(myContent);
-
-#ifdef MATERIAL_SHADOW        
         // radiation length in isolines
         ir = (TH2D*)a.getHistoIsoR().Clone();
         ir->SetNameTitle("isor", "Radiation Length Contours");
@@ -798,30 +784,6 @@ namespace insur {
         // Write isoline plots to web page
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material 2D distributions");
-        myContent->addItem(myImage);
-#endif // MATERIAL_SHADOW
-
-	// Radiation length plot
-        myCanvas = new TCanvas("mapMaterialRadiation");
-        myCanvas->SetFillColor(color_plot_background);
-        myCanvas->cd();
-	mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
-	mapRad->SetContour(temperature_levels, NULL);
-	//myCanvas->SetLogz();
-	mapRad->Draw("COLZ");
-        myImage = new RootWImage(myCanvas, 900, 400);
-        myImage->setComment("Radiation length material map");
-        myContent->addItem(myImage);
-
-	// Interaction length plot
-        myCanvas = new TCanvas("mapMaterialInteraction");
-        myCanvas->SetFillColor(color_plot_background);
-        myCanvas->cd();
-	mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
-	mapInt->SetContour(temperature_levels, NULL);
-	mapInt->Draw("COLZ");
-        myImage = new RootWImage(myCanvas, 900, 400);
-        myImage->setComment("Interaction length material map");
         myContent->addItem(myImage);
     }
     
@@ -943,7 +905,7 @@ namespace insur {
      * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
      * @param site the RootWSite object for the output
      */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+    bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
         
         // A bunch of indexes
         std::map<std::string, Module*> typeMap;
@@ -951,7 +913,6 @@ namespace insur {
         std::map<std::string, long> typeMapCountChan;
         std::map<std::string, double> typeMapMaxOccupancy;
         std::map<std::string, double> typeMapAveOccupancy;
-        std::map<std::string, double> typeMapAveRphiResolution;
         std::map<std::string, Module*>::iterator typeMapIt;
         std::map<int, Module*> ringTypeMap;
         std::string aSensorTag;
@@ -967,13 +928,13 @@ namespace insur {
         
         RootWPage* myPage = new RootWPage("Geometry");
         // TODO: the web site should decide which page to call index.html
-	myPage->setAddress("index.html");
+        myPage->setAddress("index.html");
         site.addPage(myPage);
         RootWContent* myContent;
         
         // Grab a list of layers from teh tracker object
         LayerVector& layerSet = tracker.getLayers();
-        double nMB = tracker.getNMB();
+        int nMB = tracker.getNMB();
         ModuleVector& endcapSample = tracker.getEndcapSample();
         
         
@@ -1041,7 +1002,6 @@ namespace insur {
                     typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
                 }
                 typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
-		typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
                 totCountMod++;
                 totCountSens+=(*modIt)->getNFaces();
                 if ((*modIt)->getReadoutType()==Module::Strip) {
@@ -1095,7 +1055,6 @@ namespace insur {
         std::vector<std::string> areastrips;
         std::vector<std::string> areapts;
         std::vector<std::string> occupancies;
-	std::vector<std::string> rphiresolutions;
         std::vector<std::string> pitchpairs;
         std::vector<std::string> striplengths;
         std::vector<std::string> segments;
@@ -1115,7 +1074,6 @@ namespace insur {
         std::ostringstream aType;
         std::ostringstream anArea;
         std::ostringstream anOccupancy;
-	std::ostringstream anRphiResolution;
         std::ostringstream aPitchPair;
         std::ostringstream aStripLength;
         std::ostringstream aSegment;
@@ -1145,17 +1103,16 @@ namespace insur {
         static const int areastripRow = 3;
         static const int areaptRow = 4;
         static const int occupancyRow = 5;
-	static const int rphiResolutionRow = 6;
-        static const int pitchpairsRow = 7;
-        static const int striplengthRow = 8;
-        static const int segmentsRow = 9;
-        static const int nstripsRow = 10;
-        static const int numbermodsRow = 11;
-        static const int numbersensRow = 12;
-        static const int channelstripRow = 13;
-        static const int channelptRow = 14;
-        static const int powerRow = 15;
-        static const int costRow = 16;
+        static const int pitchpairsRow = 6;
+        static const int striplengthRow = 7;
+        static const int segmentsRow = 8;
+        static const int nstripsRow = 9;
+        static const int numbermodsRow = 10;
+        static const int numbersensRow = 11;
+        static const int channelstripRow = 12;
+        static const int channelptRow = 13;
+        static const int powerRow = 14;
+        static const int costRow = 15;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
@@ -1163,7 +1120,6 @@ namespace insur {
         moduleTable->setContent(areastripRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
         moduleTable->setContent(areaptRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
         moduleTable->setContent(occupancyRow, 0, "Occup (max/av)");
-        moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution (um, av)");
         moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
         moduleTable->setContent(striplengthRow, 0, "Strip length");
         moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
@@ -1204,11 +1160,8 @@ namespace insur {
             // Occupancy
             anOccupancy.str("");
             anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
-	    // RphiResolution
-	    anRphiResolution.str("");
-	    anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
             // Pitches
-	    aPitchPair.str("");
+            aPitchPair.str("");
             loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
             hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
             if (loPitch==hiPitch) {
@@ -1259,7 +1212,6 @@ namespace insur {
             moduleTable->setContent(tagRow, iType, aTag.str());
             moduleTable->setContent(typeRow, iType, aType.str());
             moduleTable->setContent(occupancyRow, iType, anOccupancy.str());
-            moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
             moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
             moduleTable->setContent(striplengthRow, iType, aStripLength.str());
             moduleTable->setContent(segmentsRow, iType, aSegment.str());
@@ -1296,7 +1248,6 @@ namespace insur {
         << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
         moduleTable->setContent(areaptRow, iType, anArea.str());
         moduleTable->setContent(occupancyRow, iType, "");
-        moduleTable->setContent(rphiResolutionRow, iType, "");
         moduleTable->setContent(pitchpairsRow, iType, "");
         moduleTable->setContent(striplengthRow, iType, "");
         moduleTable->setContent(segmentsRow, iType, "");
@@ -1332,12 +1283,8 @@ namespace insur {
         RootWImage* myImage;
         TCanvas *summaryCanvas = NULL;
         TCanvas *YZCanvas = NULL;
-        TCanvas *XYCanvas = NULL;
-        TCanvas *XYCanvasEC = NULL;
         TCanvas *myCanvas = NULL;
-        //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-	createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, YZCanvas, XYCanvas, XYCanvasEC);
-	
+        createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas);
         
         //TVirtualPad* myPad;
         myContent = new RootWContent("Plots");
@@ -1354,17 +1301,6 @@ namespace insur {
             myImage->setComment("YZ Section of the tracker barrel");
             myContent->addItem(myImage);
         }
-        if (XYCanvas) {
-            myImage = new RootWImage(XYCanvas, 600, 600);
-            myImage->setComment("XY Section of the tracker barrel");
-            myContent->addItem(myImage);
-        }
-        if (XYCanvasEC) {
-            myImage = new RootWImage(XYCanvasEC, 600, 600);
-            myImage->setComment("XY Projection of the tracker endcap(s)");
-            myContent->addItem(myImage);
-        }
-
         
         /*
          * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
@@ -1386,11 +1322,11 @@ namespace insur {
          * myImage->setComment("XY View of the tracker endcap");
          * myContent->addItem(myImage);
          * }
-	*/
-
-	// Eta profile big plot
+         */
+        
         myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
-	drawEtaProfiles(*myCanvas, analyzer);
+        myCanvas->cd();
+        analyzer.getEtaProfileCanvas().DrawClonePad();
         myImage = new RootWImage(myCanvas, 600, 600);
         myImage->setComment("Hit coverage in eta");
         myContent->addItem(myImage);
@@ -1414,33 +1350,6 @@ namespace insur {
         return true;
         
     }
-
-  // Draws all the profile plots present in the analyzer into the given TCanvas
-  // @param myPad the target TPad
-  // @param analyzer the plot data container
-  bool Vizard::drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer) {
-    myPad.cd();
-    myPad.SetFillColor(color_plot_background);
-    TProfile& totalEtaProfile = analyzer.getTotalEtaProfile();
-    std::vector<TProfile>& etaProfiles = analyzer.getTypeEtaProfiles();
-    std::vector<TProfile>::iterator etaProfileIterator;
-
-    totalEtaProfile.Draw();
-    for (etaProfileIterator=etaProfiles.begin();
-	 etaProfileIterator!=etaProfiles.end();
-	 ++etaProfileIterator) {
-      (*etaProfileIterator).Draw("same");
-    }
-    return true; // TODO: make this meaningful
-  }
-  // Draws all the profile plots present in the analyzer into the given TCanvas
-  // @param myCanvas the target TCanvas
-  // @param analyzer the plot data container
-  bool Vizard::drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer) {
-    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
-    if (!myVirtualPad) return false;
-    return drawEtaProfiles(*myVirtualPad, analyzer);
-  }
     
     bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
         RootWPage* myPage = new RootWPage("Info");
@@ -1591,80 +1500,72 @@ namespace insur {
             RootWContent& resolutionContent = myPage.addContent("Track resolution");
             
             //bool firstPlot = true;
-            TCanvas momentumCanvas;
-            TCanvas distanceCanvas;
-            TCanvas angleCanvas;
-            momentumCanvas.SetGrid(1,1);
-            distanceCanvas.SetGrid(1,1);
-            angleCanvas.SetGrid(1,1);
-            std::string plotOption = "Ap";
+            TCanvas* momentumCanvas = NULL;
+            TCanvas* distanceCanvas = NULL;
+            TCanvas* angleCanvas = NULL;
+            std::string plotOption = "Alp";
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
 	    int myColor=0;
             g_guard = a.getRhoProfiles().end();
-            gStyle->SetGridStyle(style_grid);
-            gStyle->SetGridColor(color_hard_grid);
             for (g_iter = a.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
-//		momentumGraph.SetMinimum(1E-3);
-		momentumGraph.SetMinimum(4E-3);
-//		momentumGraph.SetMaximum(1);
-		momentumGraph.SetMaximum(.11);
-                momentumGraph.GetXaxis()->SetLimits(0, 2.4);
-		momentumCanvas.SetLogy();
-		momentumGraph.SetLineColor(momentumColor(myColor));
-		momentumGraph.SetMarkerColor(momentumColor(myColor));
-                myColor++;
+                if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
+                else plotOption = "lp same";
+		momentumGraph.SetMinimum(1E-4);
+		momentumGraph.SetMaximum(1);
+		momentumCanvas->SetLogy();
+		momentumGraph.SetLineColor(++myColor);
+		momentumGraph.SetMarkerColor(myColor);
 		momentumGraph.SetMarkerStyle(8);
-                momentumCanvas.cd();
-                momentumCanvas.SetFillColor(color_plot_background);
+                momentumCanvas->cd();
                 momentumGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
             }
-            plotOption = "Ap";
+            plotOption = "Alp";
 	    myColor=0;
             // distance canvas loop
             g_guard = a.getDProfiles().end();
             for (g_iter = a.getDProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
-		distanceGraph.SetMinimum(4);
-		distanceGraph.SetMaximum(4E2);
-                distanceGraph.GetXaxis()->SetLimits(0, 2.4);
-		distanceCanvas.SetLogy();
-		distanceGraph.SetLineColor(momentumColor(myColor));
-		distanceGraph.SetMarkerColor(momentumColor(myColor));
-                myColor++;
+                if (distanceCanvas == NULL) distanceCanvas = new TCanvas();
+                else plotOption = "lp same";
+		distanceGraph.SetMinimum(0);
+		distanceGraph.SetMaximum(1E3);
+		//distanceCanvas->SetLogy();
+		distanceGraph.SetLineColor(++myColor);
+		distanceGraph.SetMarkerColor(myColor);
 		distanceGraph.SetMarkerStyle(8);
-                distanceCanvas.cd();
-                distanceCanvas.SetFillColor(color_plot_background);
+                distanceCanvas->cd();
                 distanceGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
             }
-            plotOption = "Ap";
+            plotOption = "Alp";
 	    myColor=0;
             // angle canvas loop
             g_guard = a.getPhiProfiles().end();
             for (g_iter = a.getPhiProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
-		angleGraph.SetMinimum(1E-5);
+                if (angleCanvas == NULL) angleCanvas = new TCanvas();
+                else plotOption = "lp same";
+		angleGraph.SetMinimum(-0.01);
 		angleGraph.SetMaximum(0.01);
-                angleGraph.GetXaxis()->SetLimits(0, 2.4);
-                angleCanvas.SetLogy();
-		angleGraph.SetLineColor(momentumColor(myColor));
-		angleGraph.SetMarkerColor(momentumColor(myColor));
-                myColor++;
+		angleGraph.SetLineColor(++myColor);
+		angleGraph.SetMarkerColor(myColor);
 		angleGraph.SetMarkerStyle(8);
-                angleCanvas.cd();
-                angleCanvas.SetFillColor(color_plot_background);
+                angleCanvas->cd();
                 angleGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
             }
+            if (momentumCanvas != NULL) {
                 RootWImage& momentumImage = resolutionContent.addImage(momentumCanvas, 600, 600);
                 momentumImage.setComment("Momentum resolution vs. eta");
+            }
+            if (distanceCanvas != NULL) {
                 RootWImage& distanceImage = resolutionContent.addImage(distanceCanvas, 600, 600);
                 distanceImage.setComment("Distance of closest approach resolution vs. eta");
+            }
+            if (angleCanvas != NULL) {
                 RootWImage& angleImage = resolutionContent.addImage(angleCanvas, 600, 600);
                 angleImage.setComment("Angle resolution vs. eta");
+            }
             return true;
         }
         return false;
@@ -1956,7 +1857,6 @@ namespace insur {
     }
     
     // private
-    // DEPRECATED
     // Creates a new 4-pad canvas with XY and YZ views with all the useful details, like the axis ticks
     // and the eta reference. The fourth pad contains a miniature of the eta profile coverage
     // if you need any of these you can get them with GetPad()
@@ -1964,14 +1864,11 @@ namespace insur {
     // @param maxRho maximum tracker's Rho coordinate to be shown
     // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
     // @return a pointer to the new TCanvas
-    void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas,
-				     TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC) {
+    void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas) {
         Int_t irep;
         TVirtualPad* myPad;
-
+        
         YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
-        XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
-        XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
         summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
         summaryCanvas->SetFillColor(color_pad_background);
         summaryCanvas->Divide(2, 2);
@@ -1986,7 +1883,6 @@ namespace insur {
         if (analyzer.getGeomLiteYZ()) {
             drawGrid(maxZ, maxRho, ViewSectionYZ);
             analyzer.getGeomLiteYZ()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
             myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
@@ -1994,10 +1890,9 @@ namespace insur {
             
             YZCanvas->cd();
             myPad = YZCanvas->GetPad(0);
+            myPad->SetFillColor(color_plot_background);
             drawGrid(maxZ, maxRho, ViewSectionYZ);
             analyzer.getGeomLiteYZ()->DrawClonePad();
-	    myPad->SetBorderMode(0);
-	    myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
             myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
@@ -2012,16 +1907,6 @@ namespace insur {
         if (analyzer.getGeomLiteXY()) {
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteXY()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
-
-	    XYCanvas->cd();
-	    myPad = XYCanvas->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteXY()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
@@ -2030,7 +1915,9 @@ namespace insur {
         // Third pad
         // Plots
         myPad = summaryCanvas->GetPad(padProfile);
-	drawEtaProfiles(*myPad, analyzer);
+        myPad->cd();
+        myPad->SetFillColor(color_plot_background);
+        analyzer.getEtaProfileCanvas().DrawClonePad();
         
         // Fourth pad
         // XYView (EndCap)
@@ -2040,16 +1927,6 @@ namespace insur {
         if (analyzer.getGeomLiteEC()) {
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteEC()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
-
-	    XYCanvasEC->cd();
-	    myPad = XYCanvasEC->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteEC()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
@@ -2059,73 +1936,8 @@ namespace insur {
         summaryCanvas->Modified();
         //return summaryCanvas;
     }
-
-
-    // private
-    // Creates 4 new canvas with XY and YZ views with all the useful details, like the axis ticks
-    // and the eta reference.
-    // @param maxZ maximum tracker's Z coordinate to be shown
-    // @param maxRho maximum tracker's Rho coordinate to be shown
-    // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
-    // @return a pointer to the new TCanvas
-  void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer,
-				   TCanvas *&YZCanvas, TCanvas *&XYCanvas,
-				   TCanvas *&XYCanvasEC) {
-        Int_t irep;
-        TVirtualPad* myPad;
-
-        YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
-        XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
-        XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
-        
-        // YZView
-        if (analyzer.getGeomLiteYZ()) {
-            YZCanvas->cd();
-            myPad = YZCanvas->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionYZ);
-            analyzer.getGeomLiteYZ()->DrawClonePad();
-	    myPad->SetBorderMode(0);
-	    myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
-            myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
-            drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
-        }
-        
-        // XYView (barrel)
-        if (analyzer.getGeomLiteXY()) {
-	    XYCanvas->cd();
-	    myPad = XYCanvas->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteXY()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
-        }
-        
-        // XYView (EndCap)
-        if (analyzer.getGeomLiteEC()) {
-	    XYCanvasEC->cd();
-	    myPad = XYCanvasEC->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteEC()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
-        }
-        
-        //return summaryCanvas;
-  }    
-
- int Vizard::momentumColor(int iMomentum) {
-   if (iMomentum==0) return kBlack;
-   if (iMomentum==1) return kBlue;
-   if (iMomentum==2) return kRed;   
-   if (iMomentum==3) return kGreen;   
-   return iMomentum+1;
- }
-
+    
+    
+    
 }
 

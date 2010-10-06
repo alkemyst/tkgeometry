@@ -18,17 +18,15 @@
 namespace balgo = boost::algorithm;
 int main(int argc, char** argv) {
     std::string geomfile, settingsfile, matfile, htmlout, rootout, graphout, xmlout;
-    std::string pixmatfile;
     bool switch_processed = false, files_processed = false, u = false, m = false, d = false, h = false, r = false, g = false, x = false, t = false;
-    bool T = false;
-    int cfiles = 0, tracks = 0, tracks_geom = 0, pos = 0, i = 0;
+    int cfiles = 0, tracks = 0, pos = 0, i = 0;
     
     // idiot usage check
     if (argc < 2) {
         // print usage message
         std::cout << "Error: tklayout needs at least a geometry configuration file to run." << std::endl;
         std::cout << "The full call syntax is as follows:" << std::endl << std::endl;
-        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile] [materialfile] [-t n_of_tracks] [-T n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
+        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile] [materialfile] [-t n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
         std::cout << std::endl << std::endl << "u   print geometry summary after volume creation" << std::endl;
         std::cout << "m   print material budget summary after material assignment" << std::endl;
         std::cout << "d   write detailed geometry to root file - WARNING: may cause root to crash later!" << std::endl;
@@ -135,23 +133,6 @@ int main(int argc, char** argv) {
                             x = true;
                         }
                     }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                     else if (argv[i][1] == 't') {
                         if (t) {
                             std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -254,23 +235,6 @@ int main(int argc, char** argv) {
                         x = true;
                     }
                 }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                 else if (argv[i][1] == 't') {
                     if (t) {
                         std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -368,23 +332,6 @@ int main(int argc, char** argv) {
                         x = true;
                     }
                 }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                 else if (argv[i][1] == 't') {
                     if (t) {
                         std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -475,23 +422,6 @@ int main(int argc, char** argv) {
                         x = true;
                     }
                 }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                 else if (argv[i][1] == 't') {
                     if (t) {
                         std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -582,23 +512,6 @@ int main(int argc, char** argv) {
                         x = true;
                     }
                 }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                 else if (argv[i][1] == 't') {
                     if (t) {
                         std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -689,23 +602,6 @@ int main(int argc, char** argv) {
                         x = true;
                     }
                 }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                 else if (argv[i][1] == 't') {
                     if (t) {
                         std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -796,23 +692,6 @@ int main(int argc, char** argv) {
                         x = true;
                     }
                 }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                 else if (argv[i][1] == 't') {
                     if (t) {
                         std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -903,23 +782,6 @@ int main(int argc, char** argv) {
                         x = true;
                     }
                 }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
                 else if (argv[i][1] == 't') {
                     if (t) {
                         std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
@@ -980,12 +842,12 @@ int main(int argc, char** argv) {
     
     // here comes the heavy lifting...
     insur::Squid s;
-    // TODO: review completely the argument parsing !!
     if (h || x) {
         if (!s.buildFullSystem(geomfile, settingsfile, matfile, u, m)) return (EXIT_FAILURE);
         if (h) {
-            if (tracks_geom==0) tracks_geom= 2000;
-	    s.analyzeGeometrySite(tracks_geom);
+   	    int geometryTracks = 2000; // TODO: make this configurable
+	    if  (geometryTracks!=0) s.analyzeGeometrySite(geometryTracks);
+	    else s.analyzeGeometrySite();
             if (tracks != 0) {
                 std::cout << "Calling analyzer with " << tracks << " tracks." << std::endl;
                 if (!s.analyzeMaterialBudgetSite(tracks)) return (EXIT_FAILURE);
@@ -1047,7 +909,7 @@ int main(int argc, char** argv) {
                 }
                 std::cout << "XML files will be written to subdirectory " << xmlout << std::endl;
             }
-            if (!s.translateFullSystemToXML(xmlout, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
+            if (!s.translateFullSystemToXML(xmlout)) return (EXIT_FAILURE);
         }
     }
     else if (r || g) {
