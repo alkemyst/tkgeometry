@@ -22,7 +22,7 @@ DOXYDIR=doc/doxygen
 
 COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
 
-bin: tkmaterial tklayout setup
+bin: tklayout setup
 	@echo "Executable built."
 
 all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tkmaterial tklayout rootwebTest 
