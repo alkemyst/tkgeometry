@@ -5,8 +5,8 @@
   <SpecPar name="tracker-dead">
     <PartSelector path="//Tracker" />
     <Parameter name="CMSCutsRegion" value="TrackerDeadRegion" eval="false"/>
-    <Parameter name="ProdCutsForElectrons" value="1*mm"/>
-    <Parameter name="ProdCutsForPositrons" value="1*mm"/>
+    <Parameter name="ProdCutsForElectrons" value="10*cm"/>
+    <Parameter name="ProdCutsForPositrons" value="10*cm"/>
     <Parameter name="ProdCutsForGamma" value="10*cm"/>
   </SpecPar>
 
