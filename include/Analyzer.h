@@ -97,6 +97,8 @@ namespace insur {
         std::map<double, TGraph>& getRhoProfiles() { return rhoprofiles; }
         std::map<double, TGraph>& getPhiProfiles() { return phiprofiles; }
         std::map<double, TGraph>& getDProfiles() { return dprofiles; }
+        std::map<double, TGraph>& getCtgThetaProfiles() { return ctgThetaProfiles; }
+        std::map<double, TGraph>& getZ0Profiles() { return z0Profiles; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb,
                                                                   std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
@@ -154,7 +156,7 @@ namespace insur {
 
 	TH1D hitDistribution;
         std::vector<Track> tv;
-        std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles;
+        std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles;
 
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;

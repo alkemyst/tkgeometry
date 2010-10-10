@@ -514,6 +514,8 @@ namespace insur {
         rhoprofiles.clear();
         phiprofiles.clear();
         dprofiles.clear();
+	ctgThetaProfiles.clear();
+	z0Profiles.clear();
         // momentum loop
         for (iter = p.begin(); iter != guard; iter++) {
             std::pair<double, TGraph> elem;
@@ -523,18 +525,26 @@ namespace insur {
             rhoprofiles.insert(elem);
             phiprofiles.insert(elem);
             dprofiles.insert(elem);
+	    ctgThetaProfiles.insert(elem);
+	    z0Profiles.insert(elem);
 	    rhoprofiles[elem.first].SetTitle("p_T error;eta;relative error");
 	    phiprofiles[elem.first].SetTitle("Track angle error;eta;sigma(radian)");
 	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;eta;sigma (micrometer)");
+	    ctgThetaProfiles[elem.first].SetTitle("Ctg theta error;eta;sigma (micrometer)");
+	    z0Profiles[elem.first].SetTitle("Z0 error;eta;sigma (micrometer)");
         }
         // track loop
 	std::map<double,int> rhoPointCount;
 	std::map<double,int> phiPointCount;
 	std::map<double,int> dPointCount;
+	std::map<double,int> ctgPointCount;
+	std::map<double,int> z0PointCount;
         for (int i = 0; i < n; i++) {
             std::map<double, double>& drho = tv.at(i).getDeltaRho();
             std::map<double, double>& dphi = tv.at(i).getDeltaPhi();
             std::map<double, double>& dd = tv.at(i).getDeltaD();
+            std::map<double, double>& dctg = tv.at(i).getDeltaCtgTheta();
+            std::map<double, double>& dz0 = tv.at(i).getDeltaZ0();
             eta = - log(tan(tv.at(i).getTheta() / 2));
             mguard = drho.end();
             // error by momentum loop
@@ -556,6 +566,18 @@ namespace insur {
               if (dprofiles.find(miter->first) != dprofiles.end())
 		dprofiles[miter->first].SetPoint(dPointCount[miter->first]++, eta, 1000*(miter->second));
             }
+            mguard = dctg.end();
+            for (miter = dctg.begin(); miter != mguard; miter++) {
+	      // Ctg theta (absolute number)
+              if (ctgThetaProfiles.find(miter->first) != ctgThetaProfiles.end())
+		ctgThetaProfiles[miter->first].SetPoint(ctgPointCount[miter->first]++, eta, (miter->second));
+            }
+            mguard = dz0.end();
+            for (miter = dz0.begin(); miter != mguard; miter++) {
+	      // Plot in cm
+              if (z0Profiles.find(miter->first) != z0Profiles.end())
+		z0Profiles[miter->first].SetPoint(z0PointCount[miter->first]++, eta, 0.1*(miter->second));
+            }	    
         }
     }
     
