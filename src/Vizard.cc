@@ -406,7 +406,7 @@ namespace insur {
         cr->Add(fr2);
         cr->SetFillColor(kGray + 2);
         cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
-        cr->SetXTitle("Eta");
+        cr->SetXTitle("#eta");
         cr->Draw();
         pad = c.GetPad(2);
         pad->cd();
@@ -420,7 +420,7 @@ namespace insur {
         ci->Add(fi2);
         ci->SetFillColor(kGray + 1);
         ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
-        ci->SetXTitle("Eta");
+        ci->SetXTitle("#eta");
         ci->Draw();
         // write total plots to file
         pngout = pngoutfile + ".fullvolume.png";
@@ -446,7 +446,7 @@ namespace insur {
         cr = (TH1D*)a.getHistoGlobalR().Clone();
         cr->SetFillColor(kGray + 2);
         cr->SetNameTitle("rglobal", "Overall Radiation Length");
-        cr->SetXTitle("Eta");
+        cr->SetXTitle("#eta");
         cr->Draw();
         pad = c.GetPad(2);
         pad->cd();
@@ -454,7 +454,7 @@ namespace insur {
         ci = (TH1D*)a.getHistoGlobalI().Clone();
         ci->SetFillColor(kGray + 1);
         ci->SetNameTitle("iglobal", "Overall Interaction Length");
-        ci->SetXTitle("Eta");
+        ci->SetXTitle("#eta");
         ci->Draw();
         // write global tracking volume plots to file
         pngout = pngoutfile + ".global.png";
@@ -477,15 +477,15 @@ namespace insur {
         // radiation length in tracking volume by active, serving or passive
         sur = (TH1D*)a.getHistoSupportsAllR().Clone();
         sur->SetFillColor(kOrange + 4);
-        sur->SetXTitle("Eta");
+        sur->SetXTitle("#eta");
         rcontainer.Add(sur);
         ser = (TH1D*)a.getHistoServicesAllR().Clone();
         ser->SetFillColor(kBlue);
-        ser->SetXTitle("Eta");
+        ser->SetXTitle("#eta");
         rcontainer.Add(ser);
         acr = (TH1D*)a.getHistoModulesAllR().Clone();
         acr->SetFillColor(kRed);
-        acr->SetXTitle("Eta");
+        acr->SetXTitle("#eta");
         rcontainer.Add(acr);
         rcontainer.Draw();
         // interaction length in tracking volume by active, serving or passive
@@ -493,15 +493,15 @@ namespace insur {
         pad->cd();
         sui = (TH1D*)a.getHistoSupportsAllI().Clone();
         sui->SetFillColor(kOrange + 2);
-        sui->SetXTitle("Eta");
+        sui->SetXTitle("#eta");
         icontainer.Add(sui);
         sei = (TH1D*)a.getHistoServicesAllI().Clone();
         sei->SetFillColor(kAzure - 2);
-        sei->SetXTitle("Eta");
+        sei->SetXTitle("#eta");
         icontainer.Add(sei);
         aci = (TH1D*)a.getHistoModulesAllI().Clone();
         aci->SetFillColor(kRed - 3);
-        aci->SetXTitle("Eta");
+        aci->SetXTitle("#eta");
         icontainer.Add(aci);
         icontainer.Draw();
         // write asl category plots to file
@@ -638,7 +638,7 @@ namespace insur {
         cr->Add(fr2);
         cr->SetFillColor(kGray + 2);
         cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
-        cr->SetXTitle("Eta");
+        cr->SetXTitle("#eta");
         cr->Draw();
         myPad = myCanvas->GetPad(2);
         myPad->cd();
@@ -652,7 +652,7 @@ namespace insur {
         ci->Add(fi2);
         ci->SetFillColor(kGray + 1);
         ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
-        ci->SetXTitle("Eta");
+        ci->SetXTitle("#eta");
         ci->Draw();
         // Put the total plots to the site
         myImage = new RootWImage(myCanvas, 900, 400);
@@ -681,7 +681,7 @@ namespace insur {
         cr = (TH1D*)a.getHistoGlobalR().Clone();
         cr->SetFillColor(kGray + 2);
         cr->SetNameTitle("rglobal", "Overall Radiation Length");
-        cr->SetXTitle("Eta");
+        cr->SetXTitle("#eta");
         cr->Draw();
         myPad = myCanvas->GetPad(2);
         myPad->cd();
@@ -689,7 +689,7 @@ namespace insur {
         ci = (TH1D*)a.getHistoGlobalI().Clone();
         ci->SetFillColor(kGray + 1);
         ci->SetNameTitle("iglobal", "Overall Interaction Length");
-        ci->SetXTitle("Eta");
+        ci->SetXTitle("#eta");
         ci->Draw();
         // Write global tracking volume plots to web pag
         myImage = new RootWImage(myCanvas, 900, 400);
@@ -716,15 +716,15 @@ namespace insur {
         // radiation length in tracking volume by active, serving or passive
         sur = (TH1D*)a.getHistoSupportsAllR().Clone();
         sur->SetFillColor(kOrange + 4);
-        sur->SetXTitle("Eta");
+        sur->SetXTitle("#eta");
         rcontainer->Add(sur);
         ser = (TH1D*)a.getHistoServicesAllR().Clone();
         ser->SetFillColor(kBlue);
-        ser->SetXTitle("Eta");
+        ser->SetXTitle("#eta");
         rcontainer->Add(ser);
         acr = (TH1D*)a.getHistoModulesAllR().Clone();
         acr->SetFillColor(kRed);
-        acr->SetXTitle("Eta");
+        acr->SetXTitle("#eta");
         rcontainer->Add(acr);
         rcontainer->Draw();
         // interaction length in tracking volume by active, serving or passive
@@ -732,15 +732,15 @@ namespace insur {
         myPad->cd();
         sui = (TH1D*)a.getHistoSupportsAllI().Clone();
         sui->SetFillColor(kOrange + 2);
-        sui->SetXTitle("Eta");
+        sui->SetXTitle("#eta");
         icontainer->Add(sui);
         sei = (TH1D*)a.getHistoServicesAllI().Clone();
         sei->SetFillColor(kAzure - 2);
-        sei->SetXTitle("Eta");
+        sei->SetXTitle("#eta");
         icontainer->Add(sei);
         aci = (TH1D*)a.getHistoModulesAllI().Clone();
         aci->SetFillColor(kRed - 3);
-        aci->SetXTitle("Eta");
+        aci->SetXTitle("#eta");
         icontainer->Add(aci);
         icontainer->Draw();
         
@@ -1600,8 +1600,19 @@ namespace insur {
             
             // Create the contents
             RootWContent& resolutionContent = myPage.addContent("Track resolution");
-            
-            //bool firstPlot = true;
+            RootWContent& idealResolutionContent = myPage.addContent("Track resolution (without material)");
+          
+            for (int scenario=0; scenario<2; ++scenario) {
+              bool idealMaterial;
+              RootWContent* myContent;
+              if (scenario==0) {
+                idealMaterial=false;
+                myContent = &resolutionContent;
+              } else {
+                idealMaterial=true;
+                myContent = &idealResolutionContent;
+              }
+ 
             TCanvas momentumCanvas;
             TCanvas distanceCanvas;
             TCanvas angleCanvas;
@@ -1616,15 +1627,18 @@ namespace insur {
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
 	    int myColor=0;
-            g_guard = a.getRhoProfiles().end();
+            g_guard = a.getRhoProfiles(idealMaterial).end();
             gStyle->SetGridStyle(style_grid);
             gStyle->SetGridColor(color_hard_grid);
-            for (g_iter = a.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
+            for (g_iter = a.getRhoProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
-//		momentumGraph.SetMinimum(1E-3);
-		momentumGraph.SetMinimum(4E-3);
-//		momentumGraph.SetMaximum(1);
-		momentumGraph.SetMaximum(.11);
+		if (idealMaterial) {
+		  momentumGraph.SetMinimum(1E-5*100);
+		  momentumGraph.SetMaximum(.11*100);		  
+		} else {
+		  momentumGraph.SetMinimum(4E-3*100);
+		  momentumGraph.SetMaximum(.11*100);
+		}
                 momentumGraph.GetXaxis()->SetLimits(0, 2.4);
 		momentumCanvas.SetLogy();
 		momentumGraph.SetLineColor(momentumColor(myColor));
@@ -1639,11 +1653,16 @@ namespace insur {
             plotOption = "Ap";
 	    myColor=0;
             // distance canvas loop
-            g_guard = a.getDProfiles().end();
-            for (g_iter = a.getDProfiles().begin(); g_iter != g_guard; g_iter++) {
+            g_guard = a.getDProfiles(idealMaterial).end();
+            for (g_iter = a.getDProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
-		distanceGraph.SetMinimum(4);
-		distanceGraph.SetMaximum(4E2);
+		if (idealMaterial) {
+		  distanceGraph.SetMinimum(4*1e-4);
+		  distanceGraph.SetMaximum(4E2*1e-4);
+		} else {
+		  distanceGraph.SetMinimum(4*1e-4);
+		  distanceGraph.SetMaximum(4E2*1e-4);
+		}
                 distanceGraph.GetXaxis()->SetLimits(0, 2.4);
 		distanceCanvas.SetLogy();
 		distanceGraph.SetLineColor(momentumColor(myColor));
@@ -1658,11 +1677,16 @@ namespace insur {
             plotOption = "Ap";
 	    myColor=0;
             // angle canvas loop
-            g_guard = a.getPhiProfiles().end();
-            for (g_iter = a.getPhiProfiles().begin(); g_iter != g_guard; g_iter++) {
+            g_guard = a.getPhiProfiles(idealMaterial).end();
+            for (g_iter = a.getPhiProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
-		angleGraph.SetMinimum(1E-5);
-		angleGraph.SetMaximum(0.01);
+		if (idealMaterial) {
+		  angleGraph.SetMinimum(1E-5);
+		  angleGraph.SetMaximum(0.01);
+		} else {
+		  angleGraph.SetMinimum(1E-5);
+		  angleGraph.SetMaximum(0.01);
+		}
                 angleGraph.GetXaxis()->SetLimits(0, 2.4);
                 angleCanvas.SetLogy();
 		angleGraph.SetLineColor(momentumColor(myColor));
@@ -1677,8 +1701,8 @@ namespace insur {
             plotOption = "Ap";
 	    myColor=0;
             // ctgTheta canvas loop
-            g_guard = a.getCtgThetaProfiles().end();
-            for (g_iter = a.getCtgThetaProfiles().begin(); g_iter != g_guard; g_iter++) {
+            g_guard = a.getCtgThetaProfiles(idealMaterial).end();
+            for (g_iter = a.getCtgThetaProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& ctgThetaGraph = g_iter->second;
 		ctgThetaGraph.SetMinimum(1E-5);
 		ctgThetaGraph.SetMaximum(0.1);
@@ -1696,8 +1720,8 @@ namespace insur {
             plotOption = "Ap";
 	    myColor=0;
             // z0 canvas loop
-            g_guard = a.getZ0Profiles().end();
-            for (g_iter = a.getZ0Profiles().begin(); g_iter != g_guard; g_iter++) {
+            g_guard = a.getZ0Profiles(idealMaterial).end();
+            for (g_iter = a.getZ0Profiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& z0Graph = g_iter->second;
 		z0Graph.SetMinimum(1E-5);
 		z0Graph.SetMaximum(1);
@@ -1712,16 +1736,17 @@ namespace insur {
                 z0Graph.Draw(plotOption.c_str());
 		plotOption = "p same";
             }
-	    RootWImage& momentumImage = resolutionContent.addImage(momentumCanvas, 600, 600);
-	    momentumImage.setComment("Momentum resolution vs. eta");
-	    RootWImage& distanceImage = resolutionContent.addImage(distanceCanvas, 600, 600);
-	    distanceImage.setComment("Distance of closest approach resolution vs. eta");
-	    RootWImage& angleImage = resolutionContent.addImage(angleCanvas, 600, 600);
-	    angleImage.setComment("Angle resolution vs. eta");
-	    RootWImage& ctgThetaImage = resolutionContent.addImage(ctgThetaCanvas, 600, 600);
+            RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
+            momentumImage.setComment("Momentum resolution vs. eta");
+            RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
+            distanceImage.setComment("Distance of closest approach resolution vs. eta");
+            RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
+            angleImage.setComment("Angle resolution vs. eta");
+	    RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
 	    ctgThetaImage.setComment("CtgTheta resolution vs. eta");
-	    RootWImage& z0Image = resolutionContent.addImage(z0Canvas, 600, 600);
+	    RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
 	    z0Image.setComment("z0 resolution vs. eta");
+            }
             return true;
         }
         return false;
@@ -1819,7 +1844,8 @@ namespace insur {
             Double_t pn[3];
             TText* aLabel;
             char labelChar[10];
-            for (double eta=0; eta<etaMax; eta+=etaStep) {
+	    double eta;
+            for (eta=0; eta<etaMax+etaStep; eta+=etaStep) {
                 aLine = new TPolyLine3D(2);
                 theta = 2 * atan(exp(-eta));
                 startTick = XYZVector(0, sin(theta), cos(theta));
@@ -1846,6 +1872,7 @@ namespace insur {
                 aLine->SetLineColor(gridColor_hard);
                 aLine->Draw("same");
             }
+
             aLine = new TPolyLine3D(2);
             theta = 2 * atan(exp(-2.5));
             startTick = XYZVector(0, sin(theta), cos(theta));
@@ -1863,16 +1890,14 @@ namespace insur {
             aLabel = new TText(pn[0], pn[1], labelChar);
             aLabel->SetTextSize(aLabel->GetTextSize()*.8);
             aLabel->SetTextAlign(21);
-            aLabel->Draw(theOption.c_str());
-            theOption="same";
+            aLabel->Draw("same");
             endTick = (endTick+startTick)/2.;
             aLine->SetPoint(0, 0., 0., 0.);
             aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
             aLine->SetLineStyle(gridStyle_solid);
             aLine->SetLineColor(gridColor_hard);
             aLine->Draw("same");
-            
-            
+
             for (double z=0; z<=maxL ; z+=(4*spacing)) {
                 aLine = new TPolyLine3D(2);
                 startTick = XYZVector(0, 0, z);

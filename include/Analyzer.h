@@ -94,11 +94,11 @@ namespace insur {
         TH2D& getHistoMapRadiation();
         TH2D& getHistoMapInteraction();
         std::vector<Track>& getTracks() { return tv; }
-        std::map<double, TGraph>& getRhoProfiles() { return rhoprofiles; }
-        std::map<double, TGraph>& getPhiProfiles() { return phiprofiles; }
-        std::map<double, TGraph>& getDProfiles() { return dprofiles; }
-        std::map<double, TGraph>& getCtgThetaProfiles() { return ctgThetaProfiles; }
-        std::map<double, TGraph>& getZ0Profiles() { return z0Profiles; }
+        std::map<double, TGraph>& getRhoProfiles(bool ideal=false) { if (ideal) return rhoprofilesIdeal; else return rhoprofiles; }
+        std::map<double, TGraph>& getPhiProfiles(bool ideal=false) { if (ideal) return phiprofilesIdeal; else return phiprofiles; }
+        std::map<double, TGraph>& getDProfiles(bool ideal=false) { if (ideal) return dprofilesIdeal; else return dprofiles; }
+        std::map<double, TGraph>& getCtgThetaProfiles(bool ideal=false) { if (ideal) return ctgThetaProfilesIdeal; else return ctgThetaProfiles; }
+        std::map<double, TGraph>& getZ0Profiles(bool ideal=false) { if (ideal) return z0ProfilesIdeal; return z0Profiles; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb,
                                                                   std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
@@ -156,7 +156,9 @@ namespace insur {
 
 	TH1D hitDistribution;
         std::vector<Track> tv;
+        std::vector<Track> tvIdeal;
         std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles;
+        std::map<double, TGraph> rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal;
 
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;
@@ -170,7 +172,13 @@ namespace insur {
                                                                                                double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
 								  Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
-        void calculateProfiles(std::vector<double> p);
+	void calculateProfiles(std::vector<double>& p,
+			       std::vector<Track>& trackVector,
+			       std::map<double, TGraph>& thisRhoProfiles,
+			       std::map<double, TGraph>& thisPhiProfiles,
+			       std::map<double, TGraph>& thisDProfiles,
+                               std::map<double, TGraph>& thisCtgThetaProfiles,
+                               std::map<double, TGraph>& thisZ0Profiles);
         void clearMaterialBudgetHistograms();
         void clearGeometryHistograms();
         void clearCells();
