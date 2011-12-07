@@ -144,7 +144,19 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 		// Input is in mW, while we always store in SI units internally
 		doubleValue = atof(parameterValue.c_str()) * 1e-3;
 		myTracker_->setPower(stringIndex, ModuleType::ChipPower, doubleValue);
-	      } else {
+	      } else if (parameterNameCopy == "sparsifiedHeaderBits") {
+		intValue = atoi(parameterValue.c_str());
+		myTracker_->setSparsifiedHeaderBits(stringIndex, intValue);
+	      } else if (parameterNameCopy == "sparsifiedPayloadBits") {
+		intValue = atoi(parameterValue.c_str());
+		myTracker_->setSparsifiedPayloadBits(stringIndex, intValue);
+	      } else if (parameterNameCopy == "triggerDataHeaderBits") { 
+		intValue = atoi(parameterValue.c_str());
+		myTracker_->setTriggerDataHeaderBits(stringIndex, intValue);
+		  } else if (parameterNameCopy == "triggerDataPayloadBits") {
+		intValue = atoi(parameterValue.c_str());
+		myTracker_->setTriggerDataPayloadBits(stringIndex, intValue);
+		  } else {
                 cerr << "ERROR: Unknown parameter name: " << parameterNameCopy << endl;
                 throw parsingException();
 	      }

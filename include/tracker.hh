@@ -237,6 +237,18 @@ public:
   std::map<std::string, ModuleType>& getTypes() { return mapType_ ; }
   ModuleType& getModuleType(std::string typeName) { return mapType_[typeName] ; }
 
+  void setSparsifiedHeaderBits(string typeIndex, int bits)  { mapType_[typeIndex].setSparsifiedHeaderBits(bits);  }
+  void setSparsifiedPayloadBits(string typeIndex, int bits) { mapType_[typeIndex].setSparsifiedPayloadBits(bits); }
+
+  int  getSparsifiedHeaderBits(string typeIndex)  { return mapType_[typeIndex].getSparsifiedHeaderBits();  }
+  int  getSparsifiedPayloadBits(string typeIndex) { return mapType_[typeIndex].getSparsifiedPayloadBits(); }
+
+  void setTriggerDataHeaderBits(string typeIndex, int bits)  { mapType_[typeIndex].setTriggerDataHeaderBits(bits);  }
+  void setTriggerDataPayloadBits(string typeIndex, int bits) { mapType_[typeIndex].setTriggerDataPayloadBits(bits); }
+
+  int  getTriggerDataHeaderBits(string typeIndex)  { return mapType_[typeIndex].getTriggerDataHeaderBits();  }
+  int  getTriggerDataPayloadBits(string typeIndex) { return mapType_[typeIndex].getTriggerDataPayloadBits(); }
+
   // Trigger module types error increase
   void setTriggerErrorX(string typeIndex, double errorIncrease) { mapType_[typeIndex].setTriggerErrorX(errorIncrease); }
   void setTriggerErrorY(string typeIndex, double errorIncrease) { mapType_[typeIndex].setTriggerErrorY(errorIncrease); }
