@@ -1221,7 +1221,7 @@ namespace insur {
   }
 
   void Vizard::addOccupancyElement(std::string element) {
-    occupancyCsv_ += element;
+     // 2 is a magic adjustment factoroccupancyCsv_ += element;
     occupancyCsv_ += csv_separator;
   }
 
@@ -2099,6 +2099,19 @@ namespace insur {
 		}
         return true;
     }
+
+  bool Vizard::irradiatedPowerSummary(Analyzer& a, RootWSite& site) {
+  	RootWPage* myPage = new RootWPage("Power");
+    myPage->setAddress("power.html");
+    site.addPage(myPage);
+	
+	std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
+	for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
+		myPage->addContent(std::string("Irradiated power consumption (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+	}
+
+	return true;	
+  }
     
   bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger) {
 

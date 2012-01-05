@@ -17,6 +17,7 @@ protected:
   int sparsifiedPayloadBits_;
   int triggerDataHeaderBits_;
   int triggerDataPayloadBits_;
+  double sensorThickness_;
 private:
   bool checkPowerType(int powerType);
 public:
@@ -34,12 +35,14 @@ public:
   double getTriggerErrorY() const ;
   void setSparsifiedHeaderBits(int bits);
   void setSparsifiedPayloadBits(int bits);
-  int  getSparsifiedHeaderBits()   const;
+  int  getSparsifiedHeaderBits()  const;
   int  getSparsifiedPayloadBits()  const;
   void setTriggerDataHeaderBits(int bits);
   void setTriggerDataPayloadBits(int bits);
   int  getTriggerDataHeaderBits()  const;
   int  getTriggerDataPayloadBits() const;
+  void setSensorThickness(double thickness);
+  double getSensorThickness() const;
 };
 
 #endif

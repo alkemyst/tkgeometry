@@ -66,8 +66,8 @@ namespace insur {
         Squid();
         virtual ~Squid();
         bool buildTracker(std::string geomfile);
-        bool dressTracker(std::string settingsfile);
-        bool buildTrackerSystem(std::string geomfile, std::string settingsfile);
+        bool dressTracker(std::string settingsfile, std::string irradiationfile = "irradiation_map.dat");
+        bool buildTrackerSystem(std::string geomfile, std::string settingsfile, std::string irradiationfile = "irradiation_map.dat");
         bool buildInactiveSurfaces(bool verbose = false);
         bool buildInactiveSurfaces(std::string geomfile, bool verbose = false);
         bool buildInactiveSurfaces(std::string geomfile, std::string settingsfile, bool verbose = false);

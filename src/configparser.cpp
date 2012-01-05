@@ -123,12 +123,24 @@ bool configParser::parseTracker(string myName, istream& inStream) {
                 myTracker_->setCost(Module::Strip, doubleValue);
             } else if (parameterName=="useIPConstraint") {
                 intValue=atoi(parameterValue.c_str());
-		if (intValue==1) myTracker_->setUseIPConstraint(true);
-		else if (intValue==0) myTracker_->setUseIPConstraint(false);
-		else {
-		  std::cerr << "ERROR: useIPConstraint can be 0 or 1" << std::endl;
-		  throw parsingException();
-		}
+				if (intValue==1) myTracker_->setUseIPConstraint(true);
+				else if (intValue==0) myTracker_->setUseIPConstraint(false);
+				else {
+		  			std::cerr << "ERROR: useIPConstraint can be 0 or 1" << std::endl;
+		  			throw parsingException();
+				}
+		} else if (parameterName=="numInvFemtobarns") {
+				doubleValue = atof(parameterValue.c_str());
+				myTracker_->setNumInvFemtobarns(doubleValue);
+		} else if (parameterName=="operatingTemp") {
+				doubleValue = atof(parameterValue.c_str());
+				myTracker_->setOperatingTemp(doubleValue);
+		} else if (parameterName=="chargeDepletionVoltage") {
+				intValue = atoi(parameterValue.c_str());
+				myTracker_->setChargeDepletionVoltage(intValue);
+		} else if (parameterName=="alphaParam") {
+				doubleValue = atof(parameterValue.c_str());
+				myTracker_->setAlphaParam(doubleValue);
             } else if (correctlyBroken) { // Per module type parameters
               if (parameterNameCopy == "triggerErrorIncreaseX") {
 	        doubleValue = atof(parameterValue.c_str());
@@ -156,6 +168,9 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 		  } else if (parameterNameCopy == "triggerDataPayloadBits") {
 		intValue = atoi(parameterValue.c_str());
 		myTracker_->setTriggerDataPayloadBits(stringIndex, intValue);
+		  } else if (parameterNameCopy == "sensorThickness") {
+		doubleValue = atof(parameterValue.c_str());
+		myTracker_->setSensorThickness(stringIndex, doubleValue);
 		  } else {
                 cerr << "ERROR: Unknown parameter name: " << parameterNameCopy << endl;
                 throw parsingException();
@@ -1677,4 +1692,23 @@ std::list<std::pair<int, double> >* configParser::parseSupportsFromFile(string f
     }
     if (result) delete result;
     return NULL;
+}
+
+
+bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
+	std::ifstream filein(fileName.c_str());
+	if (!filein.is_open()) { return false; }
+	std::string line;
+	while(std::getline(filein, line)) {
+		if (line.find_first_of("#//;")==0 || line=="") continue;
+		std::stringstream ss(line);
+		double z, r = -1.0, fluence = -1.0, error = -1.0; // set to -1.0 to check for parsing errors
+		ss >> z;
+		ss >> r;
+		ss >> fluence;
+		ss >> error;
+		if (r < 0.0 || fluence < 0.0) cerr << "Error while parsing irradiation map line: " << z << " ," << r << " ," << fluence << " ," << error << endl;
+		tracker->getIrradiationMap()[make_pair(z/2.5,r/2.5)] = fluence;
+	}
+	return true;
 }

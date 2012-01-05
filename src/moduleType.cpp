@@ -7,6 +7,7 @@ ModuleType::ModuleType() {
   sparsifiedPayloadBits_ = 9;  
   triggerDataHeaderBits_  = 20;
   triggerDataPayloadBits_ = 20;  
+  sensorThickness_ = 0.2;
 }
 
 bool ModuleType::checkPowerType(int powerType) {
@@ -76,3 +77,6 @@ void ModuleType::setTriggerDataHeaderBits(int bits)  { triggerDataHeaderBits_  =
 void ModuleType::setTriggerDataPayloadBits(int bits) { triggerDataPayloadBits_ = bits; }
 int  ModuleType::getTriggerDataHeaderBits()  const { return triggerDataHeaderBits_;  }
 int  ModuleType::getTriggerDataPayloadBits() const { return triggerDataPayloadBits_; }
+
+void ModuleType::setSensorThickness(double thickness) { sensorThickness_ = thickness; }
+double ModuleType::getSensorThickness() const { return sensorThickness_; }
