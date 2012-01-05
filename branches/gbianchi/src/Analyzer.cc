@@ -1080,7 +1080,7 @@ namespace insur {
 				double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(),module->getRing())];
 
 				curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
-				curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*tracker.getNMB() - curAvgFake)/(curCnt+1);
+				curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
 				double curAvgTotal = curAvgTrue + curAvgFake;
 
@@ -1148,6 +1148,69 @@ namespace insur {
 		}
 	}
     
+	
+void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
+	// loop over layers
+	// 	  loop over modules
+	// 	     compute the power formula for the given module P(V*, I(Fluence(Z, r), T*, alpha*))
+	//		 populate R-Z table
+	
+	double numInvFemtobarns = tracker.getNumInvFemtobarns();
+	double operatingTemp    = tracker.getOperatingTemp();
+	double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
+	double alphaParam       = tracker.getAlphaParam();
+
+	cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
+	cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
+	cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
+	cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
+	irradiatedPowerConsumptionSummaries_.clear();
+	
+
+	LayerVector& layers = tracker.getLayers();
+	for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
+		ModuleVector* modules = (*layIt)->getModuleVector();
+		if (!modules) {
+			std::cerr << "ERROR in Analyzer::computeTriggerFrequency: cannot retrieve moduleVector from the layer\n";
+			return;
+		}
+		std::string cntName = (*layIt)->getContainerName();
+		if (cntName == "") {
+			cout << "computeIrradiatedPowerConsumption(): Skipping layer with no container name (" << modules->size() << " modules)." << endl;
+			continue;
+		}
+		for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
+			Module* module = (*modIt); 
+			XYZVector center = module->getMeanPoint();
+			if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
+			double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
+			double fluence = tracker.getIrradiationMap()[make_pair(floor(center.Z()/25), floor(center.Rho()/25))] * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+			double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / 273.15, 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/273.15)); 
+			double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;			
+			//cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
+			std::stringstream ss("");
+			ss.precision(6);
+			ss.setf(ios::fixed, ios::floatfield);
+			ss << irradiatedPowerConsumption;
+			irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss.str());
+			if (!irradiatedPowerConsumptionSummaries_[cntName].hasCell(module->getLayer(), 0)) {
+				std::stringstream ss("");
+				ss << module->getLayer();
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+			}
+			if (!irradiatedPowerConsumptionSummaries_[cntName].hasCell(0, module->getRing())) {
+				std::stringstream ss("");
+				ss << module->getRing();
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+			}
+		}
+		irradiatedPowerConsumptionSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+	}
+}
+
+
   // protected
   /**
    * Looping on the layers, and picking only modules on the YZ section

@@ -195,7 +195,7 @@ protected:
   double getHeight() {return height_;};
   double getArea() { return area_;};
   double getDiameter() {return waferDiameter_; };
-  double getThickness() { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'
+  double getThickness() { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'  !!!DEPRECATED!!! USE getSensorThickness in moduleType
   double getModuleThickness() { return moduleThickness_; };
   XYZVector getCorner(int index) { return corner_[index]; };
 
@@ -392,7 +392,6 @@ public:
 
   void setLayer(int newLayer) { disk_ = newLayer; }  // Layer == Disk for EndCap modules!
   int getLayer() const { return disk_; }
-
 
   double getOccupancyPerEvent();
 };

@@ -67,9 +67,10 @@ namespace insur {
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @return True if there was an existing tracker to dress, false otherwise
      */
-    bool Squid::dressTracker(std::string settingsfile) {
+    bool Squid::dressTracker(std::string settingsfile, std::string irradiationfile) { // CUIDADO: needs appropriate command line support!!!
         if (tr) {
             cp.dressTracker(tr, settingsfile);
+			cp.irradiateTracker(tr, irradiationfile);
             if (px) cp.dressPixels(px, settingsfile);
             return true;
         }
@@ -78,6 +79,7 @@ namespace insur {
             return false;
         }
     }
+
     
     /**
      * Build a geometry of active modules using both geometry constraints and module settings. If there
@@ -88,8 +90,8 @@ namespace insur {
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @return True if there were no errors during processing, false otherwise
      */
-    bool Squid::buildTrackerSystem(std::string geomfile, std::string settingsfile) {
-        if (buildTracker(geomfile)) return dressTracker(settingsfile);
+    bool Squid::buildTrackerSystem(std::string geomfile, std::string settingsfile, std::string irradiationfile) { // CUIDADO: needs appropriate command line support!!!
+        if (buildTracker(geomfile)) return dressTracker(settingsfile, irradiationfile);
         else {
             g = "";
             return false;
@@ -579,7 +581,9 @@ namespace insur {
             v.geometrySummary(a, *tr, site);
             a.computeBandwidth(*tr);
             a.computeTriggerFrequency(*tr);
+			a.computeIrradiatedPowerConsumption(*tr);
             v.bandwidthSummary(a, *tr, site);
+			v.irradiatedPowerSummary(a, site);
             return true; // TODO: is not really meaningful
         } else {
             std::cout << "Squid::analyzeGeometrySite(): " << err_no_tracker << std::endl;
@@ -597,6 +601,7 @@ namespace insur {
       a.createGeometryLite(*tr);
       a.computeBandwidth(*tr);
       a.computeTriggerFrequency(*tr);
+	  a.computeIrradiatedPowerConsumption(*tr);
       return true; // TODO: is not really meaningful
     } else {
       std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
@@ -642,6 +647,7 @@ namespace insur {
     if (tr) {
       v.geometrySummary(a, *tr, site);
       v.bandwidthSummary(a, *tr, site);
+	  v.irradiatedPowerSummary(a, site);
       return true;
     } else {
       std::cout << "Squid::reportGeometrySite(): " << err_no_tracker << std::endl;

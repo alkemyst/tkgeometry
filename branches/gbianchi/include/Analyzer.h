@@ -211,6 +211,7 @@ namespace insur {
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
 	void computeTriggerFrequency(Tracker& tracker);
+	void computeIrradiatedPowerConsumption(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
 	TH2D& getMapPhiEta() { return mapPhiEta; }
         TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
@@ -251,6 +252,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerRateSummaries() { return triggerRateSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
+    std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
     protected:
         /**
          * @struct Cell
@@ -296,6 +298,7 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_;
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
+    std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
 
 	TH1D hitDistribution;
 	graphBag myGraphBag;
