@@ -581,7 +581,7 @@ namespace insur {
             v.geometrySummary(a, *tr, site);
             a.computeBandwidth(*tr);
             a.computeTriggerFrequency(*tr);
-			a.computeIrradiatedPowerConsumption(*tr);
+			a.analyzePower(*tr);
             v.bandwidthSummary(a, *tr, site);
 			v.irradiatedPowerSummary(a, site);
             return true; // TODO: is not really meaningful
@@ -601,6 +601,7 @@ namespace insur {
       a.createGeometryLite(*tr);
       a.computeBandwidth(*tr);
       a.computeTriggerFrequency(*tr);
+	  a.analyzePower(*tr);
 	  a.computeIrradiatedPowerConsumption(*tr);
       return true; // TODO: is not really meaningful
     } else {

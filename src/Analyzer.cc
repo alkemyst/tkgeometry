@@ -34,6 +34,7 @@ namespace insur {
   const int mapBag::suggestedSpacingMap   = 0x010;
   const int mapBag::suggestedSpacingMapAW = 0x020;
   const int mapBag::spacingWindowMap      = 0x040;
+  const int mapBag::irradiatedPowerConsumptionMap = 0x080;
 
   const double profileBag::Triggerable    = 0.;
   const int profileBag::TriggeredProfile  = 0x0000007;
@@ -1049,6 +1050,12 @@ namespace insur {
     }
 
 
+	void Analyzer::analyzePower(Tracker& tracker) {
+		computeIrradiatedPowerConsumption(tracker);
+		preparePowerHistograms();
+		fillPowerMap(tracker);
+	}
+
 	void Analyzer::computeTriggerFrequency(Tracker& tracker) {
 		std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
 		std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
@@ -1184,10 +1191,22 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 			XYZVector center = module->getMeanPoint();
 			if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
 			double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
-			double fluence = tracker.getIrradiationMap()[make_pair(floor(center.Z()/25), floor(center.Rho()/25))] * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+			double x  = center.Z()/25;
+			double y  = center.Rho()/25;
+			double x1 = floor(x);
+			double x2 = ceil(x);
+			double y1 = floor(y);
+			double y2 = ceil(y);
+			double irr11 = tracker.getIrradiationMap()[make_pair(x1, y1)]; 
+			double irr21 = tracker.getIrradiationMap()[make_pair(x2, y1)];
+			double irr12 = tracker.getIrradiationMap()[make_pair(x1, y2)];
+			double irr22 = tracker.getIrradiationMap()[make_pair(x2, y2)];
+			double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
+			double fluence = irrxy * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
 			double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / 273.15, 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/273.15)); 
 			double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;			
 			//cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
+			module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
 			std::stringstream ss("");
 			ss.precision(6);
 			ss.setf(ios::fixed, ios::floatfield);
@@ -2346,6 +2365,76 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     delete counterSpacingAW;
   }
 
+
+  void Analyzer::fillPowerMap(Tracker& tracker) {
+    TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+
+    LayerVector& layerSet = tracker.getLayers();
+    LayerVector::iterator layIt;
+    Layer* aLayer;
+    ModuleVector::iterator modIt;
+    ModuleVector* moduleSet;
+    Module* aModule;
+    string cntName;
+    
+    // Then: single maps
+    
+    // Reset the our map, in case it is not empty
+    //thicknessMap.Reset();
+    //windowMap.Reset();
+    //suggestedSpacingMap.Reset();
+    //suggestedSpacingMapAW.Reset();
+    for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
+	irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+      }
+    }
+
+    // Create a map for the counter
+    TH2D* counter = (TH2D*)irradiatedPowerConsumptionMap.Clone();
+    
+    // Loop over all the modules
+    for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
+      aLayer = (*layIt);
+      moduleSet = aLayer->getModuleVector();
+
+      cntName = aLayer->getContainerName();
+      if (cntName == "") continue;      
+
+      for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+		aModule = (*modIt);
+
+		if ((aModule->getMeanPoint().Z()<0) || (aModule->getMeanPoint().Phi()<0) || (aModule->getMeanPoint().Phi()>M_PI/2)) continue;
+		double myPower = aModule->getIrradiatedPowerConsumption();
+		// Draw the module
+		XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+		XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+		XYZVector diff = end-start;
+		XYZVector point;
+		double myZ, myRho;
+		for (double l=0; l<1; l+=0.1) {
+	  		point = start + l * diff;
+	  		myZ=point.Z();
+	  		myRho=point.Rho();
+      		irradiatedPowerConsumptionMap.Fill(myZ, myRho, myPower);
+	  		counter->Fill(myZ, myRho, 1);
+		}
+      }
+    }
+    
+    // Normalize the counts to the number of hits per bin ...
+    for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
+	if (counter->GetBinContent(i,j)!=0) {
+	  irradiatedPowerConsumptionMap.SetBinContent(i,j, irradiatedPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	}
+      }
+    }
+    // ... and get rid of the counter
+    delete counter;
+
+  }
+
   void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
     int mapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
     int mapBinsX = int( (max_length) * 1.1 / 10.); // every cm
@@ -2474,6 +2563,13 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     aName.str(""); aName << "triggerable_vs_eta_profile";
     trigProfiles[profileBag::Triggerable].SetName(aName.str().c_str());
 
+  }
+
+
+  void Analyzer::preparePowerHistograms() {
+    myMapBag.clearMaps(mapBag::irradiatedPowerConsumptionMap);
+    TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
+    prepareTrackerMap(irradiatedPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of irradiated power consumption");
   }
 
   /**

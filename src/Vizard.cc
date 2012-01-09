@@ -2110,7 +2110,27 @@ namespace insur {
 		myPage->addContent(std::string("Irradiated power consumption (") + it->first + ")", false).addTable().setContent(it->second.getContent());
 	}
 
-	return true;	
+    // Some helper string objects
+    ostringstream tempSS;
+    std::string tempString;    
+
+    mapBag myMapBag = a.getMapBag();
+	TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+
+    RootWContent& myContent = myPage->addContent("Irradiated power maps", true);
+
+	TCanvas irradiatedPowerCanvas;
+    irradiatedPowerCanvas.SetFillColor(color_plot_background);
+
+	irradiatedPowerCanvas.cd();
+	irradiatedPowerMap.Draw("colz");
+    
+	
+	RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, 900, 400);
+	irradiatedPowerImage.setComment("Map of power consumptions of irradiated modules (W)");
+	irradiatedPowerImage.setName("irradiatedPowerMap");
+
+	return true;
   }
     
   bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger) {

@@ -70,6 +70,8 @@ protected:
   double resolutionRphi_;
   double resolutionY_;
 
+  double irradiatedPowerConsumption_;
+
   int inSection_;
 
   int ring_;
@@ -246,6 +248,9 @@ protected:
 
   virtual double getLowPitch();
   virtual double getHighPitch();
+
+  void setIrradiatedPowerConsumption(double irradiatedPowerConsumption) { irradiatedPowerConsumption_ = irradiatedPowerConsumption; }
+  double getIrradiatedPowerConsumption() const { return irradiatedPowerConsumption_; }
 
   // R-Phi resolution 
   void setResolutionRphi(const double& newRes ) { resolutionRphi_ = newRes; };
