@@ -99,6 +99,7 @@ namespace insur {
       static const int suggestedSpacingMap;
       static const int suggestedSpacingMapAW;
       static const int spacingWindowMap;
+	  static const int irradiatedPowerConsumptionMap;
       static const double dummyMomentum;
       std::map<double, TH2D>& getMaps(const int& attribute);
       int clearMaps(const int& attributeMask);
@@ -212,6 +213,7 @@ namespace insur {
 	void computeBandwidth(Tracker& tracker);
 	void computeTriggerFrequency(Tracker& tracker);
 	void computeIrradiatedPowerConsumption(Tracker& tracker);
+	void analyzePower(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
 	TH2D& getMapPhiEta() { return mapPhiEta; }
         TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
@@ -346,8 +348,10 @@ namespace insur {
 	void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
 					 const std::vector<Track>& trackVector);
 	void fillTriggerPerformanceMaps(Tracker& tracker);
+	void fillPowerMap(Tracker& tracker);
         void clearMaterialBudgetHistograms();
         void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
+		void preparePowerHistograms();
         void clearGeometryHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
