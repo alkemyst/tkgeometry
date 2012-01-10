@@ -19,6 +19,7 @@ namespace balgo = boost::algorithm;
 int main(int argc, char** argv) {
     std::string geomfile, settingsfile, matfile, htmlout, rootout, graphout, xmlout;
     std::string pixmatfile;
+    std::string irradiationfile;
     bool switch_processed = false, files_processed = false, u = false, m = false, d = false, h = false, r = false, g = false, x = false, t = false;
     bool T = false;
     int cfiles = 0, tracks = 0, tracks_geom = 0, pos = 0, i = 0;
@@ -28,12 +29,13 @@ int main(int argc, char** argv) {
         // print usage message
         std::cout << "Error: tklayout needs at least a geometry configuration file to run." << std::endl;
         std::cout << "The full call syntax is as follows:" << std::endl << std::endl;
-        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile] [materialfile] [-t n_of_tracks] [-T n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
+        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile] [materialfile] [irradiationfile] [-t n_of_tracks] [-T n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
         std::cout << std::endl << std::endl << "u   print geometry summary after volume creation" << std::endl;
         std::cout << "m   print material budget summary after material assignment" << std::endl;
         std::cout << "d   write detailed geometry to root file - WARNING: may cause root to crash later!" << std::endl;
         std::cout << "geomfile   geometry configuration file" << std::endl << "settingsfile   module settings configuration file" << std::endl;
-        std::cout << "materialfile   material configuration file" << std::endl << "n_of_tracks   number of tracks used for analysis" << std::endl;
+        std::cout << "materialfile   material configuration file" << std::endl;
+        std::cout << "irradiationfile   irradiation file" << std::endl << "n_of_tracks   number of tracks used for analysis" << std::endl;
         std::cout << "htmlfile   output file for material budget analysis" << std::endl;
         std::cout << "rootfile   output file for ROOT (geometry)" << std::endl << "graphfile   output file for feeder/neighbour graph" << std::endl;
         std::cout << "XMLsubdir   output subfolder for CMSSW XML files" << std::endl;
@@ -188,17 +190,20 @@ int main(int argc, char** argv) {
     }
     i++;
     if (i < argc) {
-        // next argument can be settingsfile, matfile, outfileswitch or tracks
+        // next argument can be settingsfile, matfile, irradiationfile, outfileswitch or tracks
         if (argv[i][0] != '-') {
             if (cfiles == 1) {
                 settingsfile = argv[i];
                 cfiles++;
             }
-            else {
+            else if (cfiles == 2) {
                 matfile = argv[i];
                 cfiles++;
-                files_processed = true;
-            }
+            } else {
+				irradiationfile = argv[i];
+				cfiles++;
+				files_processed = true;
+			} 
         }
         else {
             if (argv[i][1]){
@@ -302,17 +307,134 @@ int main(int argc, char** argv) {
     }
     i++;
     if (i < argc) {
-        // next argument can be outfileswitch, tracks or materialfile
+        // next argument can be outfileswitch, tracks, materialfile or irradiationfile
+        if (argv[i][0] != '-') {
+            if (files_processed) {
+                std::cerr << "Error: unexpected config file found. Aborting tklayout." << std::endl;
+                return (EXIT_FAILURE);
+            }
+            else if (cfiles == 2) {
+                matfile = argv[i];
+                cfiles++;
+            } else if (cfiles == 3) {
+				irradiationfile = argv[i];
+				cfiles++; 
+                files_processed = true;
+			}
+        }
+        else {
+            if (argv[i][1]){
+                if (argv[i][1] == 'h') {
+                    if (h) {
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                        return (EXIT_FAILURE);
+                    }
+                    else {
+                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
+                            htmlout = argv[i+1];
+                            i++;
+                        }
+                        h = true;
+                    }
+                }
+                else if (argv[i][1] == 'r') {
+                    if (r) {
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                        return (EXIT_FAILURE);
+                    }
+                    else {
+                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
+                            rootout = argv[i+1];
+                            i++;
+                        }
+                        r = true;
+                    }
+                }
+                else if (argv[i][1] == 'g') {
+                    if (g) {
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                        return (EXIT_FAILURE);
+                    }
+                    else {
+                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
+                            graphout = argv[i+1];
+                            i++;
+                        }
+                        g = true;
+                    }
+                }
+                else if (argv[i][1] == 'x') {
+                    if (x) {
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                        return (EXIT_FAILURE);
+                    }
+                    else {
+                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
+                            xmlout = argv[i+1];
+                            i++;
+                        }
+                        x = true;
+                    }
+                }
+                    else if (argv[i][1] == 'T') {
+                        if (T) {
+                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                            return (EXIT_FAILURE);
+                        }
+                        else {
+                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
+                                tracks_geom = atoi(argv[i+1]);
+                                i++;
+                                T = true;
+                            }
+                            else {
+                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                                return (EXIT_FAILURE);
+                            }
+                        }
+                    }
+                else if (argv[i][1] == 't') {
+                    if (t) {
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                        return (EXIT_FAILURE);
+                    }
+                    else {
+                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
+                            tracks = atoi(argv[i+1]);
+                            i++;
+                            t = true;
+                        }
+                        else {
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                            return (EXIT_FAILURE);
+                        }
+                    }
+                }
+                else {
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
+                    return (EXIT_FAILURE);
+                }
+            }
+            else {
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
+                return (EXIT_FAILURE);
+            }
+            files_processed = true;
+        }
+    }
+    i++;
+    if (i < argc) {
+        // next argument can be outfileswitch, tracks or irradiationfile
         if (argv[i][0] != '-') {
             if (files_processed) {
                 std::cerr << "Error: unexpected config file found. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             else {
-                matfile = argv[i];
-                cfiles++;
+				irradiationfile = argv[i];
+				cfiles++; 
                 files_processed = true;
-            }
+			}
         }
         else {
             if (argv[i][1]){
@@ -957,7 +1079,8 @@ int main(int argc, char** argv) {
         std::cout << "m   print material budget summary after material assignment" << std::endl;
         std::cout << "d   write detailed geometry to root file - WARNING: may cause root to crash later!" << std::endl;
         std::cout << "geomfile   geometry configuration file" << std::endl << "settingsfile   module settings configuration file" << std::endl;
-        std::cout << "materialfile   material configuration file" << std::endl << "n_of_tracks   number of tracks used for analysis" << std::endl;
+        std::cout << "materialfile   material configuration file" << std::endl;
+        std::cout << "irradiationfile   irradiation file" << std::endl << "n_of_tracks   number of tracks used for analysis" << std::endl;
         std::cout << "htmlfile   output file for material budget analysis" << std::endl;
         std::cout << "rootfile   output file for ROOT (geometry)" << std::endl << "graphfile   output file for feeder/neighbour graph" << std::endl;
         std::cout << "XMLsubdir   output subfolder for CMSSW XML files" << std::endl;
@@ -983,7 +1106,7 @@ int main(int argc, char** argv) {
     // TODO: review completely the argument parsing !!
     if (h || x) {
         if (matfile!="") pixmatfile = matfile+".pix";
-        if (!s.buildFullSystem(geomfile, settingsfile, matfile, pixmatfile, u, m)) return (EXIT_FAILURE);
+        if (!s.buildFullSystem(geomfile, settingsfile, matfile, pixmatfile, irradiationfile, u, m)) return (EXIT_FAILURE);
         if (h) {
 	  if (tracks_geom==0) tracks_geom = 2000;
 	  if (tracks==0) tracks = 50;
@@ -1053,8 +1176,10 @@ int main(int argc, char** argv) {
     else if (r || g) {
         if (!s.buildTracker(geomfile)) return (EXIT_FAILURE);
         if (settingsfile.empty()) std::cout << "Warning: using tracker geometry without a settings file to dress it from." << std::endl;
+		if (irradiationfile.empty()) std::cout << "Warning: no irradiation file specified." << std::endl;
         else {
             if (!s.dressTracker(settingsfile)) return (EXIT_FAILURE);
+            if (!s.irradiateTracker(irradiationfile)) return (EXIT_FAILURE);
         }
         if (!s.buildInactiveSurfaces(u)) return (EXIT_FAILURE);
         if (m && !matfile.empty()) s.createMaterialBudget(matfile, m);
@@ -1102,7 +1227,7 @@ int main(int argc, char** argv) {
             break;
             case 2 : if (!s.buildInactiveSurfaces(geomfile, settingsfile, u)) return (EXIT_FAILURE);
             break;
-            case 3 : if (!s.buildFullSystem(geomfile, settingsfile, matfile, u, m)) return (EXIT_FAILURE);
+            case 3 : if (!s.buildFullSystem(geomfile, settingsfile, matfile, irradiationfile, u, m)) return (EXIT_FAILURE);
             break;
             default: std::cerr << "Something truly strange happened during processing: the command line passed the parsing stage ";
             std::cerr << "but the number of input files is not between 1 and 3. Aborting tklayout." << std::endl;
