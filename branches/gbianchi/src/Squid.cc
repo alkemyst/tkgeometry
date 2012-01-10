@@ -81,12 +81,11 @@ namespace insur {
 
 	/**
  	 * Irradiate a previously created tracker.
- 	 * @param irradiationfile The name and - if necessary - path of the irradiation file
  	 * @return True if there was an existing tracker to irradiate, false otherwise
  	 */
-	bool Squid::irradiateTracker(std::string irradiationfile) {
+	bool Squid::irradiateTracker() {
 		if (tr) {
-			cp.irradiateTracker(tr, irradiationfile);
+			cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
 			return true;
 		} else {
 			std::cout << "Squid::irradiateTracker(): " << err_no_tracker << std::endl;
@@ -284,14 +283,13 @@ namespace insur {
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @param matfile The name and - if necessary - path of the materials configuration file
-     * @param irradiationfile The name and - if necessary - path of the irradiation file
      * @param usher_verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
      * @param mat_verbose A flag that turns the final status summary of the material budget on or off
      * @return True if there were no errors during processing, false otherwise
      */
-  bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, std::string irradiationfile, bool usher_verbose, bool mat_verbose) {
+  bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, bool usher_verbose, bool mat_verbose) {
     std::string dummyString;
-    return buildFullSystem(geomfile, settingsfile, matfile, dummyString, irradiationfile, usher_verbose, mat_verbose);
+    return buildFullSystem(geomfile, settingsfile, matfile, dummyString, usher_verbose, mat_verbose);
   }
  
     /**
@@ -303,13 +301,12 @@ namespace insur {
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @param matfile The name and - if necessary - path of the materials configuration file
      * @param pixmatfile The name and - if necessary - path of the materials configuration file for the pixels
-     * @param irradiationfile The name and - if necessary - path of the irradiation file
      * @param usher_verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
      * @param mat_verbose A flag that turns the final status summary of the material budget on or off
      * @return True if there were no errors during processing, false otherwise
      */
-  bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, std::string& pixmatfile, std::string irradiationfile, bool usher_verbose, bool mat_verbose) {
-    if (buildInactiveSurfaces(geomfile, settingsfile, usher_verbose)) return createMaterialBudget(matfile, pixmatfile, mat_verbose) && irradiateTracker(irradiationfile);
+  bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, std::string& pixmatfile, bool usher_verbose, bool mat_verbose) {
+    if (buildInactiveSurfaces(geomfile, settingsfile, usher_verbose)) return createMaterialBudget(matfile, pixmatfile, mat_verbose) && irradiateTracker();
         return false;
     }
     
@@ -618,7 +615,6 @@ namespace insur {
       a.computeBandwidth(*tr);
       a.computeTriggerFrequency(*tr);
 	  a.analyzePower(*tr);
-	  a.computeIrradiatedPowerConsumption(*tr);
       return true; // TODO: is not really meaningful
     } else {
       std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
