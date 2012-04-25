@@ -14,31 +14,58 @@
 
 #include <stdlib.h>
 #include <Squid.h>
-#include <boost/algorithm/string/trim.hpp>
-namespace balgo = boost::algorithm;
-int main(int argc, char** argv) {
-    std::string geomfile, settingsfile, matfile, htmlout, rootout, graphout, xmlout;
-    std::string pixmatfile;
-    bool switch_processed = false, files_processed = false, u = false, m = false, d = false, h = false, r = false, g = false, x = false, t = false;
-    bool T = false;
-    int cfiles = 0, tracks = 0, tracks_geom = 0, pos = 0, i = 0;
-    
-    // idiot usage check
-    if (argc < 2) {
-        // print usage message
-        std::cout << "Error: tklayout needs at least a geometry configuration file to run." << std::endl;
-        std::cout << "The full call syntax is as follows:" << std::endl << std::endl;
-        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile] [materialfile] [-t n_of_tracks] [-T n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
-        std::cout << std::endl << std::endl << "u   print geometry summary after volume creation" << std::endl;
-        std::cout << "m   print material budget summary after material assignment" << std::endl;
-        std::cout << "d   write detailed geometry to root file - WARNING: may cause root to crash later!" << std::endl;
-        std::cout << "geomfile   geometry configuration file" << std::endl << "settingsfile   module settings configuration file" << std::endl;
-        std::cout << "materialfile   material configuration file" << std::endl << "n_of_tracks   number of tracks used for analysis" << std::endl;
-        std::cout << "htmlfile   output file for material budget analysis" << std::endl;
-        std::cout << "rootfile   output file for ROOT (geometry)" << std::endl << "graphfile   output file for feeder/neighbour graph" << std::endl;
-        std::cout << "XMLsubdir   output subfolder for CMSSW XML files" << std::endl;
-        std::cout << "If a type of output is requested without giving an explicit outfile name, the application will construct a default." << std::endl;
-        return (EXIT_FAILURE);
+
+namespace po = boost::program_options;
+
+int main(int argc, char* argv[]) {
+    std::string usage("Usage: ");
+    usage += argv[0];
+    usage += " <config basename> [options]";
+    usage += "\n\n<config basename> is the user-specified part of the config file names.\nFull names are automatically inferred from it by appending appropriate suffixes\n";
+    po::options_description shown("Allowed options");
+    int geomtracks, mattracks;
+
+    std::string basename, xmlname;
+
+    shown.add_options()
+        ("help", "Display this help message.")
+        ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(50), "N. of tracks for geometry calculations.")
+        ("material-tracks,N", po::value<int>(&mattracks)->default_value(2000), "N. of tracks for material calculations.")
+        ("power,p", "Report irradiated power analysis.")
+        ("bandwidth,b", "Report base bandwidth analysis.")
+        ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
+        ("material,m", "Report materials and weights analyses.")
+        ("resolution,r", "Report resolution analysis.")
+        ("trigger,t", "Report base trigger analysis.")
+        ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
+        ("all,a", "Report all analyses, except extended\ntrigger. (implies all other relevant\nreport options)")
+        ("graph,g", "Build and report neighbour graph.")
+        ("xml", po::value<std::string>(&xmlname)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, basename will be used\nas subdir.")
+    ;
+
+    po::options_description hidden;
+    hidden.add_options()("base-name", po::value<std::string>(&basename));
+
+    po::positional_options_description posopt;
+    posopt.add("base-name", 1); 
+
+    po::options_description allopt;
+    allopt.add(shown).add(hidden);
+
+    po::variables_map vm;
+    try {
+        po::store(po::command_line_parser(argc, argv).options(allopt).positional(posopt).run(), vm);
+
+        po::notify(vm);
+
+        if (geomtracks < 1) throw po::invalid_option_value("geometry-tracks");
+        if (mattracks < 1) throw po::invalid_option_value("material-tracks");
+        if (!vm.count("base-name")) throw po::error("Missing required config basename argument"); 
+
+    } catch(po::error e) {
+        std::cerr << e.what() << std::endl << std::endl;
+        std::cout << usage << std::endl << shown << std::endl;
+        return EXIT_FAILURE;
     }
     
     // argument processing
@@ -62,908 +89,47 @@ int main(int argc, char** argv) {
         }
         switch_processed = true;
     }
-    else {
-        geomfile = argv[i];
-        cfiles++;
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be geomfile, settingsfile, tracks or outfileswitch
-        if (switch_processed) {
-            if (argv[i][0] == '-') {
-                std::cerr << "Error: tklayout needs at least a geometry configuration file to run." << std::endl;
-                std::cout << "Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            else {
-                geomfile = argv[i];
-                cfiles++;
-            }
-        }
-        else {
-            if (argv[i][0] == '-') {
-                if (argv[i][1]){
-                    if (argv[i][1] == 'h') {
-                        if (h) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                                htmlout = argv[i+1];
-                                i++;
-                            }
-                            h = true;
-                        }
-                    }
-                    else if (argv[i][1] == 'r') {
-                        if (r) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                                rootout = argv[i+1];
-                                i++;
-                            }
-                            r = true;
-                        }
-                    }
-                    else if (argv[i][1] == 'g') {
-                        if (g) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                                graphout = argv[i+1];
-                                i++;
-                            }
-                            g = true;
-                        }
-                    }
-                    else if (argv[i][1] == 'x') {
-                        if (x) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                                xmlout = argv[i+1];
-                                i++;
-                            }
-                            x = true;
-                        }
-                    }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                    else if (argv[i][1] == 't') {
-                        if (t) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks = atoi(argv[i+1]);
-                                i++;
-                                t = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                    else {
-                        std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-                files_processed = true;
-            }
-            else {
-                settingsfile = argv[i];
-                cfiles++;
-            }
-        }
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be settingsfile, matfile, outfileswitch or tracks
-        if (argv[i][0] != '-') {
-            if (cfiles == 1) {
-                settingsfile = argv[i];
-                cfiles++;
-            }
-            else {
-                matfile = argv[i];
-                cfiles++;
-                files_processed = true;
-            }
-        }
-        else {
-            if (argv[i][1]){
-                if (argv[i][1] == 'h') {
-                    if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            htmlout = argv[i+1];
-                            i++;
-                        }
-                        h = true;
-                    }
-                }
-                else if (argv[i][1] == 'r') {
-                    if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            rootout = argv[i+1];
-                            i++;
-                        }
-                        r = true;
-                    }
-                }
-                else if (argv[i][1] == 'g') {
-                    if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            graphout = argv[i+1];
-                            i++;
-                        }
-                        g = true;
-                    }
-                }
-                else if (argv[i][1] == 'x') {
-                    if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            xmlout = argv[i+1];
-                            i++;
-                        }
-                        x = true;
-                    }
-                }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                else if (argv[i][1] == 't') {
-                    if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                            tracks = atoi(argv[i+1]);
-                            i++;
-                            t = true;
-                        }
-                        else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-            }
-            else {
-                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            files_processed = true;
-        }
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be outfileswitch, tracks or materialfile
-        if (argv[i][0] != '-') {
-            if (files_processed) {
-                std::cerr << "Error: unexpected config file found. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            else {
-                matfile = argv[i];
-                cfiles++;
-                files_processed = true;
-            }
-        }
-        else {
-            if (argv[i][1]){
-                if (argv[i][1] == 'h') {
-                    if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            htmlout = argv[i+1];
-                            i++;
-                        }
-                        h = true;
-                    }
-                }
-                else if (argv[i][1] == 'r') {
-                    if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            rootout = argv[i+1];
-                            i++;
-                        }
-                        r = true;
-                    }
-                }
-                else if (argv[i][1] == 'g') {
-                    if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            graphout = argv[i+1];
-                            i++;
-                        }
-                        g = true;
-                    }
-                }
-                else if (argv[i][1] == 'x') {
-                    if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            xmlout = argv[i+1];
-                            i++;
-                        }
-                        x = true;
-                    }
-                }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                else if (argv[i][1] == 't') {
-                    if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                            tracks = atoi(argv[i+1]);
-                            i++;
-                            t = true;
-                        }
-                        else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-            }
-            else {
-                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            files_processed = true;
-        }
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be outfileswitch or tracks (up to five to go)
-        if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
-            return (EXIT_FAILURE);
-        }
-        else {
-            if (argv[i][1]){
-                if (argv[i][1] == 'h') {
-                    if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            htmlout = argv[i+1];
-                            i++;
-                        }
-                        h = true;
-                    }
-                }
-                else if (argv[i][1] == 'r') {
-                    if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            rootout = argv[i+1];
-                            i++;
-                        }
-                        r = true;
-                    }
-                }
-                else if (argv[i][1] == 'g') {
-                    if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            graphout = argv[i+1];
-                            i++;
-                        }
-                        g = true;
-                    }
-                }
-                else if (argv[i][1] == 'x') {
-                    if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            xmlout = argv[i+1];
-                            i++;
-                        }
-                        x = true;
-                    }
-                }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                else if (argv[i][1] == 't') {
-                    if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                            tracks = atoi(argv[i+1]);
-                            i++;
-                            t = true;
-                        }
-                        else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-            }
-            else {
-                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            files_processed = true;
-        }
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be outfileswitch or tracks (up to four to go)
-        if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
-            return (EXIT_FAILURE);
-        }
-        else {
-            if (argv[i][1]){
-                if (argv[i][1] == 'h') {
-                    if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            htmlout = argv[i+1];
-                            i++;
-                        }
-                        h = true;
-                    }
-                }
-                else if (argv[i][1] == 'r') {
-                    if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            rootout = argv[i+1];
-                            i++;
-                        }
-                        r = true;
-                    }
-                }
-                else if (argv[i][1] == 'g') {
-                    if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            graphout = argv[i+1];
-                            i++;
-                        }
-                        g = true;
-                    }
-                }
-                else if (argv[i][1] == 'x') {
-                    if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            xmlout = argv[i+1];
-                            i++;
-                        }
-                        x = true;
-                    }
-                }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                else if (argv[i][1] == 't') {
-                    if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                            tracks = atoi(argv[i+1]);
-                            i++;
-                            t = true;
-                        }
-                        else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-            }
-            else {
-                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            files_processed = true;
-        }
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be outfileswitch or tracks (up to three to go)
-        if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
-            return (EXIT_FAILURE);
-        }
-        else {
-            if (argv[i][1]){
-                if (argv[i][1] == 'h') {
-                    if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            htmlout = argv[i+1];
-                            i++;
-                        }
-                        h = true;
-                    }
-                }
-                else if (argv[i][1] == 'r') {
-                    if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            rootout = argv[i+1];
-                            i++;
-                        }
-                        r = true;
-                    }
-                }
-                else if (argv[i][1] == 'g') {
-                    if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            graphout = argv[i+1];
-                            i++;
-                        }
-                        g = true;
-                    }
-                }
-                else if (argv[i][1] == 'x') {
-                    if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            xmlout = argv[i+1];
-                            i++;
-                        }
-                        x = true;
-                    }
-                }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                else if (argv[i][1] == 't') {
-                    if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                            tracks = atoi(argv[i+1]);
-                            i++;
-                            t = true;
-                        }
-                        else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-            }
-            else {
-                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            files_processed = true;
-        }
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be outfileswitch or tracks (up to two to go)
-        if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
-            return (EXIT_FAILURE);
-        }
-        else {
-            if (argv[i][1]){
-                if (argv[i][1] == 'h') {
-                    if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            htmlout = argv[i+1];
-                            i++;
-                        }
-                        h = true;
-                    }
-                }
-                else if (argv[i][1] == 'r') {
-                    if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            rootout = argv[i+1];
-                            i++;
-                        }
-                        r = true;
-                    }
-                }
-                else if (argv[i][1] == 'g') {
-                    if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            graphout = argv[i+1];
-                            i++;
-                        }
-                        g = true;
-                    }
-                }
-                else if (argv[i][1] == 'x') {
-                    if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            xmlout = argv[i+1];
-                            i++;
-                        }
-                        x = true;
-                    }
-                }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                else if (argv[i][1] == 't') {
-                    if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                            tracks = atoi(argv[i+1]);
-                            i++;
-                            t = true;
-                        }
-                        else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-            }
-            else {
-                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            files_processed = true;
-        }
-    }
-    i++;
-    if (i < argc) {
-        // next argument can be outfileswitch or tracks (last one)
-        if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
-            return (EXIT_FAILURE);
-        }
-        else {
-            if (argv[i][1]){
-                if (argv[i][1] == 'h') {
-                    if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            htmlout = argv[i+1];
-                            i++;
-                        }
-                        h = true;
-                    }
-                }
-                else if (argv[i][1] == 'r') {
-                    if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            rootout = argv[i+1];
-                            i++;
-                        }
-                        r = true;
-                    }
-                }
-                else if (argv[i][1] == 'g') {
-                    if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            graphout = argv[i+1];
-                            i++;
-                        }
-                        g = true;
-                    }
-                }
-                else if (argv[i][1] == 'x') {
-                    if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-')) {
-                            xmlout = argv[i+1];
-                            i++;
-                        }
-                        x = true;
-                    }
-                }
-                    else if (argv[i][1] == 'T') {
-                        if (T) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                        else {
-                            if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                                tracks_geom = atoi(argv[i+1]);
-                                i++;
-                                T = true;
-                            }
-                            else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                                return (EXIT_FAILURE);
-                            }
-                        }
-                    }
-                else if (argv[i][1] == 't') {
-                    if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                        return (EXIT_FAILURE);
-                    }
-                    else {
-                        if (((i + 1) < argc) && (argv[i+1][0] != '-') && (atoi(argv[i+1]) != 0)) {
-                            tracks = atoi(argv[i+1]);
-                            i++;
-                            t = true;
-                        }
-                        else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                            return (EXIT_FAILURE);
-                        }
-                    }
-                }
-                else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
-                    return (EXIT_FAILURE);
-                }
-            }
-            else {
-                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
-                return (EXIT_FAILURE);
-            }
-            files_processed = true;
-        }
-    }
-    i++;
-    if (i < argc) {
-        std::cerr << "Error: too many arguments. The tklayout call syntax is as follows:" << std::endl;
-        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile [materialfile]] [-t n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
-        std::cout << std::endl << std::endl << "u   print geometry summary after volume creation" << std::endl;
-        std::cout << "m   print material budget summary after material assignment" << std::endl;
-        std::cout << "d   write detailed geometry to root file - WARNING: may cause root to crash later!" << std::endl;
-        std::cout << "geomfile   geometry configuration file" << std::endl << "settingsfile   module settings configuration file" << std::endl;
-        std::cout << "materialfile   material configuration file" << std::endl << "n_of_tracks   number of tracks used for analysis" << std::endl;
-        std::cout << "htmlfile   output file for material budget analysis" << std::endl;
-        std::cout << "rootfile   output file for ROOT (geometry)" << std::endl << "graphfile   output file for feeder/neighbour graph" << std::endl;
-        std::cout << "XMLsubdir   output subfolder for CMSSW XML files" << std::endl;
-        std::cout << "If a type of output is requested without giving an explicit outfile name, the application will construct a default." << std::endl;
-        return (EXIT_FAILURE);
-    }
+
+            
+    insur::Squid squid;
+    bool verboseMaterial = false;
+
+    squid.setBasename(basename);
+
+    // The tracker (and possibly pixel) must be build in any case
+    if (!squid.buildTracker()) return EXIT_FAILURE;
+
+    // The tracker should pick the types here but in case it does not,
+    // we can still write something
+    if (squid.dressTracker()) {
+      if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
+
+      if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
+      if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
+      if ((vm.count("all") || vm.count("power")) && (!squid.irradiateTracker() || !squid.reportPowerSite()) ) return EXIT_FAILURE;
+
+      // If we need to have the material model, then we build it
+      if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
+	if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+	  if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
+	    // TODO: the following call should know whether to compute resolution or material (or both)
+	    if (!squid.pureAnalyzeMaterialBudget(mattracks, true)) return EXIT_FAILURE;
+	    if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
+	    if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
+	  }
+	  if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
+	  if (vm.count("xml") && !squid.translateFullSystemToXML(xmlname.empty() ? basename : xmlname, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
+	}
+      }
+
+      if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
+	  ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
+    } else if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
+
+
+    if (!squid.reportGeometrySite()) return EXIT_FAILURE;
+    if (!squid.additionalInfoSite()) return EXIT_FAILURE;
+    if (!squid.makeSite()) return EXIT_FAILURE;
     
     //DEBUG: print internal status
     /*std::cout << std::endl << "Internal status after parsing " << argc << " arguments (i = " << i << "):" << std::endl;

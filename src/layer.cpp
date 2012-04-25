@@ -714,6 +714,7 @@ void BarrelLayer::buildLayer(double averageRadius,
             //(*itMod)->rotatePhi(i*stringPhiShift-rightAngle);
             (*itMod)->rotatePhi(i*stringPhiShift);
             
+            tempMod->setPhiIndex(i);
             if (i==0) {
                 aSection |= YZSection;
             }
@@ -1458,7 +1459,8 @@ double EndcapLayer::buildRing(double minRadius,
         } else {
             myModule = new EndcapModule(*sampleModule, minRadius);
         }
-        myModule->rotatePhi(2.*M_PI*i/double(nOpt));
+        myModule->setPhiIndex(nOpt);
+        myModule->rotatePhi(M_PI/2+2.*M_PI*((i+alignmentRotation)/double(nOpt)));
         XYZVector shift = XYZVector(0, 0, diskZ + nearDirection*ringParity*smallDelta + nearDirection*bigDelta);
         myModule->translate(shift);
         if (i==0) myModule->setSection(YZSection);

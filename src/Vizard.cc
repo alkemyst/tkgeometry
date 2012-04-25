@@ -1772,8 +1772,9 @@ namespace insur {
         TCanvas *XYCanvasEC = NULL;
         TCanvas *myCanvas = NULL;
         //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-	createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, YZCanvas, XYCanvas, XYCanvasEC);
-	
+	createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
+	// createColorPlotCanvas(tracker, 1, RZCanvas);
+    
         
         //TVirtualPad* myPad;
         myContent = new RootWContent("Plots");
@@ -2069,38 +2070,150 @@ namespace insur {
         aStringStream <<" minimum bias events assumed</br>";
         myDescription->addText( aStringStream.str() );
                 
-		
-		
-		std::map<std::string, SummaryTable>& trueSummaries = analyzer.getTriggerFrequencyTrueSummaries();
-		std::map<std::string, SummaryTable>& fakeSummaries = analyzer.getTriggerFrequencyFakeSummaries();
-		std::map<std::string, SummaryTable>& rateSummaries = analyzer.getTriggerRateSummaries();
-		std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
-		std::map<std::string, SummaryTable>& dataBandwidthSummaries = analyzer.getTriggerDataBandwidthSummaries();
-	
-//		std::map<pair<int,int>,std::string>& tsm = trueSummary.getContent();
-//		cout << "TRUE TRIGGER COUNT: " << tsm.size() << endl;
-//		for (std::map<pair<int,int>,std::string>::iterator it = tsm.begin(); it != tsm.end(); ++it) {
-//			cout << it->first.first << '\t' << it->first.second << '\t' << it->second << endl;
-//		}
-		for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = fakeSummaries.begin(); it != fakeSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger frequency fake (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = rateSummaries.begin(); it != rateSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = puritySummaries.begin(); it != puritySummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = dataBandwidthSummaries.begin(); it != dataBandwidthSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger data bandwidth Mbps (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
+        
+        
+        std::map<std::string, SummaryTable>& trueSummaries = analyzer.getTriggerFrequencyTrueSummaries();
+        std::map<std::string, SummaryTable>& fakeSummaries = analyzer.getTriggerFrequencyFakeSummaries();
+        std::map<std::string, SummaryTable>& rateSummaries = analyzer.getTriggerRateSummaries();
+        std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
+        std::map<std::string, SummaryTable>& dataBandwidthSummaries = analyzer.getTriggerDataBandwidthSummaries();
+    
+        for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = fakeSummaries.begin(); it != fakeSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger frequency fake (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = rateSummaries.begin(); it != rateSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = puritySummaries.begin(); it != puritySummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = dataBandwidthSummaries.begin(); it != dataBandwidthSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger data bandwidth Gbps (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+
+        myContent = &myPage->addContent("Trigger bandwidth and frequency maps", true);
+
+        TCanvas triggerDataBandwidthCanvas;
+        TCanvas triggerFrequencyPerEventCanvas;
+
+        PlotDrawer<YZ, Property, Max> yzbwDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerDataBandwidth"); // CUIDADO: kludgy at best. we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
+        PlotDrawer<YZ, Property, Max> yztfDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerFrequencyPerEvent"); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
+
+        yzbwDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+        yztfDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+
+        yzbwDrawer.drawFrame<HistogramFrameStyle>(triggerDataBandwidthCanvas);
+        yztfDrawer.drawFrame<HistogramFrameStyle>(triggerFrequencyPerEventCanvas);
+
+        yzbwDrawer.drawModules<ContourStyle>(triggerDataBandwidthCanvas);
+        yztfDrawer.drawModules<ContourStyle>(triggerFrequencyPerEventCanvas);
+
+        RootWImage& triggerDataBandwidthImage = myContent->addImage(triggerDataBandwidthCanvas, 900, 400);
+        triggerDataBandwidthImage.setComment("Map of the bandwidth for trigger data in Gbps");
+        triggerDataBandwidthImage.setName("triggerDataBandwidthMap");
+
+        RootWImage& triggerFrequencyPerEventImage = myContent->addImage(triggerFrequencyPerEventCanvas, 900, 400);
+        triggerFrequencyPerEventImage.setComment("Map of the trigger frequency per event (a.k.a. stubs per event)");
+        triggerFrequencyPerEventImage.setName("triggerFrequencyPerEventMap");
+
         return true;
     }
 
-  bool Vizard::irradiatedPowerSummary(Analyzer& a, RootWSite& site) {
+
+bool Vizard::triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+    RootWPage* myPage = new RootWPage("Trigger CPUs");
+    myPage->setAddress("trigger_cpus.html");
+    site.addPage(myPage);
+
+    SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary(); 
+    SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary(); 
+    SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary(); 
+    std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
+
+    myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
+    myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
+    myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
+
+    for (std::map<std::string, SummaryTable>::iterator it = moduleSummaries.begin(); it != moduleSummaries.end(); ++it) {
+        myPage->addContent(std::string("Module outbound connections (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+    }
+
+    // Some helper string objects
+    ostringstream tempSS;
+    std::string tempString;    
+
+    //mapBag myMapBag = analyzer.getMapBag();
+    //TH2D& moduleConnectionEtaMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionEtaMap)[mapBag::dummyMomentum];
+    //TH2D& moduleConnectionPhiMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionPhiMap)[mapBag::dummyMomentum];
+    //TH2D& moduleConnectionEndcapPhiMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionEndcapPhiMap)[mapBag::dummyMomentum];
+
+
+    RootWContent& myContent = myPage->addContent("Module outbound connection maps", true);
+
+    TCanvas moduleConnectionEtaCanvas;
+    TCanvas moduleConnectionPhiCanvas;
+    TCanvas moduleConnectionEndcapPhiCanvas;
+
+    PlotDrawer<YZ, Method<int, &Module::getProcessorConnections> > yzDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnections> > xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Average> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+
+    yzDrawer.addModules<CheckSection<Layer::YZSection> >(tracker.getLayers());
+    xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());
+    xyecDrawer.addModules<CheckType<Module::Endcap> >(tracker.getLayers());
+
+    yzDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEtaCanvas);
+    xyDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionPhiCanvas);
+    xyecDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEndcapPhiCanvas);
+
+    yzDrawer.drawModules<ContourStyle>(moduleConnectionEtaCanvas);
+    xyDrawer.drawModules<ContourStyle>(moduleConnectionPhiCanvas);
+    xyecDrawer.drawModules<FillStyle>(moduleConnectionEndcapPhiCanvas);
+
+
+/*
+    moduleConnectionEtaCanvas.SetFillColor(color_plot_background);
+    moduleConnectionPhiCanvas.SetFillColor(color_plot_background);
+    //moduleConnectionEndcapPhiCanvas.SetFillColor(color_plot_background);
+
+    moduleConnectionEtaCanvas.cd();
+    moduleConnectionEtaMap.Draw("colz");
+  */  
+    RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, 900, 400);
+    moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
+    moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
+/*
+    moduleConnectionPhiCanvas.cd();
+    moduleConnectionPhiMap.Draw("colz");
+  */  
+    RootWImage& moduleConnectionPhiImage = myContent.addImage(moduleConnectionPhiCanvas, 600, 600);
+    moduleConnectionPhiImage.setComment("Map of the number of connections to trigger processors per barrel module (phi section)");
+    moduleConnectionPhiImage.setName("moduleConnectionPhiMap");
+
+   // moduleConnectionEndcapPhiCanvas.cd();
+   // moduleConnectionEndcapPhiMap.Draw("colz");
+    
+    RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, 600, 600);
+    moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
+    moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
+
+//    myContent = myPage->addContent("Module Connections distribution", true);
+
+    TCanvas moduleConnectionsCanvas("ModuleConnectionsC", "Modules connectionsC", 600, 400);
+    moduleConnectionsCanvas.cd();
+    TH1I& moduleConnectionsDistribution = analyzer.getModuleConnectionsDistribution();
+    moduleConnectionsDistribution.SetFillColor(Palette::color(2));
+    moduleConnectionsDistribution.Draw();
+    RootWImage& myImage = myContent.addImage(moduleConnectionsCanvas, 600, 400);
+    myImage.setComment("Module connections distribution");
+
+    return true;
+}
+
+bool Vizard::irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
   	RootWPage* myPage = new RootWPage("Power");
     myPage->setAddress("power.html");
     site.addPage(myPage);
@@ -2114,16 +2227,26 @@ namespace insur {
     ostringstream tempSS;
     std::string tempString;    
 
-    mapBag myMapBag = a.getMapBag();
-	TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+   // mapBag myMapBag = a.getMapBag();
+    //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+   // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
-    RootWContent& myContent = myPage->addContent("Irradiated power maps", true);
+    PlotDrawer<YZ, Property, Average> yzPowerDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "irradiatedPowerConsumption");
+    PlotDrawer<YZ, TotalIrradiatedPower, Average> yzTotalPowerDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+
+    yzPowerDrawer.addModules<CheckType<Module::Barrel | Module::Endcap> >(tracker.getLayers());
+    yzTotalPowerDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+
+    RootWContent& myContent = myPage->addContent("Power maps", true);
 
 	TCanvas irradiatedPowerCanvas;
-    irradiatedPowerCanvas.SetFillColor(color_plot_background);
 
-	irradiatedPowerCanvas.cd();
-	irradiatedPowerMap.Draw("colz");
+    yzPowerDrawer.drawFrame<HistogramFrameStyle>(irradiatedPowerCanvas);
+    yzPowerDrawer.drawModules<ContourStyle>(irradiatedPowerCanvas);
+
+
+    yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(totalPowerCanvas);
+    yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
     
 	
 	RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, 900, 400);
@@ -3484,6 +3607,207 @@ namespace insur {
         //return summaryCanvas;
   }    
   
+  // private
+  //
+  // Creates 4 new canvas with XY and RZ views with all the useful
+  // details, like the axis ticks and the eta reference. This is done
+  // only using a 2d tool (thus: you can later zoom in and there is no
+  // need for Sections
+  //
+  // @param maxZ maximum tracker's Z coordinate to be shown
+  // @param maxRho maximum tracker's Rho coordinate to be shown
+  // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+  // @return a pointer to the new TCanvas
+  void Vizard::createSummaryCanvasNice(Tracker& tracker,
+				       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+				       TCanvas *&XYCanvasEC) {
+
+    double maxZ;// = tracker.getMaxL();
+    double maxRho;// = tracker.getMaxR();
+
+    maxZ = max_length;// * 1.1;
+    maxRho = (outer_radius+volume_width);// * 1.1;
+
+    double scaleFactor = maxRho/600;
+
+    int rzCanvasX = int(maxZ/scaleFactor);
+    int rzCanvasY = int(maxRho/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+        
+    // RZView
+    //std::set<linePosition>::iterator lineIt;
+    //std::set<linePosition> rzLines;
+    //std::set<linePosition> rphiBarrelLines;
+    //std::set<linePosition> rphiEndcapLines;
+    linePlacer rzLinePlacer;
+    linePlacer rphiBarrelLinePlacer;
+    linePlacer rphiEndcapLinePlacer;
+
+
+    LayerVector allLayers = tracker.getLayers();
+    LayerVector::iterator layIt;
+    for (layIt=allLayers.begin(); layIt!=allLayers.end(); ++layIt) {
+        Layer* aLayer = *layIt;
+        ModuleVector* layerModules = aLayer->getModuleVector();
+        ModuleVector::iterator modIt;
+        for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+	        Module* aModule = *modIt;
+	        if (aModule->getMeanPoint().Z()>0) {
+	            rzLinePlacer.setRZ(*aModule);
+            }
+            int subDet = (aModule->getSubdetectorType());
+            if (subDet==Module::Barrel) {
+                rphiBarrelLinePlacer.setRPhi(*aModule);
+            } else if (subDet==Module::Endcap) {
+                rphiEndcapLinePlacer.setRPhi(*aModule);
+            }
+        }
+    }
+    RZCanvas->cd();
+    TH2D* myFrame = new TH2D("myFrameRZ", ";z [mm];r [mm]", 1, 0, maxZ, 1, 0, maxRho);
+
+    //TPaletteAxis *palette = (TPaletteAxis*)myFrame->GetListOfFunctions()->FindObject("palette");
+
+    myFrame->GetXaxis()->SetTitleOffset(1.3);
+    myFrame->GetXaxis()->SetTickLength(-0.03);
+    myFrame->GetXaxis()->SetLabelOffset(0.03);
+    myFrame->GetXaxis()->SetNdivisions(10);
+
+    myFrame->GetYaxis()->SetTitleOffset(1.2);
+    myFrame->GetYaxis()->SetTickLength(-0.015);
+    myFrame->GetYaxis()->SetLabelOffset(0.015);
+    myFrame->GetYaxis()->SetNdivisions(10);
+    myFrame->Draw();
+    rzLinePlacer.drawLines();
+      
+    drawEtaTicks(maxZ, maxRho, 0, 50, 50, myFrame->GetXaxis()->GetLabelFont(), myFrame->GetXaxis()->GetLabelSize(), 0.2, 2.2, 2.5);
+
+    // XYView (barrel)
+    XYCanvas->cd();
+    myFrame = new TH2D("myFrameXYBarrel", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
+    myFrame->GetYaxis()->SetTitleOffset(1.3);
+    myFrame->Draw();
+    rphiBarrelLinePlacer.drawLines();
+    // XYView (EndCap)
+    XYCanvasEC->cd();
+    myFrame = new TH2D("myFrameXYEndcap", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
+    myFrame->GetYaxis()->SetTitleOffset(1.3);
+    myFrame->Draw();
+    rphiEndcapLinePlacer.drawLines();
+
+  }    
+  
+  
+void Vizard::createSummaryCanvasNicer(Tracker& tracker,
+				                      TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+				                      TCanvas *&XYCanvasEC) {
+  
+    double scaleFactor = tracker.getMaxR()/600;
+
+    int rzCanvasX = int(tracker.getMaxL()/scaleFactor);
+    int rzCanvasY = int(tracker.getMaxR()/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZ, Type> yzDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    yzDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+    XYCanvas->cd();
+    PlotDrawer<XY, Type> xyBarrelDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    xyBarrelDrawer.addModules(tracker.getLayers(), Module::Barrel);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+    XYCanvasEC->cd();
+    PlotDrawer<XY, Type> xyEndcapDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    xyEndcapDrawer.addModules(tracker.getLayers(), Module::Endcap);
+    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+
+}
+
+
+
+  // private
+  //
+  // Creates one canvas with the RZ view. The modules are colored according
+  // to a parameter of choice
+  //
+  // @param maxZ maximum tracker's Z coordinate to be shown
+  // @param maxRho maximum tracker's Rho coordinate to be shown
+  // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+  // @return a pointer to the new TCanvas
+  void Vizard::createColorPlotCanvas(Tracker& tracker,
+                                     int plotVariable,
+				                     TCanvas *&RZCanvas) {
+
+    double maxZ;
+    double maxRho;
+
+    maxZ = max_length;
+    maxRho = (outer_radius+volume_width);
+
+    double scaleFactor = maxRho/600;
+
+    int rzCanvasX = int(maxZ/scaleFactor);
+    int rzCanvasY = int(maxRho/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+        
+
+    // RZView
+    linePlacer rzLinePlacer;
+    //linePlacer rphiBarrelLinePlacer;
+    //linePlacer rphiEndcapLinePlacer;
+
+    LayerVector allLayers = tracker.getLayers();
+    LayerVector::iterator layIt;
+    for (layIt=allLayers.begin(); layIt!=allLayers.end(); ++layIt) {
+        Layer* aLayer = *layIt;
+        ModuleVector* layerModules = aLayer->getModuleVector();
+        ModuleVector::iterator modIt;
+        for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+	        Module* aModule = *modIt;
+	        if (aModule->getMeanPoint().Z()>0)
+	        rzLinePlacer.setRZValue(*aModule, aModule->getMeanPoint().Z()); // test fill with an evident value
+      }
+    }
+    RZCanvas->cd();
+    TH2D* myFrame = new TH2D("myFrameRZ", ";z [mm];r [mm]", 1, 0, maxZ, 1, 0, maxRho);
+    //    myFrame->SetX2NDC(.8);
+    myFrame->Fill(1, 1, 0);
+    myFrame->GetXaxis()->SetTitleOffset(1.3);
+    myFrame->GetXaxis()->SetTickLength(-0.03);
+    myFrame->GetXaxis()->SetLabelOffset(0.03);
+    myFrame->GetXaxis()->SetNdivisions(10);
+
+    myFrame->GetYaxis()->SetTitleOffset(1.2);
+    myFrame->GetYaxis()->SetTickLength(-0.015);
+    myFrame->GetYaxis()->SetLabelOffset(0.015);
+    myFrame->GetYaxis()->SetNdivisions(10);
+    rzLinePlacer.setMinMax(*myFrame);
+    myFrame->Draw("colz");
+
+    // This is essential in order to have the palette later on
+    RZCanvas->Update();
+
+    TPaletteAxis *palette = (TPaletteAxis*)myFrame->GetListOfFunctions()->FindObject("palette");
+    rzLinePlacer.setPalette(palette);
+
+    myFrame->Draw("AXIS colz");
+    rzLinePlacer.drawLineValues();
+    drawEtaTicks(maxZ, maxRho, 0, -50, 0, 0, 0, .8, 2.41, 0);
+    
+  }
+
   /*
    * Returns always the same color for a given momentum index
    * @param iMomentum index of the momentum

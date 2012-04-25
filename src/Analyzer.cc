@@ -11,7 +11,33 @@
 
 #undef MATERIAL_SHADOW
 
+
 namespace insur {
+
+    template<> void SummaryTable::setCell<std::string>(const int row, const int column, const std::string& content) {
+        if (column > 0 && !hasCell(0, column)) summaryTable[std::make_pair(0, column)] = any2str(column + columnOffset_);
+        if (row > 0 && !hasCell(row, 0)) summaryTable[std::make_pair(row, 0)] = any2str(row + rowOffset_);
+        summaryTable[std::make_pair(row, column)]=content;
+        numRows_ = row+1 > numRows_ ? row+1 : numRows_;
+        numColumns_ = column+1 > numColumns_ ? column+1 : numColumns_;
+    }
+
+    template<> void SummaryTable::setSummaryCell<std::string>(std::string label, const std::string& content) {
+        if (!hasSummaryCell()) {
+            if (numRows_ > 2 && numColumns_ > 2) {
+                summaryLabelPosition_ = std::make_pair(numRows_, 0); 
+                summaryCellPosition_ = std::make_pair(numRows_++, numColumns_++);
+            } else if (numRows_ >= 2 && numColumns_ == 2) {
+                summaryLabelPosition_ = std::make_pair(numRows_, 0); 
+                summaryCellPosition_ = std::make_pair(numRows_++, 1);
+            } else if (numRows_ == 2 && numColumns_ > 2) {
+                summaryLabelPosition_ = std::make_pair(0, numColumns_); 
+                summaryCellPosition_ = std::make_pair(1, numColumns_++);
+            }
+        }
+        summaryTable[summaryLabelPosition_] = label;
+        summaryTable[summaryCellPosition_] = content;
+    }
 
   const double graphBag::Triggerable     = 0.;
   const int graphBag::RhoGraph         = 0x001;
@@ -35,6 +61,9 @@ namespace insur {
   const int mapBag::suggestedSpacingMapAW = 0x020;
   const int mapBag::spacingWindowMap      = 0x040;
   const int mapBag::irradiatedPowerConsumptionMap = 0x080;
+  const int mapBag::moduleConnectionEtaMap = 0x200;
+  const int mapBag::moduleConnectionPhiMap = 0x400;
+  const int mapBag::moduleConnectionEndcapPhiMap = 0x800;
 
   const double profileBag::Triggerable    = 0.;
   const int profileBag::TriggeredProfile  = 0x0000007;
@@ -954,11 +983,13 @@ namespace insur {
 		track.computeErrors(momenta);
 		tv.push_back(track);
 
+        if (computeResolution) {
 		Track trackIdeal = track;
 		trackIdeal.removeMaterial();
 		trackIdeal.computeErrors(momenta);
 		tvIdeal.push_back(trackIdeal);
-	      }
+        }
+	    }
 
 	      // @@ Hadrons
 	      int nActive = track.nActiveHits();
@@ -1066,6 +1097,7 @@ namespace insur {
 		triggerRateSummaries_.clear();
 		triggerPuritySummaries_.clear();
 		triggerDataBandwidthSummaries_.clear();
+        triggerDataBandwidths_.clear();
 
 		for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
 			ModuleVector* modules = (*layIt)->getModuleVector();
@@ -1096,14 +1128,19 @@ namespace insur {
 
 				int triggerDataHeaderBits  = tracker.getModuleType(module->getType()).getTriggerDataHeaderBits();
 				int triggerDataPayloadBits = tracker.getModuleType(module->getType()).getTriggerDataPayloadBits();
-
+                double triggerDataBandwidth = (triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits) / (tracker.getBunchSpacingNs()); // GIGABIT/second
+                triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())] = triggerDataBandwidth;
+                triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTotal;
+                
+                module->setProperty("triggerDataBandwidth", triggerDataBandwidth); // averaged over phi
+                module->setProperty("triggerFrequencyPerEvent", curAvgTotal); // averaged over phi
 
 				std::stringstream ss1(""), ss2(""), ss3(""), ss4(""), ss5("");
-				ss1.precision(6);
-				ss2.precision(6);
-				ss3.precision(6);
-				ss4.precision(6);
-				ss5.precision(6);
+				ss1.precision(3);
+				ss2.precision(3);
+				ss3.precision(3);
+				ss4.precision(3);
+				ss5.precision(3);
 				ss1.setf(ios::fixed, ios::floatfield);
 				ss2.setf(ios::fixed, ios::floatfield);
 				ss3.setf(ios::fixed, ios::floatfield);
@@ -1113,7 +1150,7 @@ namespace insur {
 				ss2 << curAvgFake;
 				ss3 << curAvgTotal;
 				ss4 << curAvgTrue/(curAvgTrue+curAvgFake);
-				ss5 << triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits;
+				ss5 << triggerDataBandwidth;
 				triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss1.str());
 				triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss2.str());
 				triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss3.str());				
@@ -1147,15 +1184,296 @@ namespace insur {
 					triggerDataBandwidthSummaries_[cntName].setCell(0, module->getRing(), ss.str());
 				}
 			}
-			triggerFrequencyTrueSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerFrequencyFakeSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerRateSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerPuritySummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerDataBandwidthSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerFrequencyTrueSummaries_[cntName].setCell(0, 0, "Ring &rarr;<br>Layer &darr;");
+			triggerFrequencyFakeSummaries_[cntName].setCell(0, 0, "Ring &rarr;<br>Layer &darr;");
+			triggerRateSummaries_[cntName].setCell(0, 0, "Ring &rarr;<br>Layer &darr;");
+			triggerPuritySummaries_[cntName].setCell(0, 0, "Ring &rarr;<br>Layer &darr;");
+			triggerDataBandwidthSummaries_[cntName].setCell(0, 0, "Ring &rarr;<br>Layer &darr;");
 		}
 	}
     
 	
+void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
+
+    std::map<std::pair<int, int>, int> processorConnections;
+    std::map<std::pair<int, int>, double> processorInboundBandwidths;
+    std::map<std::pair<int, int>, double> processorInboundStubsPerEvent;
+
+//    prepareTriggerProcessorHistograms();
+//    TH2D& moduleConnectionEtaMap = myMapBag.getMaps(mapBag::moduleConnectionEtaMap)[mapBag::dummyMomentum];
+//    TH2D& moduleConnectionPhiMap = myMapBag.getMaps(mapBag::moduleConnectionPhiMap)[mapBag::dummyMomentum];
+//    TH2D& moduleConnectionEndcapPhiMap = myMapBag.getMaps(mapBag::moduleConnectionEndcapPhiMap)[mapBag::dummyMomentum];
+
+    
+    processorConnectionSummary_.setHeader("Phi", "Eta");
+    processorInboundBandwidthSummary_.setHeader("Phi", "Eta");
+    processorInboundStubPerEventSummary_.setHeader("Phi", "Eta");
+
+    processorInboundBandwidthSummary_.setPrecision(3);
+    processorInboundStubPerEventSummary_.setPrecision(3);
+
+    // Create a map for the counterEta and Phi
+//    TH2D* counterEta = (TH2D*)moduleConnectionEtaMap.Clone();
+//    TH2D* counterPhi = (TH2D*)moduleConnectionPhiMap.Clone();
+//    TH2D* counterEndcapPhi = (TH2D*)moduleConnectionEndcapPhiMap.Clone();
+
+    int numProcEta = tracker.getTriggerProcessorsEta();
+    int numProcPhi = tracker.getTriggerProcessorsPhi();
+
+    double etaCut = tracker.getTriggerEtaCut();
+    double etaSlice = etaCut / numProcEta;
+    double maxR = tracker.getMaxR();
+    double zError = tracker.getZError();
+
+    double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
+
+    double eta = 0;    
+
+    for (int i=0; i < numProcEta; i++) { // loop over etaSlices
+        double phi = 0;
+        for (int j=0; j < numProcPhi; j++) { 
+            LayerVector& layers = tracker.getLayers();
+            for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
+                ModuleVector* modules = (*layIt)->getModuleVector();
+                std::string cntName = (*layIt)->getContainerName();
+                Layer* layer = (*layIt);
+                //BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
+                if (cntName == "" || !layer) continue;
+                
+
+                for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
+                    Module* module = (*modIt);
+                    //BarrelModule* module = dynamic_cast<BarrelModule*>(*modIt);
+
+                    if (!module || module->getMeanPoint().Z()<0) continue;
+                    double modMinZ = module->getMinZ();
+                    double modMaxZ = module->getMaxZ();
+                    double modMinR = module->getMinRho();                
+                    double modMaxR = module->getMaxRho();                
+                    
+                    //double modR    = module->getMeanPoint().Rho();                
+                    
+                    double modMinPhi  = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
+                    double modMaxPhi  = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
+
+                    double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
+                    double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
+
+                    double etaDist1 = modMinR/maxR - (modMaxZ + zError)/(etaSliceZ1 + zError);
+                    double etaDist2 = modMaxR/maxR - (modMinZ - zError)/(etaSliceZ2 - zError);
+/*
+                    double modMinR = module->getEdgeRhoSide(-1).first;
+
+                    double phiSliceX1 = maxR*cos(phi-trajSlice);
+                    double phiSliceY1 = maxR*sin(phi-trajSlice);
+                    double phiSliceX2 = maxR*cos(phi+phiSlice+trajSlice);
+                    double phiSliceY2 = maxR*sin(phi+phiSlice+trajSlice);
+*/
+                    double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
+                    double sliceMinPhi = phi - trajSlice;
+                    double sliceMaxPhi = phi + phiSlice + trajSlice;
+
+                    if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
+                    else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
+
+                    if (etaDist1 < 0 && etaDist2 > 0 &&
+                        ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
+                         (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
+                         (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi))) 
+                    { 
+                        
+                        int moduleConnections = module->getProcessorConnections()+1;
+                        module->setProcessorConnections(moduleConnections);
+
+                        processorConnections[std::make_pair(i,j)] += 2; // this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
+                        processorConnectionSummary_.setCell(i+1, j+1, processorConnections[std::make_pair(i,j)]);
+                       
+                        processorInboundBandwidths[std::make_pair(i,j)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]*2; // *2 takes into account negative Z's
+                        processorInboundBandwidthSummary_.setCell(i+1, j+1, processorInboundBandwidths[std::make_pair(i,j)]);
+                        
+                        processorInboundStubsPerEvent[std::make_pair(i,j)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())]*2;
+                        processorInboundStubPerEventSummary_.setCell(i+1, j+1, processorInboundStubsPerEvent[std::make_pair(i,j)]);
+                        
+                      /*  
+				        if (!processorConnectionSummary_.hasCell(i+1, 0)) {
+					        std::stringstream ss("");
+					        ss << i+1;
+					        processorConnectionSummary_.setCell(i+1, 0, ss.str());
+					        processorInboundBandwidthSummary_.setCell(i+1, 0, ss.str());
+                            processorInboundStubPerEventSummary_.setCell(i+1, 0, ss.str());
+				        }
+                        if (!processorConnectionSummary_.hasCell(0, j+1)) {
+                            std::stringstream ss("");
+                            ss << j+1;
+                            processorConnectionSummary_.setCell(0, j+1, ss.str());
+                            processorInboundBandwidthSummary_.setCell(0, j+1, ss.str());
+                            processorInboundStubPerEventSummary_.setCell(0, j+1, ss.str());
+                        }
+                        */
+
+                        if (module->getSection() & 0x2) { // CUIDADO: UGH!!! +o(
+                            moduleConnectionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), moduleConnections);
+
+                //            std::cout << "TP Mod " << cntName << "," << module->getLayer() << "," << module->getRing() << " with Z between " << modMinZ << "," << modMaxZ << ", R: " << modR << " was selected because eta slice Z between " << sliceMinZ << "," << sliceMaxZ << ", curr cpu index: " << i << "," << j << ", conn count: " << moduleConnectionsCount << endl;
+/*
+                            if (!moduleConnectionSummaries_[cntName].hasCell(module->getLayer(), 0)) {
+                                std::stringstream ss("");
+                                ss << module->getLayer();
+                                moduleConnectionSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+                            }
+                            if (!moduleConnectionSummaries_[cntName].hasCell(0, module->getRing())) {
+                                std::stringstream ss("");
+                                ss << module->getRing();
+                                moduleConnectionSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+                            }
+*/
+                            // Draw the module
+/*                            XYZVector start = (module->getCorner(0)+module->getCorner(1))/2;
+                            XYZVector end = (module->getCorner(2)+module->getCorner(3))/2;
+                            XYZVector diff = end-start;
+                            XYZVector point;
+                            double myZ, myRho;
+                            for (double l=0; l<1; l+=0.1) {
+                                point = start + l * diff;
+                                myZ=point.Z();
+                                myRho=point.Rho();
+                                moduleConnectionEtaMap.Fill(myZ, myRho, moduleConnections);
+                                counterEta->Fill(myZ, myRho, 1);
+                            }*/
+                        }
+
+/*                        if (module->getSection() & 0x1) {
+                            // Draw the module
+                            XYZVector start = (module->getCorner(1)+module->getCorner(2))/2;
+                            XYZVector end = (module->getCorner(3)+module->getCorner(0))/2;
+                            XYZVector diff = end-start;
+                            XYZVector point;
+                            double myX, myY;
+                            for (double l=0; l<1; l+=0.1) {
+                                point = start + l * diff;
+                                myX=point.X();
+                                myY=point.Y();
+                                moduleConnectionPhiMap.Fill(myX, myY, moduleConnections);
+                                counterPhi->Fill(myX, myY, 1);
+                            }
+                        }
+*/
+/*                        if (module->getSubdetectorType()==Module::Endcap && module->getLayer() == 1) {
+                            // Draw the module
+                            XYZVector start = (module->getCorner(1)+module->getCorner(2))/2;
+                            XYZVector end = (module->getCorner(3)+module->getCorner(0))/2;
+                            XYZVector diff = end-start;
+                            XYZVector point;
+                            double myX, myY;
+                            for (double l=0; l<1; l+=0.1) {
+                                point = start + l * diff;
+                                myX=point.X();
+                                myY=point.Y();
+                                moduleConnectionEndcapPhiMap.Fill(myX, myY, moduleConnections);
+                                counterEndcapPhi->Fill(myX, myY, 1);
+                            }
+
+
+                        }
+*/
+                    }
+                }
+//                moduleConnectionSummaries_[cntName].setCell(0, 0, "Ring &rarr;<br>Layer &darr;");
+            }
+            phi += phiSlice;
+        } 
+        eta += etaSlice;
+    }
+
+
+    double inboundBandwidthTotal = 0.;
+    int processorConnectionsTotal = 0;
+    double inboundStubsPerEventTotal = 0.;
+    for (std::map<std::pair<int, int>, double>::iterator it = processorInboundBandwidths.begin(); it != processorInboundBandwidths.end(); ++it)
+        inboundBandwidthTotal += (*it).second;
+    for (std::map<std::pair<int, int>, int>::iterator it = processorConnections.begin(); it != processorConnections.end(); ++it)
+        processorConnectionsTotal += (*it).second;
+    for (std::map<std::pair<int, int>, double>::iterator it = processorInboundStubsPerEvent.begin(); it != processorInboundStubsPerEvent.end(); ++it) 
+        inboundStubsPerEventTotal += (*it).second;
+
+    
+    processorInboundBandwidthSummary_.setSummaryCell("Total", inboundBandwidthTotal);
+    processorConnectionSummary_.setSummaryCell("Total", processorConnectionsTotal);
+    processorInboundStubPerEventSummary_.setSummaryCell("Total", inboundStubsPerEventTotal);
+/*
+    if (numProcEta > 1 && numProcPhi > 1) {
+        processorInboundBandwidthSummary_.setCell(numProcEta+1, 0, "Total");
+        processorInboundBandwidthSummary_.setCell(numProcEta+1, numProcPhi+1, any2str(inboundBandwidthTotal, 3)); 
+        processorConnectionSummary_.setCell(numProcEta+1, 0, "Total");
+        processorConnectionSummary_.setCell(numProcEta+1, numProcPhi+1, any2str(processorConnectionsTotal)); 
+        processorInboundStubPerEventSummary_.setCell(numProcEta+1, 0, "Total");
+        processorInboundStubPerEventSummary_.setCell(numProcEta+1, numProcPhi+1, any2str(inboundStubsPerEventTotal)); 
+    } else if (numProcEta > 1 && numProcPhi == 1) {
+        processorInboundBandwidthSummary_.setCell(numProcEta+1, 0, "Total");
+        processorInboundBandwidthSummary_.setCell(numProcEta+1, 1, any2str(inboundBandwidthTotal, 3)); 
+        processorConnectionSummary_.setCell(numProcEta+1, 0, "Total");
+        processorConnectionSummary_.setCell(numProcEta+1, numProcPhi+1, any2str(processorConnectionsTotal)); 
+        processorInboundStubPerEventSummary_.setCell(numProcEta+1, 0, "Total");
+        processorInboundStubPerEventSummary_.setCell(numProcEta+1, numProcPhi+1, any2str(inboundStubsPerEventTotal)); 
+    } else if (numProcEta == 1 && numProcPhi > 1) {
+        processorInboundBandwidthSummary_.setCell(0, numProcPhi+1, "Total");
+        processorInboundBandwidthSummary_.setCell(1, numProcPhi+1, any2str(inboundBandwidthTotal, 3)); 
+        processorConnectionSummary_.setCell(numProcEta+1, 0, "Total");
+        processorConnectionSummary_.setCell(numProcEta+1, numProcPhi+1, any2str(processorConnectionsTotal)); 
+        processorInboundStubPerEventSummary_.setCell(numProcEta+1, 0, "Total");
+        processorInboundStubPerEventSummary_.setCell(numProcEta+1, numProcPhi+1, any2str(inboundStubsPerEventTotal)); 
+    }
+*/
+/*
+    // Normalize the counts to the number of hits per bin ...
+    for (int i=1; i<=moduleConnectionEtaMap.GetNbinsX(); ++i) {
+        for (int j=1; j<=moduleConnectionEtaMap.GetNbinsY(); ++j) {
+	        if (counterEta->GetBinContent(i,j)!=0) {
+	            moduleConnectionEtaMap.SetBinContent(i,j, moduleConnectionEtaMap.GetBinContent(i,j) / counterEta->GetBinContent(i,j));
+	        }
+        }
+    }
+    // Normalize the counts to the number of hits per bin ...
+    for (int i=1; i<=moduleConnectionPhiMap.GetNbinsX(); ++i) {
+        for (int j=1; j<=moduleConnectionPhiMap.GetNbinsY(); ++j) {
+	        if (counterPhi->GetBinContent(i,j)!=0) {
+	            moduleConnectionPhiMap.SetBinContent(i,j, moduleConnectionPhiMap.GetBinContent(i,j) / counterPhi->GetBinContent(i,j));
+	        }
+        }
+    }
+
+    // Normalize the counts to the number of hits per bin ...
+    for (int i=1; i<=moduleConnectionEndcapPhiMap.GetNbinsX(); ++i) {
+        for (int j=1; j<=moduleConnectionEndcapPhiMap.GetNbinsY(); ++j) {
+	        if (counterEndcapPhi->GetBinContent(i,j)!=0) {
+	            moduleConnectionEndcapPhiMap.SetBinContent(i,j, moduleConnectionEndcapPhiMap.GetBinContent(i,j) / counterEndcapPhi->GetBinContent(i,j));
+	        }
+        }
+    }
+    // ... and get rid of the counterEta
+    delete counterEta;
+    delete counterPhi;
+*/
+    moduleConnectionsDistribution.Reset();
+    moduleConnectionsDistribution.SetNameTitle("ModuleConnDist", "Number of connections to trigger processors;Connections;Modules");
+    moduleConnectionsDistribution.SetBins(11, -.5, 10.5);
+    
+    
+    LayerVector& layers = tracker.getLayers();
+    for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
+        ModuleVector* modules = (*layIt)->getModuleVector();
+        std::string cntName = (*layIt)->getContainerName();
+        BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
+        if (cntName == "" || !layer) continue;
+        for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
+            if ((*modIt)->getMeanPoint().Z() < 0) continue;
+            moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 2);// this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
+
+        }
+    }
+}
+
+
 void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	// loop over layers
 	// 	  loop over modules
@@ -1189,7 +1507,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 		for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
 			Module* module = (*modIt); 
 			XYZVector center = module->getMeanPoint();
-			if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
+			if (center.Z()<0) continue;
 			double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
 			double x  = center.Z()/25;
 			double y  = center.Rho()/25;
@@ -1207,6 +1525,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 			double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;			
 			//cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
 			module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
+            module->setProperty("irradiatedPowerConsumption", irradiatedPowerConsumption);
 			std::stringstream ss("");
 			ss.precision(6);
 			ss.setf(ios::fixed, ios::floatfield);
@@ -2386,7 +2705,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     //suggestedSpacingMapAW.Reset();
     for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
       for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
-	irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+	    irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+	    totalPowerConsumptionMap.SetBinContent(i,j,0);
       }
     }
 
@@ -2446,6 +2766,16 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     myMap.Reset();
   }
 
+  void Analyzer::prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
+    int mapBinsY = int( (2*outer_radius) * 1.1 / 10.); // every cm
+    int mapBinsX = int( (2*outer_radius) * 1.1 / 10.); // every cm
+    myMap.SetName(name.c_str());
+    myMap.SetTitle(title.c_str());
+    myMap.SetXTitle("x [mm]");
+    myMap.SetYTitle("y [mm]");
+    myMap.SetBins(mapBinsX, -outer_radius*1.1, outer_radius*1.1, mapBinsY, -outer_radius*1.1, outer_radius*1.1);
+    myMap.Reset();
+  }
  
 
   /**
@@ -2571,6 +2901,38 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
     prepareTrackerMap(irradiatedPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of irradiated power consumption");
   }
+
+    void Analyzer::prepareTriggerProcessorHistograms() {
+        myMapBag.clearMaps(mapBag::moduleConnectionEtaMap);
+        TH2D& moduleConnectionEtaMap = myMapBag.getMaps(mapBag::moduleConnectionEtaMap)[mapBag::dummyMomentum];
+        prepareTrackerMap(moduleConnectionEtaMap, "moduleConnectionEtaMap", "Map");
+
+        myMapBag.clearMaps(mapBag::moduleConnectionPhiMap);
+        TH2D& moduleConnectionPhiMap = myMapBag.getMaps(mapBag::moduleConnectionPhiMap)[mapBag::dummyMomentum];
+        prepareRadialTrackerMap(moduleConnectionPhiMap, "moduleConnectionPhiMap", "Map");
+
+        myMapBag.clearMaps(mapBag::moduleConnectionEndcapPhiMap);
+        TH2D& moduleConnectionEndcapPhiMap = myMapBag.getMaps(mapBag::moduleConnectionEndcapPhiMap)[mapBag::dummyMomentum];
+        prepareRadialTrackerMap(moduleConnectionEndcapPhiMap, "moduleConnectionEndcapPhiMap", "Map");
+
+        for (int i=1; i<=moduleConnectionEtaMap.GetNbinsX(); ++i) {
+            for (int j=1; j<=moduleConnectionEtaMap.GetNbinsY(); ++j) {
+	            moduleConnectionEtaMap.SetBinContent(i,j,0);
+            }
+        }
+    
+        for (int i=1; i<=moduleConnectionPhiMap.GetNbinsX(); ++i) {
+            for (int j=1; j<=moduleConnectionPhiMap.GetNbinsY(); ++j) {
+	            moduleConnectionPhiMap.SetBinContent(i,j,0);
+            }
+        }
+
+        for (int i=1; i<=moduleConnectionEndcapPhiMap.GetNbinsX(); ++i) {
+            for (int j=1; j<=moduleConnectionEndcapPhiMap.GetNbinsY(); ++j) {
+	            moduleConnectionEndcapPhiMap.SetBinContent(i,j,0);
+            }
+        }
+    }
 
   /**
    * This convenience function resets and empties all histograms for the
