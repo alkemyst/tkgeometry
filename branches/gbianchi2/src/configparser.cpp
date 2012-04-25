@@ -148,15 +148,21 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 		} else if (parameterName=="alphaParam") {
 				doubleValue = atof(parameterValue.c_str());
 				myTracker_->setAlphaParam(doubleValue);
-       /* } else if (parameterName=="numTriggerProcessorsEta") {
+		} else if (parameterName=="bunchSpacingNs") {
+				doubleValue = atof(parameterValue.c_str());
+				myTracker_->setBunchSpacingNs(doubleValue);
+        } else if (parameterName=="triggerProcessorsEta") {
                 intValue = atoi(parameterValue.c_str());
-                myTracker_->setNumTriggerProcessorsEta(intValue);
-        } else if (parameterName=="numTriggerProcessorsPhi") {
+                myTracker_->setTriggerProcessorsEta(intValue);
+        } else if (parameterName=="triggerProcessorsPhi") {
                 intValue = atoi(parameterValue.c_str());
-                myTracker_->setNumTriggerProcessorsPhi(intValue);
-        } else if (parameterName=="ptCut") {
+                myTracker_->setTriggerProcessorsPhi(intValue);
+        } else if (parameterName=="triggerEtaCut") {
                 doubleValue = atof(parameterValue.c_str());
-                myTracker_->setPtCut(doubleValue);    */    
+                myTracker_->setTriggerEtaCut(doubleValue);
+        } else if (parameterName=="triggerPtCut") {
+                doubleValue = atof(parameterValue.c_str());
+                myTracker_->setTriggerPtCut(doubleValue);        
         } else if (correctlyBroken) { // Per module type parameters
             if (parameterNameCopy == "triggerErrorIncreaseX") {
 	            doubleValue = atof(parameterValue.c_str());

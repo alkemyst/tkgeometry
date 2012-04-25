@@ -22,7 +22,8 @@ int main(int argc, char* argv[]) {
         ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(50), "N. of tracks for geometry calculations.")
         ("material-tracks,N", po::value<int>(&mattracks)->default_value(2000), "N. of tracks for material calculations.")
         ("power,p", "Report irradiated power analysis.")
-        ("bandwidth,b", "Report bandwidth analysis.")
+        ("bandwidth,b", "Report base bandwidth analysis.")
+        ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
         ("material,m", "Report materials and weights analyses.")
         ("resolution,r", "Report resolution analysis.")
         ("trigger,t", "Report base trigger analysis.")
@@ -76,7 +77,8 @@ int main(int argc, char* argv[]) {
     if (squid.dressTracker()) {
       if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
 
-      if ((vm.count("all") || vm.count("bandwidth")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
+      if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
+      if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
       if ((vm.count("all") || vm.count("power")) && (!squid.irradiateTracker() || !squid.reportPowerSite()) ) return EXIT_FAILURE;
 
       // If we need to have the material model, then we build it

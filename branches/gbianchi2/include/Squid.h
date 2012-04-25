@@ -86,6 +86,7 @@ namespace insur {
 	bool pureAnalyzeMaterialBudget(int tracks, bool triggerResolution);
 	bool reportGeometrySite();
 	bool reportBandwidthSite();
+	bool reportTriggerProcessorsSite();
 	bool reportPowerSite();
 	bool reportMaterialBudgetSite();
 	bool reportResolutionSite();
