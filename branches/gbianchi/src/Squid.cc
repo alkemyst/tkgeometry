@@ -668,6 +668,33 @@ namespace insur {
     }
   }
 
+bool Squid::reportTriggerProcessorsSite() {
+    if (tr) {
+        a.computeTriggerProcessorsBandwidth(*tr);
+        v.triggerProcessorsSummary(a, *tr, site);
+        return true;
+    } else {
+    std::cerr << "Squid::reportTriggerProcessorsSite(): " << err_no_tracker << std::endl;
+    return false;
+    }
+
+}
+
+bool Squid::reportPowerSite() {
+    if (tr) {
+      userInfo("Computing dissipated power");
+      a.analyzePower(*tr);
+      userInfoEnd();
+      userInfo("Creating power report");
+      v.irradiatedPowerSummary(a, *tr, site);
+      userInfoEnd();
+      return true;
+    } else {
+      logERROR(err_no_tracker);
+      return false;
+    }
+  }
+
   /**
    * Produces the output of the analysis of the material budget analysis
    * @return True if there were no errors during processing, false otherwise

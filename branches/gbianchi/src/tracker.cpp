@@ -91,6 +91,7 @@ Tracker::Tracker(std::string trackerName) :  MessageLogger("Tracker") {
 
 void Tracker::setDefaultParameters() {
     nMB_ = defaultNMB_;
+    bunchSpacingNs_ = defaultBunchSpacingNs_;
     rError_ = defaultRError_;
     zError_ = defaultZError_;
     useIPConstraint_ = defaultUseIPConstraint_;
@@ -113,7 +114,15 @@ void Tracker::setDefaultParameters() {
 	numInvFemtobarns_ = 3000;
 	chargeDepletionVoltage_ = 600;
 	operatingTemp_ = -20;
-	alphaParam_ = 7.1e-18;
+	alphaParam_ = 4e-17;
+    referenceTemp_ = +20;
+
+    triggerProcessorsPhi_ = 1;
+    triggerProcessorsEta_ = 1;
+    triggerEtaCut_        = 2.5;
+    triggerPtCut_         = 1;
+
+    std::string testMe = "test me!";
 }
 
 void Tracker::shapeVolume() {

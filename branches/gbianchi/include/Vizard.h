@@ -41,6 +41,8 @@
 #include <vector>
 #include <Palette.h>
 
+#include <PlotDrawer.h>
+
 namespace insur {
     /*
      * Assorted messages that may pop up
@@ -144,10 +146,15 @@ namespace insur {
 	void weigthSummart(Analyzer& a, RootWSite& site, std::string alternativeName);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool irradiatedPowerSummary(Analyzer& a, RootWSite& site);
-        bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-        bool triggerSummary(Analyzer& a, RootWSite& site);
-	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+    bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+    bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+    bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
+    bool triggerSummary(Analyzer& a, RootWSite& site, bool extended);
+    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
+	bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
+				const std::string& matfile, const std::string& pixmatfile,
+				bool defaultMaterial, bool defaultPixelMaterial,
+				Analyzer& analyzer, Tracker& tracker, RootWSite& site);
 	bool makeLogPage(RootWSite& site);
 	std::string getSummaryString();
 	std::string getSummaryLabelString();
@@ -179,6 +186,10 @@ namespace insur {
         // deprecated:
 	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
 	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createSummaryCanvasNice(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createColorPlotCanvas(Tracker& tracker, int plotVariable, TCanvas *&RZCanvas);
+
 	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
 	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
@@ -186,6 +197,11 @@ namespace insur {
 	bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
         int momentumColor(int iMomentum);
 	void closeGraph(TGraph& myGraph);
+
+    double getDrawAreaZ(const Tracker& tracker) const { return tracker.getMaxL()*1.1; }
+    double getDrawAreaR(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
+    double getDrawAreaX(const Tracker& tracker) const { return tracker.getMaxR()*2.2; }
+    double getDrawAreaY(const Tracker& tracker) const { return tracker.getMaxR()*2.2; }
 
 	void fillPlotMap(std::string& plotName, 
 			 std::map<graphIndex, TGraph*>& myPlotMap,
