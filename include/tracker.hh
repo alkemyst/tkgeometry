@@ -68,6 +68,7 @@ protected:
   static const double defaultBigDelta_ = 12.;  // Space between different faces of the same structure
   static const double defaultOverlap_ = 1.;    // Safety overlap between modules
   static const double defaultNMB_ = 200;
+  static const double defaultBunchSpacingNs_ = 25;
   static const bool defaultUseIPConstraint_ = true; // in the trigger fit use the ip constraint by default
   
 private:
@@ -126,6 +127,13 @@ private:
   double referenceTemp_;
   int chargeDepletionVoltage_;
   double alphaParam_;
+
+  double bunchSpacingNs_;
+
+  int triggerProcessorsPhi_;
+  int triggerProcessorsEta_;
+  double triggerEtaCut_;
+  double triggerPtCut_;
 
   std::string summaryDirectory_;
   std::string storeDirectory_;
@@ -250,7 +258,12 @@ public:
   void setReferenceTemp(double referenceTemp) { referenceTemp_ = referenceTemp; }
   void setChargeDepletionVoltage(int chargeDepletionVoltage) { chargeDepletionVoltage_ = chargeDepletionVoltage; }
   void setAlphaParam(double alphaParam) { alphaParam_ = alphaParam; }
+  void setBunchSpacingNs(double bunchSpacingNs) { bunchSpacingNs_ = bunchSpacingNs; }
 
+  void setTriggerProcessorsPhi(int triggerProcessorsPhi) { triggerProcessorsPhi_ = triggerProcessorsPhi; }
+  void setTriggerProcessorsEta(int triggerProcessorsEta) { triggerProcessorsEta_ = triggerProcessorsEta; }
+  void setTriggerEtaCut(double triggerEtaCut) { triggerEtaCut_ = triggerEtaCut; }
+  void setTriggerPtCut(double triggerPtCut) { triggerPtCut_ = triggerPtCut; }
 
   // Summary parameters
   double getCost(const int& type) { return(mapTypeToCost_[type]); }; // should be made obsolete (should go into Analyzer)
@@ -300,9 +313,9 @@ public:
   std::string getName() { return trackerName_; }; // deprecated (TODO: remove it)  
   std::string getArguments() {return arguments_;};
   std::string getComment() {return comment_;};
-  double getNMB() {return nMB_;};
-  double getMaxL() {return maxL_;};
-  double getMaxR() {return maxR_;};
+  double getNMB() const {return nMB_;};
+  double getMaxL() const {return maxL_;};
+  double getMaxR() const {return maxR_;};
   TCanvas* getGeomLite() {return geomLite_;};
   TCanvas* getGeomLiteXY() {return geomLiteXY_;};
   TCanvas* getGeomLiteYZ() {return geomLiteYZ_;};
@@ -320,6 +333,12 @@ public:
   double getReferenceTemp() const { return referenceTemp_; }
   int getChargeDepletionVoltage() const { return chargeDepletionVoltage_; }  
   double getAlphaParam() const { return alphaParam_; }
+  double getBunchSpacingNs() const { return bunchSpacingNs_; }
+
+  int getTriggerProcessorsPhi() const { return triggerProcessorsPhi_; }
+  int getTriggerProcessorsEta() const { return triggerProcessorsEta_; }
+  double getTriggerEtaCut() const { return triggerEtaCut_; }
+  double getTriggerPtCut() const { return triggerPtCut_; }
 
 
   void addLayer(Layer* aLayer, std::string sectionName, int type = TypeBarrel) {

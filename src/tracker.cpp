@@ -91,6 +91,7 @@ Tracker::Tracker(std::string trackerName) {
 
 void Tracker::setDefaultParameters() {
     nMB_ = defaultNMB_;
+    bunchSpacingNs_ = defaultBunchSpacingNs_;
     rError_ = defaultRError_;
     zError_ = defaultZError_;
     useIPConstraint_ = defaultUseIPConstraint_;
@@ -116,6 +117,11 @@ void Tracker::setDefaultParameters() {
 	operatingTemp_ = -20;
 	alphaParam_ = 4e-17;
     referenceTemp_ = +20;
+
+    triggerProcessorsPhi_ = 1;
+    triggerProcessorsEta_ = 1;
+    triggerEtaCut_        = 2.5;
+    triggerPtCut_         = 1;
 
     std::string testMe = "test me!";
 }
