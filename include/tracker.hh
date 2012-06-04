@@ -144,6 +144,10 @@ private:
   std::map<int,double> layerDirectives_;
   std::map<int,LayerOption> layerOptions_;
 
+
+  std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
+  std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond_;
+
   // Color picking
   //Color_t colorPicker(std::string); // obsolete
 
@@ -399,6 +403,15 @@ public:
                       std::map<std::pair<int, int>, double> dsRotationSecond,
 		      std::map<std::pair<int, int>, int> divideBackSecond,
 		      std::map<std::pair<int, int>, bool> specialSecond);
+
+
+        void setGeometryDsDistance(std::string cntName, int firstIndex, int secondIndex, double value);
+        void setGeometryDsDistance(std::string cntName, int firstIndex, double value);
+    void setGeometryDsDistances(std::map<std::string, std::map<int, double> > geometryDsDistance, std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond) {
+        geometryDsDistance_ = geometryDsDistance;
+        geometryDsDistanceSecond_ = geometryDsDistanceSecond;
+    }
+    std::vector<double> getGeometryDsDistances(std::string cntName, int index, int numModules) const;
 
 };
 

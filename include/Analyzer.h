@@ -28,7 +28,10 @@
 #include <MaterialBudget.h>
 #include <TProfile.h>
 #include <TGraph.h>
+#include <TMultiGraph.h>
 #include <TGraphErrors.h>
+#include <global_funcs.h>
+
 #include "TRandom3.h"
 
 namespace insur {
@@ -47,23 +50,6 @@ namespace insur {
      * @class SummaryTable
      * @brief A generic object to build summary tables
      */
-    template<typename ArgType> std::string any2str(const ArgType& from, int precision = -1) {
-        std::stringstream to("");
-        if (precision > -1) {
-            to.precision(precision);
-            to.setf(ios::fixed, ios::floatfield);
-        }
-        to << from;
-        return to.str();
-    }
-
-    template<typename RetType>
-    RetType str2any(const string& from) {
-        std::stringstream ssfrom(from);
-        RetType to;
-        ssfrom >> to;
-        return to;
-    }
 
     class SummaryTable {
     public:
@@ -73,15 +59,15 @@ namespace insur {
             summaryTable[make_pair(0,0)] = columnHeader + " &rarr;<br>" + rowHeader + " &darr;";
         }
         void setPrecision(int precision) { precision_ = precision; } // has to be called before filling the table or conversions from floating point won't have the desired precision
-        template<typename T> void setCell(const int row, const int column, const T& content) { setCell(row, column, any2str(content, precision_)); }
-        //template<> void setCell<std::string>(const int row, const int column, const std::string& content);
         
+        template<typename T> void setCell(const int row, const int column, const T& content) { setCell(row, column, any2str(content, precision_)); }
         template<typename T> void setSummaryCell(std::string label, const T& content) { setSummaryCell(label, any2str(content, precision_)); }
-        //template<> void setSummaryCell<std::string>(std::string label, const std::string& content);
-        bool hasSummaryCell() const { return summaryCellPosition_ > std::make_pair(0, 0); }
 
         std::string getCell(int row, int column) { return summaryTable[make_pair(row,column)];} // this actually alters the map if the cell's not there = DANGEROUS
+
         bool hasCell(int row, int column) const { return summaryTable.count(make_pair(row,column)); }  // tests whether a cell has already been inserted = SAFE
+        bool hasSummaryCell() const { return summaryCellPosition_ > std::make_pair(0, 0); }
+
         std::map<std::pair<int, int>, std::string>& getContent() { return summaryTable; }
 
         void clear() { summaryTable.clear(); }
@@ -89,7 +75,7 @@ namespace insur {
         std::map<std::pair<int, int>, std::string> summaryTable;
         int numRows_, numColumns_;
         int rowOffset_, columnOffset_; // from which number rows and columns headers should start
-        int precision_; // precision which to convert floating point numbers with
+        int precision_; // precision to convert floating point numbers with
         std::pair<int, int> summaryCellPosition_, summaryLabelPosition_;
     };
 
@@ -183,6 +169,9 @@ namespace insur {
      * stored in a series of histograms that give a complete profile of the expected interaction of the tracker itself with
      * the particles that pass through it.
      */
+
+    typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
+
     class Analyzer {
     public:
         Analyzer();
@@ -280,6 +269,10 @@ namespace insur {
     // Hadrons
     TGraph& getHadronTotalHitsGraph() {return hadronTotalHitsGraph;};
     TGraph& getHadronAverageHitsGraph() {return hadronAverageHitsGraph;};
+
+    StubRateHistos& getTotalStubRateHistos() { return totalStubRateHistos_; }
+    StubRateHistos& getTrueStubRateHistos() { return trueStubRateHistos_; }
+
     std::vector<double>& getHadronNeededHitsFraction() {return hadronNeededHitsFraction;};
     std::vector<TGraph>& getHadronGoodTracksFraction() { return hadronGoodTracksFraction; };
 
@@ -377,6 +370,11 @@ namespace insur {
     TGraph hadronAverageHitsGraph;
     std::vector<double> hadronNeededHitsFraction;
     std::vector<TGraph> hadronGoodTracksFraction;
+
+
+    StubRateHistos totalStubRateHistos_;
+    StubRateHistos trueStubRateHistos_;
+
 
     TGraph powerDensity;
         TProfile totalEtaProfile;

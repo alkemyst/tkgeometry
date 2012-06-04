@@ -166,19 +166,18 @@ public:
 
 template<const int SubdetType>
 struct CheckType {
-    bool operator()(const Module& m) const {
-        return m.getSubdetectorType() & SubdetType;
-    }
+    bool operator()(const Module& m) const { return m.getSubdetectorType() & SubdetType; }
 };
 
 template<const int Section>
 struct CheckSection {
-    bool operator()(const Module& m) const {
-        return m.getSection() & Section;
-    } 
+    bool operator()(const Module& m) const { return m.getSection() & Section; } 
 };
 
-
+template<const int PhiIndex>
+struct CheckPhiIndex {
+    bool operator()(const Module& m) const { return m.getPhiIndex() == PhiIndex; }
+};
 
 // ===============================================================================================
 // Here be COORDINATE CLASSES and LINEGETTER
@@ -317,7 +316,7 @@ public:
 
     void add(const Module& m);
 
-    void addModules(const std::vector<Layer*>& layers, int moduleTypes);
+    void addModules(const std::vector<Layer*>& layers, int moduleTypes = Module::Barrel | Module::Endcap); // moduleTypes takes the type of modules to be added as an OR list. Check the possible values in module.hh
     template<class ModuleValidator> void addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid = ModuleValidator());
 
 };
