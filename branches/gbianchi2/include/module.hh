@@ -332,7 +332,7 @@ public:
 private:
   double width_;
   int layer_;
-  
+  int zIndex_; // index of a module in the rod
  public:
   ~BarrelModule();
   BarrelModule(double waferDiameter, double heightOverWidth);

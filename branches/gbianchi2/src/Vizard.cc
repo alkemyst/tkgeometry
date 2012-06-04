@@ -2150,6 +2150,35 @@ namespace insur {
         triggerFrequencyPerEventImage.setComment("Map of the trigger frequency per event (a.k.a. stubs per event)");
         triggerFrequencyPerEventImage.setName("triggerFrequencyPerEventMap");
 
+
+        
+
+        StubRateHistos& totalHistos = analyzer.getTotalStubRateHistos();
+        StubRateHistos& trueHistos = analyzer.getTrueStubRateHistos();
+        
+        std::string currCntName = "";
+        for (StubRateHistos::iterator totalIt = totalHistos.begin(), trueIt = trueHistos.begin(); totalIt != totalHistos.end(); ++totalIt, ++trueIt) {
+            std::pair<std::string, int> layer = totalIt->first;
+            TH1D* totalHisto = totalIt->second;
+            TH1D* trueHisto = trueIt->second;
+            if (layer.first != currCntName) {
+                myContent = &myPage->addContent(std::string("Stub rate plots (") + layer.first + ")", false);
+                currCntName = layer.first;
+            }
+            TCanvas graphCanvas;
+            graphCanvas.cd();
+            totalHisto->SetLineColor(1);
+            totalHisto->SetMinimum(trueHisto->GetMinimum()*.9 < 0.1 ? 0 : trueHisto->GetMinimum()*.9);
+            totalHisto->Draw();
+            trueHisto->SetLineColor(2);
+            trueHisto->Draw("SAME");
+            RootWImage& graphImage = myContent->addImage(graphCanvas, 600, 600);
+            graphImage.setComment("Stub rate for layer " + any2str(layer.second) + " (MHz/cm^2)");
+            graphImage.setName("stubRate" + layer.first + any2str(layer.second));
+
+        }
+        
+
         return true;
     }
 
@@ -2192,7 +2221,7 @@ bool Vizard::triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, Root
     PlotDrawer<XY, Method<int, &Module::getProcessorConnections> > xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
     PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Average> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
 
-    yzDrawer.addModules<CheckSection<Layer::YZSection> >(tracker.getLayers());
+    yzDrawer.addModules(tracker.getLayers());
     xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());
     xyecDrawer.addModules<CheckType<Module::Endcap> >(tracker.getLayers());
 
@@ -2202,7 +2231,7 @@ bool Vizard::triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, Root
 
     yzDrawer.drawModules<ContourStyle>(moduleConnectionEtaCanvas);
     xyDrawer.drawModules<ContourStyle>(moduleConnectionPhiCanvas);
-    xyecDrawer.drawModules<FillStyle>(moduleConnectionEndcapPhiCanvas);
+    xyecDrawer.drawModules<ContourStyle>(moduleConnectionEndcapPhiCanvas);
 
 
 /*
@@ -2227,9 +2256,9 @@ bool Vizard::triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, Root
    // moduleConnectionEndcapPhiCanvas.cd();
    // moduleConnectionEndcapPhiMap.Draw("colz");
     
-    RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, 600, 600);
-    moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
-    moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
+   // RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, 600, 600);
+   // moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
+   // moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
 
 //    myContent = myPage->addContent("Module Connections distribution", true);
 
