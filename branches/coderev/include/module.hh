@@ -11,6 +11,8 @@
 #include "TGeoManager.h"
 #include "TPolyLine3D.h"
 
+#include "Polygon3d.h"
+
 // Our objects
 #include <messageLogger.h>
 #include <moduleType.hh>
@@ -159,6 +161,7 @@ protected:
   mutable InitableProperty<double> minPhi_, maxPhi_;
   mutable InitableProperty<XYZVector> meanPoint_, normal_;
   mutable InitableProperty<int> octant_;
+  mutable std::vector<InitableProperty<Polygon3d<4> > > facePolys_;
 
  private:
   void setDefaultParameters();
@@ -305,6 +308,9 @@ protected:
   void setNFaces(const int& newN);
   void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity
   void setReadoutMode(const int& newN) { readoutMode_=newN; }; // TODO: check validity
+
+
+  const Polygon3d<4>& getFacePolygon(size_t facen) const;
 
   virtual double getLowPitch();
   virtual double getHighPitch();
