@@ -20,11 +20,9 @@ DOCDIR=doc
 DOXYDIR=doc/doxygen
 COMPILERFLAGS+=-Wall
 #COMPILERFLAGS+=-ggdb
-COMPILERFLAGS+=-g
+#COMPILERFLAGS+=-g
 COMPILERFLAGS+=-Werror
-COMPILERFLAGS+=-Wno-narrowing
-COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
-#COMPILERFLAGS+=-O5
+COMPILERFLAGS+=-O5
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
@@ -79,6 +77,11 @@ $(LIBDIR)/PlotDrawer.o: $(SRCDIR)/PlotDrawer.cpp $(INCDIR)/PlotDrawer.h
 	@echo "Building target PlotDrawer.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/PlotDrawer.o $(SRCDIR)/PlotDrawer.cpp
 	@echo "Built target PlotDrawer.o"
+
+$(LIBDIR)/Polygon3d.o: $(SRCDIR)/Polygon3d.cpp $(INCDIR)/Polygon3d.h
+	@echo "Building target Polygon3d.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Polygon3d.o $(SRCDIR)/Polygon3d.cpp
+	@echo "Built target Polygon3d.o"
 
 $(LIBDIR)/TrackShooter.o: $(SRCDIR)/TrackShooter.cpp $(INCDIR)/TrackShooter.h
 	@echo "Building target TrackShooter.o..."
@@ -268,7 +271,7 @@ tklayout: $(BINDIR)/tklayout
 tunePtParam: $(BINDIR)/tunePtParam
 	@echo "tunePtParam built"
 
-$(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
+$(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
 	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
@@ -279,7 +282,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.
 	$(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o \
 	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o \
 	$(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
-	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/TrackShooter.o $(LIBDIR)/Vizard.o \
+	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/Polygon3d.o $(LIBDIR)/TrackShooter.o $(LIBDIR)/Vizard.o \
 	$(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o \
 	$(LIBDIR)/Palette.o \
@@ -327,7 +330,7 @@ cleandressers:
 	@rm -f $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o 
 
 cleanviz:
-	@rm -f $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o
+	@rm -f $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/PlotDrawer.o
 
 cleannaly:
 	@rm -f $(LIBDIR)/Analyzer.o
@@ -339,7 +342,7 @@ cleanpalette:
 	@rm -f $(LIBDIR)/Palette.o
 
 cleantkmain:
-	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
+	@rm -f $(LIBDIR)/global_funcs.o $(LIBDIR)/StopWatch.o $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
 
 cleantuneptparam:
 	@rm -f #(BINDIR)/tunePtParam
@@ -350,9 +353,15 @@ cleanmoduletype:
 cleanpt:
 	@rm -f $(LIBDIR)/ptError.o
 
+cleantracksim:
+	@rm -f $(LIBDIR)/Polygon3d.o $(LIBDIR)/TrackShooter.o
+
+cleanhoughtrack:
+	@rm -f $(LIBDIR)/HoughTrack.o $(LIBDIR)/Histo.o
+
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements \
 	cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain \
-	cleanpalette cleantuneptparam cleanpt cleanmoduletype
+	cleanpalette cleantuneptparam cleanpt cleanmoduletype cleantracksim cleanhoughtrack
 
 doc: doxydoc
 
