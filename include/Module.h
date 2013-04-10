@@ -2,102 +2,141 @@
 #define MODULE_H
 
 #include <vector>
+#include <string>
 #include <algorithm>
 #include <functional>
-#include "Property.h"
 
 using std::vector;
+using std::string;
 
-class Module : public PropertyObject {
+#include "Polygon3d.h"
+#include "Property.h"
+#include "ModuleType.h"
+
+enum class Shape { RECTANGULAR, WEDGE };
+
+class Module : public PropertyObject, public Buildable, public Placeable, public Identifiable<Module> {
 protected:
   ModuleType* type_;
-  vector<Polygon3d<4> > facePolys_;
+  vector<Polygon3d<4>> facePolys_;
   
-  Property<float> dsDistance_;
-  Property<float> sensorThickness_;
-  Property<int> numFaces_;
-  Property<float> length_;
+  Property<string, NoDefault> moduleType;
+  Property<int, Computable> numFaces;
+  Property<float, Computable> sensorThickness;
+
+  const Polygon3d<4>& innerFace() const { return facePolys_.front(); }
+  const Polygon3d<4>& outerFace() const { return facePolys_.back(); }
 public:
-  enum class Shape { RECTANGULAR, WEDGE };
+  ReadonlyProperty<float, Computable> waferDiameter;
+  ReadonlyProperty<float, Computable> dsDistance;
 
-  int numFaces() const { return numFaces_; }
-  float length() const { return length_; }
+  ReadonlyProperty<float, Computable> thickness;
+  ReadonlyProperty<float, Computable> aperture;
 
-  DerivedProperty<float, Module> thickness;
-  DerivedProperty<float, Module> aperture;
 
+//  virtual Shape shape() const = 0;
 
   Module() :
-      numFaces(this, "numFaces", Fallback(moduleType_->numFaces), RangeInclusive<int>(1,2)),
-      length(this, "length", Fallback(moduleType_->length), std::greater<float>(0)),
-      dsDistance(this, "dsDistance", moduleType_->dsDistance),
-      sensorThickness(this, "sensorThickness", moduleType_->sensorThickness),
-      thickness([&](){ return dsDistance() + sensorThickness(); }, ComputeOnce()),
-      phiAperture([&]() { auto phi = std::minmax_element(outerFace().getCorners().begin(), outerFace().getCorners().end(), [](XYZVector& v1, XYZVector& v2) { return v1.Phi() < v2.Phi(); });
-                          return *(phi.second) - *(phi.first); }, ComputeOnce())
-  {}
-  
+             moduleType("moduleType", unchecked()),
+             numFaces("numFaces", unchecked(), [this]() { return type_->numFaces(); }),
+             sensorThickness("sensorThickness", unchecked(), [this]() { return type_->sensorThickness(); }),
 
-  virtual Shape shape() const = 0;
+             waferDiameter("waferDiameter", unchecked(), [this]() { return type_->waferDiameter(); }),
+             dsDistance("dsDistance", unchecked(), [this]() { return type_->dsDistance(); }),
+
+             thickness([&]() { return dsDistance() + sensorThickness(); }),
+             aperture([&]() { float max = 0, min = 999; 
+                              for (auto& vertex : outerFace()) { max = MAX(max, vertex.Phi()); min = MIN(min, vertex.Phi()); } 
+                              return max - min; })
+  {}
+
+  virtual Module* clone() = 0;
+  
+  virtual void check() {
+    type_ = moduleType.state() ? ModuleTypeRepo::getInstance().get(moduleType()) : ModuleTypeRepo::getInstance().getDefault();
+    PropertyObject::check();
+  }
 
   virtual void build() = 0;
-  void translate(XYZVector translation);
+  void translate(const XYZVector& translation);
   void rotatePhi(double angle);
+
+
+  const XYZVector& getCorner(int index) const { return innerFace().getVertex(index); } // LEGACY INTERFACE 
+  const XYZVector& getMeanPoint() const { return center(); }
 };
 
-
-class BarrelModule : public Module {
-  typedef BarrelModule self_type;
+class RectangularModule : public virtual Module {
   
-  Property<float> width;
+  Property<float, NoDefault> aspectRatio;
 public:
+  Property<float, NoDefault> length;
+  Property<float, NoDefault> width;
+//  Shape shape() const { return Shape::RECTANGULAR; }
 
-  BarrelModule() :
-      width(this, "width", Fallback(moduleType_->width), std::greater<float>(0))
+  RectangularModule() :
+      aspectRatio("aspectRatio", unchecked()),
+      length("length", unchecked()),
+      width("width", unchecked())
   {}
 
-
-  Shape shape() const { return RECTANGULAR; }
-
-  void build();
+  virtual void check(); 
 
 };
 
-class RectangularEndcapModule : public Module {
-  typedef RectangularEndcapModule self_type;
-  Property<float> width;
+
+class WedgeModule : public virtual Module {
+protected:
+  float length_, minWidth_, maxWidth_;
+  float area_,/*dist_*/;
+  bool cropped_;
+  float amountCropped_;
 public:
-
-  RectangularEndcapModule() :
-      width(this, "width", Fallback(moduleType_->width), std::greater<float>(0))
-  {}
-
-
-  Shape shape() const { return RECTANGULAR; }
-
-  void build();
-};
-
-class WedgeEndcapModule : public Module {
-  typedef WedgeEndcapModule self_type;
-
-  Property<float> waferDiameter;
-public:
-  Property<float> buildAperture, buildRadius;
-  DerivedProperty<float> minWidth, maxWidth;
+  Property<float, NoDefault> buildAperture, buildRadius, cropRadius;
+  float length() const { return length_; }
+  float minWidth() const { return minWidth_; }
+  float maxWidth() const { return maxWidth_; }
+//  Shape shape() const { return Shape::WEDGE; }
   
+  WedgeModule() {}
 
-  WedgeEndcapModule() :
-      waferDiameter(this, "waferDiameter", Fallback(moduleType_->waferDiameter))
-      minWidth(NoDefault()), maxWidth(NoDefault()),
-      buildAperture(NoDefault()), buildRadius(NoDefault()),
-  {}
+};
 
 
-  Shape shape() const { return WEDGE; }
 
+class BarrelModule : public RectangularModule {
+public:
+  Property<int, AutoDefault> layer;
+  Property<int, AutoDefault> ring;
+  Property<int, AutoDefault> rod;
+  Property<int, AutoDefault> side;
+  BarrelModule* clone() override { return new BarrelModule(*this); }
   void build();
+};
 
+class EndcapModule : public virtual Module {
+public:
+  Property<int, AutoDefault> disk;
+  Property<int, AutoDefault> ring;
+  Property<int, AutoDefault> step; // CUIDADO Think of a better name!
+  Property<int, AutoDefault> side;
+  virtual EndcapModule* clone() = 0;
+  void build() = 0;
+};
+
+class RectangularEndcapModule : public EndcapModule, public RectangularModule {
+public:
+  //void check() { RectangularModule::check(); }
+  RectangularEndcapModule* clone() override { return new RectangularEndcapModule(*this); }
+  void build();
+};
+
+
+class WedgeEndcapModule : public EndcapModule, public WedgeModule {
+public:
+  //void check() { WedgeModule::check(); }
+  WedgeEndcapModule* clone() override { return new WedgeEndcapModule(*this); }
+  void build();
 };
 
 #endif

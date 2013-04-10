@@ -33,6 +33,8 @@
 #include <StopWatch.h>
 #include <TrackShooter.h>
 
+#include <Tracker.h>
+
 namespace po = boost::program_options;
 /**
  * A shorter alias for the filesystem library namespace

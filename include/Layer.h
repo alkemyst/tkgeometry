@@ -1,49 +1,71 @@
 #ifndef LAYER_H
 #define LAYER_H
 
-#include "Property.h" 
+#include <vector>
+#include <string>
+#include <memory>
 
-class Layer : public PropertyObject, public Buildable {
-  vector<RodPair*> rods_;
+#include <boost/ptr_container/ptr_vector.hpp>
 
-  typedef vector<shared_ptr<Module>> RodTemplate;
+#include "global_funcs.h"
+#include "Property.h"
+#include "Module.h"
+#include "RodPair.h"
+
+using std::string;
+using std::vector;
+using std::pair;
+using std::shared_ptr;
+
+typedef vector<shared_ptr<BarrelModule>> RodTemplate;
+
+
+class Layer : public PropertyObject, public Buildable, public Identifiable<Layer> {
+//  friend class RodPair;
+public:
+  typedef boost::ptr_vector<RodPair> Container;
+private:
+  Container rods_;
+
+  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
+  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
   RodTemplate makeRodTemplate(const PropertyTree&);
 
-  Property<double> smallDelta, bigDelta;
-  Property<bool> sameRods;
-  Property<int> zPlusParity;
-  Property<bool> mezzanine;
-  Property<double> startZ;
-  Property<int> numModules;
-  Property<double> maxZ;
-public:
-  enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
-  Property<RadiusMode> radiusMode;
-  Property<double> placeRadiusHint;
+  Property<double, NoDefault> smallDelta, bigDelta;
+  Property<double, Default> rodOverlap;
+  Property<int, Default> modsPerSlice;
 
-  Property<double> minBuildRadius;
-  Property<double> maxBuildRadius;
+  double placeRadius_;
+  int numRods_;
+public:
+  ReadonlyProperty<int, NoDefault> numModules;
+  ReadonlyProperty<double, NoDefault> maxZ;
+  enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
+  Property<RadiusMode, Default> radiusMode;
+  Property<double, NoDefault> placeRadiusHint;
+
+  Property<double, NoDefault> minBuildRadius;
+  Property<double, NoDefault> maxBuildRadius;
+  Property<bool, Default> sameParityRods;
 
   Layer() :
-      smallDelta(noDefault(), greater(0)),
-      bigDelta(noDefault(), greater(0)),
-      sameRods(true),
-      zPlusParity(1),
-      mezzanine(false),
-      startZ(noDefault()),
-      numModules(noDefault()),
-      maxZ(noDefault())
-  {
-    requiredProperty(smallDelta, "smallDelta");
-    requiredProperty(bigDelta, "bigDelta");
-    optionalProperty(startZ, "startZ");
-    optionalProperty(numModules, "numModules");
-    requiredProperty();
-  }
+            smallDelta     ("smallDelta"     , checked()),
+            bigDelta       ("bigDelta"       , checked()),
+            rodOverlap     ("rodOverlap"     , checked(), 1.),
+            modsPerSlice   ("modsPerSlice"   , checked(), 2),
+            radiusMode     ("radiusMode"     , checked(), RadiusMode::AUTO),
+            placeRadiusHint("placeRadiusHint", unchecked()),
+            minBuildRadius ("minBuildRadius" , unchecked()),
+            maxBuildRadius ("maxBuildRadius" , unchecked()),
+            sameParityRods ("sameParityRods" , checked(), false)
+  {}
 
 
   void build();
+
+  const Container& rods() const { return rods_; }
 };
+
 
 
 #endif

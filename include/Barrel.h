@@ -1,48 +1,43 @@
 #ifndef BARREL_H
 #define BARREL_H
 
+#include <vector>
+#include <string>
+#include <memory>
+
+#include <boost/ptr_container/ptr_vector.hpp>
+
+#include "global_funcs.h"
 #include "Property.h"
+#include "Layer.h"
 
-class Barrel : public PropertyObject, public Buildable {
-  vector<shared_ptr<Layer>> layers_;
+using std::string;
+using std::vector;
 
-  Property<int> numLayers;
-  Property<int> innerRadius;
-  Property<int> outerRadius;
+class Barrel : public PropertyObject, public Buildable, public Identifiable<Barrel> {
 public:
-  ReadOnlyProperty<double> maxZ;
+  typedef boost::ptr_vector<Layer> container;
+private:
+  Container layers_;
 
-  Barrel() :
-      numLayers(noDefault(), greaterThan(0)),
-      innerRadius(noDefault(), greaterThan(0)),
-      outerRadius(noDefault(), greaterThan(0)),
-      maxZ([&]() { double m = 0; for (auto& l : layers_) { m = MAX(m, l->maxZ()); } return m; }, CacheIf(built())) 
-  {
-    requiredProperty(numLayers, "numLayers");
-    requiredProperty(innerRadius, "innerRadius");
-    requiredProperty(outerRadius, "outerRadius");
-  }
+  Property<int, NoDefault> numLayers;
+  Property<int, NoDefault> innerRadius;
+  Property<int, NoDefault> outerRadius;
+  Property<bool, Default> sameRods;
+public:
+  ReadonlyProperty<double, Computable> maxZ;
 
-  void build() {
-    check();
+  Barrel() : 
+      numLayers("numLayers", checked()),
+      innerRadius("innerRadius", checked()),
+      outerRadius("outerRadius", checked()),
+      sameRods("sameRods", true),
+      maxZ(Computable<double>([&]() { double max = 0; for (auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; })) 
+  {}
 
-    auto childmap = propertyTree().getChildmap<int>("Layer");
-    for (int i = 1; i <= numLayers(); i++) {
-      Layer* layer = new Layer();
+  void build(); 
 
-      if      (i == 1)           { layer.radiusMode(Layer::FIXED); layer.placeRadiusHint(innerRadius()); } 
-      else if (i == numLayers()) { layer.radiusMode(Layer::FIXED); layer.placeRadiusHint(outerRadius()); } 
-      else                       { layer.placeRadiusHint(innerRadius() + (outerRadius()-innerRadius())/(numLayers()-1)*(i-1)); }
-
-      if (!sameRods()) { layer.buildRadius(make_pair(innerRadius(),outerRadius())); }
-
-      layer->store(childmap.count(i) > 0 ? childmap[i] : propertyTree());
-      layer->build();
-      layers_.push_back(layer);
-    }
-
-    built(true);
-  }
+  const Container& layers() const { return layers_; }
 };
 
 #endif

@@ -1,10 +1,13 @@
+#include "Layer.h"
+#include "RodPair.h"
 
-double BarrelLayer::calculatePlaceRadius(int numRods,
-                                         double bigDelta,
-                                         double smallDelta,
-                                         double dsDistance,
-                                         double moduleWidth,
-                                         double overlap) {
+
+double Layer::calculatePlaceRadius(int numRods,
+                                   double bigDelta,
+                                   double smallDelta,
+                                   double dsDistance,
+                                   double moduleWidth,
+                                   double overlap) {
 
   double d = dsDistance/2;
 
@@ -24,14 +27,14 @@ double BarrelLayer::calculatePlaceRadius(int numRods,
   return r;
 }
 
-std::pair<float, int> BarrelLayer::calculateOptimalLayerParms(const RodTemplate& rodTemplate) {
+std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTemplate) {
                                                               
   // CUIDADO fix placeRadiusHint!!!!!
-  double maxDsDistance = std::max_element(rodTemplate.begin(), 
-                                          rodTemplate.end(), 
-                                          [](Module* m1, Module* m2) { return m1->dsDistance() > m2->dsDistance() } )->dsDistance();
-  float modWidth = rodTemplate.rbegin()->moduleWidth();
-  float f = moduleWidth/2 - overlap()/2;
+  double maxDsDistance = (*std::max_element(rodTemplate.begin(), 
+                                            rodTemplate.end(), 
+                                            [](shared_ptr<BarrelModule> m1, shared_ptr<BarrelModule> m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
+  float moduleWidth = (*rodTemplate.rbegin())->width();
+  float f = moduleWidth/2 - rodOverlap()/2;
   float gamma = atan(f/placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
   float tentativeSlices = M_2_PI/(gamma * modsPerSlice());
 
@@ -41,28 +44,28 @@ std::pair<float, int> BarrelLayer::calculateOptimalLayerParms(const RodTemplate&
   switch (radiusMode()) {
   case SHRINK:
     optimalSlices = floor(tentativeSlices);
-    optimalRadius = calculatePlaceRadius(optimalSlices*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, overlap());
+    optimalRadius = calculatePlaceRadius(optimalSlices*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
     break;
   case ENLARGE:
     optimalSlices = ceil(tentativeSlices);
-    optimalRadius = calculatePlaceRadius(optimalSlices*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, overlap());
+    optimalRadius = calculatePlaceRadius(optimalSlices*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
     break;
   case FIXED:
     optimalSlices = ceil(tentativeSlices);
     optimalRadius = placeRadiusHint();
     break;
   case AUTO:
-    int slicesLo = floor(slices);
-    int slicesHi = ceil(slices);
-    float radiusLo = calculatePlaceRadius(slicesLo*modsPerSlice(), bigDelta(), smallDelta(), maxdsDistance, moduleWidth, overlap());
-    float radiusHi = calculatePlaceRadius(slicesHi*modsPerSlice(), bigDelta(), smallDelta(), maxdsDistance, moduleWidth, overlap());
+    int slicesLo = floor(tentativeSlices);
+    int slicesHi = ceil(tentativeSlices);
+    float radiusLo = calculatePlaceRadius(slicesLo*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
+    float radiusHi = calculatePlaceRadius(slicesHi*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
 
     if (fabs(radiusHi - placeRadiusHint()) < fabs(radiusLo - placeRadiusHint())) {
       optimalRadius = radiusHi;
-      optimalslices = slicesHi;
+      optimalSlices = slicesHi;
     } else {
       optimalRadius = radiusLo;
-      optimalslices = slicesLo;
+      optimalSlices = slicesLo;
     }
     break;
   }
@@ -71,62 +74,74 @@ std::pair<float, int> BarrelLayer::calculateOptimalLayerParms(const RodTemplate&
 }
 
 
-vector<shared_ptr<Module>> Layer::makeRodTemplate(const PropertyTree& pt) {
-  vector<shared_ptr<Module> > rodTemplate(numModules.isSet() ? numModules() : 0);
-  for (auto& c : pt.getChildren("Module")) {
-    int ring = c.getValue<int>(0);
+RodTemplate Layer::makeRodTemplate(const PropertyTree& pt) {
+  RodTemplate rodTemplate(numModules.state() ? numModules() : 0);
+  for (auto& childTree : pt.getChildren("Module")) {
+    int ring = childTree.getValue<int>(0);
     if (ring > 0) {
       if (rodTemplate.size() < ring) rodTemplate.resize(ring);
-      (rodTemplate[ring-1] = new Module())->build(c);
+      (rodTemplate[ring-1] = std::make_shared<BarrelModule>())->store(childTree);
     }
   }
-  if (!numModules.isSet()) rodTemplate.push_back(NULL);// additional module built with default inherited properties to use in case the maxZ placement strategy requires additional modules than the ones constructed from mod-specific props
+  if (!numModules.state()) rodTemplate.push_back(NULL);// additional module built with default inherited properties to use in case the maxZ placement strategy requires additional modules than the ones constructed from mod-specific props
   for (auto& m : rodTemplate) {
     if (m == NULL) {
-      m = new Module();
-      m->build(pt);
+      m = std::make_shared<BarrelModule>();
+      m->store(propertyTree());
     }
+    m->build();
   }
   return rodTemplate;
 }
 
-void Layer::build(PropertyTree pt) {
-  pt.processProperties(properties_);
-  properties_.check();
-  
-  RodTemplate rodTemplate = makeRodTemplate(pt);
+void Layer::build() {
+  try { 
+    check();
 
-  std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
-  placeRadius(optimalLayerParms.first); 
-  numRods(optimalLayerParms.second);
+    RodTemplate rodTemplate = makeRodTemplate(propertyTree());
 
-  float rodPhiRotation = M_2_PI/numRods;
+    std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
+    placeRadius_ = optimalLayerParms.first; 
+    numRods_ = optimalLayerParms.second;
+    if (!minBuildRadius.state() || !maxBuildRadius.state()) {
+      minBuildRadius(placeRadius_);
+      maxBuildRadius(placeRadius_);
+    }
 
-  RodPair* first = new RodPair(*this);
-  first.build(rodTemplate);
-  first.translate(XYZVector(placeRadius()+bigDelta(), 0, 0));
-  rods_.push_back(first);
+    float rodPhiRotation = M_2_PI/numRods_;
 
-  RodPair* second = new RodPair(*this);
-  second.build(rodTemplate);
-  second.translate(second, XYZVector(placeRadius()-bigDelta(), 0, 0));
-  second.rotatePhi(rodPhiRotation);
-  rods_.push_back(second);
+    RodPair* first = new RodPair();
+    first->myid(1);
+    first->minBuildRadius(minBuildRadius()-bigDelta());
+    first->maxBuildRadius(maxBuildRadius()+bigDelta());
+    first->smallDelta(smallDelta());
+    first->store(propertyTree());
 
-  for (int i = 2; i < numRods(); i++) {
-    RodPair* rod = new RodPair(i%2 ? second : first); // clone rods
-    rod.rotatePhi(rodPhiRotation*i);
-    rods_.push_back(rod);
+    RodPair* second = new RodPair(*first);
+    second->myid(2);
+    if (!sameParityRods()) second->zPlusParity(second->zPlusParity()*-1);
+
+    first->build(rodTemplate);
+    first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
+    rods_.push_back(first);
+
+    second->build(rodTemplate);
+    second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
+    second->rotatePhi(rodPhiRotation);
+    rods_.push_back(second);
+
+    for (int i = 2; i < numRods_; i++) {
+      RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
+      rod->rotatePhi(rodPhiRotation*i);
+      rod->myid(i+1);
+      rods_.push_back(rod);
+    }
+
+  } catch (PathfulException& pe) { 
+    pe.pushPath(fullid()); 
+    throw; 
   }
 }
 
 
-
-
-
-
-void Layer::build(PropertyTree& pt) {
-  pt.processProperties(properties_);
-
-  
-}
+define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };
