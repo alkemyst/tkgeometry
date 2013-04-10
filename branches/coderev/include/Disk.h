@@ -1,32 +1,45 @@
-class Disk {
-  vector<shared_ptr<Ring>> rings_;
+#ifndef DISK_H
+#define DISK_H
+
+#include <vector>
+#include <string>
+#include <memory>
+
+#include <boost/ptr_container/ptr_vector.hpp>
+
+#include "global_funcs.h"
+#include "Property.h"
+#include "Ring.h"
+
+class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> {
+  boost::ptr_vector<Ring> rings_;
+
+  Property<int, NoDefault> numRings;
+  Property<double, NoDefault> innerRadius;
+  Property<double, NoDefault> outerRadius;
+  Property<double, NoDefault> bigDelta;
+  Property<double, NoDefault> zError;
+  Property<double, Default> minRingOverlap;
+  Property<int, Default> diskParity;
+
+  void buildTopDown();
+  void buildBottomUp();
 
 public:
-  void build(PropertyTree& pt) {
-    
-    auto children = pt.getChildren("Ring");
-    map<int, PropertyTree*> childmap;
-    std::transform(children.begin(), children.end(), std::back_inserter(childmap), [](PropertyTree& pt) { return std::make_pair(pt.getValue<int>(), &pt); } );
-    Ring* prevRing = 0;
-    double nextRho;
-    for (int i = numRings(), ringParity = 1; i >= 0; i--, ringParity *= -1) {
-      Ring* ring = new Ring();
-      if (i == numRings()) {
-        ring->maxRadius(outerRadius());
-        nextRho = ring->minRadius();
-      } else {
-        double newZ  = buildZ() + (ringParity > 0 ? + bigDelta() : - bigDelta()) + ring->thickness()/2; // CUIDADO was smallDelta + dsDistances[nRing-1]/2;
-        double lastZ = buildZ() + (ringParity > 0 ? - bigDelta(): + bigDelta()) - prevRing->thickness()/2; // CUIDADO was smallDelta - dsDistances[nRing-1]/2;
-        double originZ = ringParity > 0 ? zError() : -zError();
-        double nextRhoOrigin = (nextRho + rOverlap())/lastZ * newZ;
-        double nextRhoShifted = nextRho/(lastZ - originZ) * (newZ - originZ);
-        nextRho = nextRhoOrigin > nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
-        ring->maxRadius(nextRho);
-      }
-      ring->build(childmap[i].count() > 0 ? *(childmap[i]) : pt);
-      ring->translateZ(placeZ());
-      rings_.push_back(ring);
-      prevRing = ring;
-    }
-  }
+  Property<double, NoDefault> buildZ;
+
+  Disk() :
+    numRings("numRings", checked()),
+    innerRadius("innerRadius", checked()),
+    outerRadius("outerRadius", checked()),
+    bigDelta("bigDelta", checked()),
+    zError("zError", checked()),
+    minRingOverlap("minRingOverlap", unchecked(), 1.),
+    diskParity("diskParity", unchecked(), 1)
+  {}
+
+  void build();
+  void translateZ(double z);
 };
+
+#endif

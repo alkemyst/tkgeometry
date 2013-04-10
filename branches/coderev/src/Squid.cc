@@ -65,6 +65,12 @@ namespace insur {
     return false;
   }
 
+ /*
+  bool Squid::buildNewTracker() {
+    boost::ptree pt;
+    info_parser::read_info(getGeometryFile(), pt);
+  }
+*/
   /**
    * Dress the previously created geometry with module options. The modified tracker object remains
    * in the squid as the current tracker until it is overwritten by a call to another function that creates

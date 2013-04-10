@@ -1,33 +1,56 @@
+#ifndef MODULETYPE_H
+#define MODULETYPE_H
 
+#include <map>
+
+using std::map;
+
+#include "Property.h"
 
 class ModuleType : public PropertyObject {
 public:
-  LocalProperty<float> numSides;
-  LocalProperty<float> sensorThickness;
-  LocalProperty<float> dsDistance;
-  LocalProperty<string> innerSensorType;
-  LocalProperty<string> outerSensorType;
+  Property<int, Default> numFaces;
+  Property<float, Default> sensorThickness;
+  Property<float, Default> dsDistance;
+  Property<string, Default> innerSensorType;
+  Property<string, Default> outerSensorType;
+  Property<float, Default> waferDiameter;
 
-  ModuleType(const PropertyTree& pt) {
-    store(pt);    
-  }
+  ModuleType() :
+    numFaces("numFaces", unchecked(), 1),
+    sensorThickness("sensorThickness", unchecked(), 0.1),
+    dsDistance("dsDistance", unchecked(), 0.),
+    innerSensorType("innerSensorType", unchecked(), string("null")),
+    outerSensorType("outerSensorType", unchecked(), string("null")),
+    waferDiameter("waferDiameter", unchecked(), 1.5) // CUIDADO Set suitable default!!!!
+  {}
 };
 
 
 class ModuleTypeRepo {
 
-  map<string, shared_ptr<ModuleType>> types_;
+  map<string, ModuleType*> types_;
+  ModuleType* defType_;
+
 public:
+  ModuleTypeRepo() : defType_(new ModuleType()) {}
   static ModuleTypeRepo& getInstance() {
-    static ModuleTypeRepo typeRepo();
+    static ModuleTypeRepo typeRepo;
     return typeRepo;
   }
 
-  void store(const ProcessTree& pt) {
+  void store(const PropertyTree& pt) {
     for (auto& c : pt.getChildren("ModuleType")) {
-      types_[c.getValue()] = ModuleType(c);
+      ModuleType* mt = new ModuleType();
+      mt->store(c);
+      mt->check();
+      types_[c.getValue()] = mt;
     }
   }
 
   ModuleType* get(const string& typestr) const { return types_.count(typestr) > 0 ? types_.at(typestr) : NULL; }
+  ModuleType* getDefault() const { return defType_; }
 };
+
+
+#endif

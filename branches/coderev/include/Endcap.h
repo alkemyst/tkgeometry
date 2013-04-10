@@ -1,56 +1,39 @@
 #ifndef ENDCAP_H
 #define ENDCAP_H
 
-#include "Property.h"
+#include <vector>
+#include <string>
+#include <memory>
 
-class Endcap : public PropertyObject, public Buildable {
-  vector<shared_ptr<Disk>> disks_;
+#include <boost/ptr_container/ptr_vector.hpp>
+
+#include "global_funcs.h"
+#include "Property.h"
+#include "Disk.h"
+
+
+class Endcap : public PropertyObject, public Buildable, public Identifiable<Endcap> {
+  boost::ptr_vector<Disk> disks_;
 
   enum class MinZType { ABSOLUTE, BARRELGAP };
 
-  Property<int> numDisks;
-  Property<MinZType> minZType;
-  Property<float> minZ;
-  Property<float> maxZ;
+  Property<int, NoDefault> numDisks;
+  Property<MinZType, Default> minZType;
+  Property<float, NoDefault> minZ;
+  Property<float, NoDefault> maxZ;
 public:
-  Property<float> barrelMaxZ;
+  Property<float, NoDefault> barrelMaxZ;
 
   Endcap() :
-      numDisks(noDefault(), greater(0)),
-      minZType(BARRELGAP),
-      minZ(noDefault(), greater(0)),
-      maxZ(noDefault(), greater(0)),
-      barrelMaxZ(noDefault(), greater(0))
-  {
-    registerProperty(numDisks, "numDisks"); 
-    registerProperty(minZType, "minZType"); 
-    registerProperty(minZ, "minZ"); 
-    registerProperty(maxZ, "maxZ"); 
-  }
+      numDisks("numDisks", checked()),
+      minZType("minZType", unchecked(), MinZType::BARRELGAP),
+      minZ("minZ", checked()),
+      maxZ("maxZ", checked())
+  {}
 
-  void build() {
-    check();
-
-    double adjMinZ = (minZType() == ABSOLUTE) ? minZ() : minZ() + barrelMaxZ();
-    
-    auto childmap = propertyTree().getChildMap<int>("Disk");
-    for (int i = 1; i <= numDisks(); i++) {
-      Disk* disk = new Disk();
-
-      if      (i == 1)          disk->placeZ(adjMinZ);
-      else if (i == numDisks()) disk->placeZ(maxZ());
-      else                      disk->placeZ(adjMinZ + (maxZ() - adjMinZ)/(numDisks() - 1) * (i-1));
-
-      disk->buildZ((adjMinZ()+maxZ())/2);
-
-      disk->store(childmap.count(i) > 0 ? childmap[i] : propertyTree());
-      disk->build();
-      disks_.push_back(disk);
-    }
-
-    built(true);
-  }
+  void build();
 };
 
 
-template<> class EnumReflex<MinZType>::data = { "absolute", "barrelgap" };
+
+#endif

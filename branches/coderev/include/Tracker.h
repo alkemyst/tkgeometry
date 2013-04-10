@@ -1,56 +1,60 @@
 #ifndef TRACKER_H
 #define TRACKER_H
 
-#include "Property.h"
+#include <vector>
+#include <string>
+#include <memory>
 
-class Tracker : public PropertyObject, public Buildable {
-  Property<int> numMinBiasEvents;
-  Property<int> rError;
-  Property<int> zError;
-  Property<float> etaCut;
-  Property<int> ptCost;
-  Property<int> stripCost;
-  Property<float> efficiency;
+#include <boost/ptr_container/ptr_vector.hpp>
+
+#include "global_funcs.h"
+#include "Property.h"
+#include "Barrel.h"
+#include "Endcap.h"
+#include "GeometryVisitor.h"
+
+
+class Tracker : public PropertyObject, public Buildable, public Identifiable<Tracker> {
+public:
+  typedef boost::ptr_vector<Barrel> Barrels;
+  typedef boost::ptr_vector<Endcap> Endcaps;
+  typedef set<Module*> Modules;
+
+  class ModuleSetVisitor {
+    Modules& modules_;
+    ModuleSetVisitor(Modules& modules) : modules_(modules) {}
+    void visit(Module& m) { modules_.insert(m); }
+  };
+
+private:
+  Barrels barrels_;
+  Endcaps endcaps_;
+
+  Modules modules_;
+
+  Property<int, NoDefault> numMinBiasEvents;
+  Property<int, NoDefault> rError;
+//  Property<int> zError;
+  Property<double, NoDefault> etaCut;
+  Property<int, NoDefault> ptCost;
+  Property<int, NoDefault> stripCost;
+  Property<double, NoDefault> efficiency;
 public:
   Tracker() :
-      numMinBiasEvents(noDefault(), greaterThan(0)),
-      etaCut(noDefault(), greaterThan(0)),
-      ptCost(noDefault(), greaterThan(0)),
-      stripCost(noDefault(), greaterThan(0)),
-      efficiency(noDefault(), rangeInclusive(0.,1.))
-  {
-    requiredProperty(numBiasEvents, "numBiasEvents");
-    requiredProperty(etaCut, "etaCut");
-    requiredProperty(ptCost, "ptCost");
-    requiredProperty(stripCost, "stripCost");
-    requiredProperty(efficiency, "efficiency");
-  }
+      numMinBiasEvents("numMinBiasEvents", checked()),
+      etaCut("etaCut", checked()),
+      ptCost("ptCost", checked()),
+      stripCost("stripCost", checked()),
+      efficiency("efficiency", checked())
+  {}
 
 
-  void build() {
-    check();
+  void build();
 
-    double barrelMaxZ = 0;
-    
-    for (auto& childtree : propertyTree().getChildren("Barrel")) {
-      Barrel* b = new Barrel();
-      b->store(childtree);
-      b->build();
-      barrelMaxZ = MAX(b->maxZ(), barrelMaxZ);
-      barrels_.push_back(b);
-    }
+  const Barrels& barrels() const { return barrels_; }
+  const Endcaps& endcaps() const { return endcaps_; }
 
-    for (auto& childtree : propertyTree().getChildren("Endcap")) {
-      Endcap* e = new Endcap();
-      e->barrelMaxZ(barrelMaxZ);
-      e->store(childtree);
-      e->build();
-      endcaps_.push_back(e);
-    }
-
-    built_ = true;
-  }
-
+  const Modules& modules() const { return modules_; }
 };
 
 

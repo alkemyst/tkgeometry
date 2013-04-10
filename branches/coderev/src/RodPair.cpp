@@ -1,93 +1,90 @@
-std::vector<double> RodPair::maxZStrategy(const vector<double>& dsDistances, double startZ, int direction, int smallParity, bool looseStartZ) {
+#include "RodPair.h"
 
-  std::vector<double> zList;
+
+template<typename Iterator> vector<double> RodPair::maxZStrategy(Iterator begin, Iterator end, double startZ, int direction, int smallParity, bool looseStartZ) {
+
+  vector<double> zList;
   double newZ = startZ;
   int parity = smallParity;
-  double maxz = parent_.maxZ();
-  double D = parent_.bigDelta();
-  double d = parent_.smallDelta();
-  double dz = parent_.originDeltaZ();
-  double ov = parent_.baseOverlapZ();
-  double maxr = parent_.maxPlaceRadius();
-  double minr = parent_.minPlaceRadius();
-  double mlen = parent_.moduleLength();
+  double maxz = maxZ();
+  double d = smallDelta();
+  double dz = zError();
+  double ov = minModuleOverlap();
+  double maxr = maxBuildRadius();
+  double minr = minBuildRadius();
 
-  size_t i = 0;
-  auto dsBegin = dsDistances.begin(), dsEnd = dsDistances.end();
-  auto dsIt = dsBegin;
+  auto mit = begin;
   if (!looseStartZ) {
     zList.push_back(startZ);
-    newZ = startZ + (direction > 0 ? mlen : -mlen);
-    dsIt++;
+    newZ = startZ + (direction > 0 ? (*mit)->length() : -(*mit)->length());
+    ++mit;
     parity = -parity;
   }
 
   while (abs(newZ) < maxz) { // maxZ is always > 0 even for Neg Z rods
-    double newR = (parity > 0 ? maxr + D + d : minr - D - d) - (*dsIt)/2; 
-    double lastR = (parity > 0 ? maxr + D - d : minr - D + d) + (dsIt > dsBegin ? *(dsIt-1) : *dsBegin)/2;// (if looseStart) the previous module (opposite rod) has the same dsDistance
+    double newR = (parity > 0 ? maxr + d : minr - d) - (*mit)->dsDistance()/2; 
+    double lastR = (parity > 0 ? maxr - d : minr + d) + (mit != begin ? (*(mit-1))->dsDistance() : (*begin)->dsDistance())/2;// (if looseStart) the previous module (opposite rod) has the same dsDistance
     if (direction > 0) {
       double originZ = parity > 0 ? dz : -dz;
       double newZorigin = (newZ - ov)*newR/lastR;
       double newZshifted = (newZ - originZ)*newR/lastR + originZ;
       newZ = newZorigin < newZshifted ? newZorigin : newZshifted;
       zList.push_back(newZ);
-      newZ += mlen;
+      newZ += (*mit)->length();
     } else {
       double originZ = parity > 0 ? -dz : dz;
       double newZorigin = (newZ + ov)*newR/lastR;
       double newZshifted = (newZ - originZ)*newR/lastR + originZ;
       newZ = newZorigin > newZshifted ? newZorigin : newZshifted;
       zList.push_back(newZ);
-      newZ -= mlen;
+      newZ -= (*mit)->length();
     }
     parity = -parity;
 
-    if (dsIt < dsEnd-1) dsIt++;
+    if (mit < end-1) ++mit;
   }
   //return listZ[listZ.size()-1] + (direction > 0 ? modLengthZ : -modLengthZ);
   //
   return zList;
 }
 
-std::vector<double> RodPair::numModulesStrategy(const vector<double>& dsDistances, double startZ, int direction, int smallParity, bool looseStartZ) {
-  std::vector<double> zList;
+template<typename Iterator> vector<double> RodPair::numModulesStrategy(Iterator begin, Iterator end, double startZ, int direction, int smallParity, bool looseStartZ) {
+  vector<double> zList;
+
 
   double newZ = startZ;
   int parity = smallParity;
-  double maxz = parent_.maxZ();
-  double D = parent_.bigDelta();
-  double d = parent_.smallDelta();
-  double dz = parent_.originDeltaZ();
-  double ov = parent_.baseOverlapZ();
-  double maxr = parent_.maxPlaceRadius();
-  double minr = parent_.minPlaceRadius();
-  double mlen = parent_.moduleLength();
+  double d = smallDelta();
+  double dz = zError();
+  double ov = minModuleOverlap();
+  double maxr = maxBuildRadius();
+  double minr = minBuildRadius();
 
-  int i = 0;
+  auto mit = begin;
   if (!looseStartZ) {
-    listZ.push_back(startZ);
-    newZ = startZ + (direction > 0 ? mlen : -mlen);
-    i++;
+    zList.push_back(startZ);
+    newZ = startZ + (direction > 0 ? (*mit)->length() : -(*mit)->length());
+    ++mit;
     parity = -parity;
   }
 
-  for (; i<numModules(); i++) {
-    double newR = (parity > 0 ? maxr + D + d : minr - D - d) - dsDistances[i]/2; 
-    double lastR = (parity > 0 ? maxr + D - d : minr - D + d) + dsDistances[i > 0 ? i-1 : 0]/2;// (if looseStart) the previous module (opposite rod) has the same dsDistance
+  for (int i = looseStartZ ? 0 : 1; i<numModules(); ++i, ++mit) {
+    double newR = (parity > 0 ? maxr + d : minr - d) - (*mit)->dsDistance()/2; 
+    double lastR = (parity > 0 ? maxr - d : minr + d) + (mit != begin ? (*(mit-1))->dsDistance() : (*begin)->dsDistance())/2;// (if looseStart) the previous module (opposite rod) has the same dsDistance
     if (direction > 0) {
       double originZ = parity > 0 ? dz : -dz;
       double newZorigin = (newZ - ov)*newR/lastR;
       double newZshifted = (newZ - originZ)*newR/lastR + originZ;
       newZ = newZorigin < newZshifted ? newZorigin : newZshifted;
-      listZ.push_back(newZ);
-      newZ += mlen;
+      zList.push_back(newZ);
+      newZ += (*mit)->length();
     } else {
       double originZ = parity > 0 ? -dz : dz;
       double newZorigin = (newZ + ov)*newR/lastR;
       double newZshifted = (newZ - originZ)*newR/lastR + originZ;
       newZ = newZorigin > newZshifted ? newZorigin : newZshifted;
-      listZ.push_back(newZ);
-      newZ -= mlen;
+      zList.push_back(newZ);
+      newZ -= (*mit)->length();
     }
     parity = -parity;
   }
@@ -98,97 +95,105 @@ std::vector<double> RodPair::numModulesStrategy(const vector<double>& dsDistance
 }
 
 
-std::vector<double> RodPair::computeZList(const vector<double>& dsDistances, double startZ, int direction, int smallParity, bool looseStartZ) {
-  return parent_.maxZ.isSet() ? 
-         maxZStrategy(dsDistances, startZ, direction, smallParity, looseStartZ) : 
-         numModulesStrategy(dsDistances, startZ, direction, smallParity, looseStartZ);
+template<typename Iterator> vector<double> RodPair::computeZList(Iterator begin, Iterator end, double startZ, int direction, int smallParity, bool looseStartZ) {
+  return maxZ.state() ? 
+         maxZStrategy(begin, end, startZ, direction, smallParity, looseStartZ) : 
+         numModulesStrategy(begin, end, startZ, direction, smallParity, looseStartZ);
 }
 
 
-std::pair<std::vector<double>, std::vector<double>> RodPair::computeZListPair(const vector<double>& dsDistances, double startZ, int recursionCounter) {
-  if (++recursionCounter == 100) { // this stops infinite recursion if the balancing doesn't converge
-    // CUIDADO handle error (exception)
-    return;
-  }  
+template<typename Iterator> pair<vector<double>, vector<double>> RodPair::computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter) {
 
   bool looseStartZ = false;
-  std::vector<double> zPlusList = computeZList(dsDistances, startZ, RIGHTWARD_BUILD, parent_.zPlusParity(), looseStartZ);
-  std::vector<double> zMinusList = computeZList(dsDistances, startZ, LEFTWARD_BUILD, -parent_.zMinusParity(), !looseStartZ);
+  vector<double> zPlusList = computeZList(begin, end, startZ, RIGHTWARD_BUILD, zPlusParity(), looseStartZ);
+  vector<double> zMinusList = computeZList(begin, end, startZ, LEFTWARD_BUILD, -zPlusParity(), !looseStartZ);
 
-  double zUnbalance = (*zPlusList.rbegin()+moduleLength) + (*zMinusList.rbegin()-moduleLength); // balancing uneven pos/neg strings
-  if (abs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
-    return buildRecursive(dsDistances,
-                          startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
-                          recursionCounter);
+  double zUnbalance = (zPlusList.back()+(*(end-1))->length()) + (zMinusList.back()-(*(end-1))->length()); // balancing uneven pos/neg strings
+  if (abs(zUnbalance) > 0.1 && ++recursionCounter < 100) { // 0.1 mm unbalance is tolerated
+    return computeZListPair(begin, end,
+                            startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
+                            recursionCounter);
   } else {
+    // CUIDADO HANDLE RECURSION COUNTER HITTING 100 ERROR
     return std::make_pair(zPlusList, zMinusList);
   }
-};
+}
 
-void RodPair::buildFull(const vector<shared_ptr<Module>>& rodTemplate) {
+void RodPair::buildFull(const RodTemplate& rodTemplate) {
 
   bool looseStartZ = false;
   vector<double> dsDistances;
-  std::transform(rodTemplate.begin(), rodTemplate.end(), std::back_inserter(dsDistances.begin()), [](Module* m) { return m->dsDistance(); } );
-  auto zListPair = computeZListRecursive(dsDistances, 0., 0);
+  auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), 0., 0);
 
     // actual module creation
     // CUIDADO log rod balancing effort
 
-  for (int i=0, parity = parent_.zPlusParity(); i<(int)zListPair.first.size(); i++, parity = -parity) {
-    Module* mod = new Module(rodTemplate[i]);
+  for (int i=0, parity = zPlusParity(); i<(int)zListPair.first.size(); i++, parity = -parity) {
+    BarrelModule* mod = new BarrelModule(*rodTemplate[i]);
+    mod->myid(i+1);
     mod->ring(i+1);
-    mod->zSide(1);
-    mod->translate(XYZVector(0, parity > 0 ? parent_.smallDelta() : -parent_.smallDelta(), zListPair.first[i])); // CUIDADO: we are now translating the center instead of an edge as before
+    mod->side(1);
+    mod->store(propertyTree());
+    mod->build();
+    mod->translate(XYZVector(0, parity > 0 ? smallDelta() : -smallDelta(), zListPair.first[i])); // CUIDADO: we are now translating the center instead of an edge as before
     modules_.push_back(mod);
   }
 
-  for (int i=0, parity = -parent_.zPlusParity(); i<(int)zListPair.second.size(); i++, parity = -parity) {
-    Module* mod = new Module(rodTemplate[i]);
+  for (int i=0, parity = -zPlusParity(); i<(int)zListPair.second.size(); i++, parity = -parity) {
+    BarrelModule* mod = new BarrelModule(*rodTemplate[i]);
+    mod->myid(i+1);
     mod->ring(i+1);
-    mod->zSide(1);
-    mod->translate(XYZVector(0, parity > 0 ? parent_.smallDelta() : -parent_.smallDelta() , zListPair.second[i]));
+    mod->side(1);
+    mod->store(propertyTree());
+    mod->translate(XYZVector(0, parity > 0 ? smallDelta() : -smallDelta() , zListPair.second[i]));
     modules_.push_back(mod);
   }
 
 }
 
-void RodPair::buildMezzanine(const vector<shared_ptr<Module>>& rodTemplate) {
+void RodPair::buildMezzanine(const RodTemplate& rodTemplate) {
   // compute Z list (only once since the second mezzanine has just inverted signs for z) 
-  vector<double> dsDistances;
-  std::transform(rodTemplate.rbegin(), rodTemplate.rend(), std::back_inserter(dsDistances.begin()), [](Module* m) { return m->dsDistance(); } );
-  vector<double> listZ = computeZList(dsDistances, parent_.startZ(), LEFTWARD_BUILD, parent_.zPlusParity(), false);
+  vector<double> zList = computeZList(rodTemplate.rbegin(), rodTemplate.rend(), startZ(), LEFTWARD_BUILD, zPlusParity(), false);
 
-  for (int i=0, parity = parent_.zPlusParity(); i<(int)listZ.size(); i++, parity = -parity) {
-    Module* mod = new Module(rodTemplate[i]);
+  for (int i=0, parity = zPlusParity(); i<(int)zList.size(); i++, parity = -parity) {
+    BarrelModule* mod = new BarrelModule(*rodTemplate[i]);
+    mod->myid(i+1);
     mod->ring(i+1); // CUIDADO looks like mezzanine layers have ring numbers in reverse order!!!
-    mod->zSide(1);
-    mod->translate(XYZVector(0, parity > 0 ? parent_.smallDelta() : -parent_.smallDelta(), zList[i]));
+    mod->side(1);
+    mod->store(propertyTree());
+    mod->build();
+    mod->translate(XYZVector(0, parity > 0 ? smallDelta() : -smallDelta(), zList[i]));
     modules_.push_back(mod);        
   }
 
-  for (int i=0, parity = -parent_.zPlusParity(); i<(int)listZ.size(); i++, parity = -parity) {
-    Module* mod = new Module();
+  for (int i=0, parity = -zPlusParity(); i<(int)zList.size(); i++, parity = -parity) {
+    BarrelModule* mod = new BarrelModule(*rodTemplate[i]);
+    mod->myid(i+1);
     mod->ring(i+1);
-    mod->zSide(-1);
-    mod->build(pt, previouslyUnmatched);
-    mod->translate(XYZVector(0, parity > 0 ? parent_.smallDelta() : -parent_.smallDelta(), -zList[i]));
+    mod->side(-1);
+    mod->store(propertyTree());
+    mod->build();
+    mod->translate(XYZVector(0, parity > 0 ? smallDelta() : -smallDelta(), -zList[i]));
     modules_.push_back(mod);
   }
 }
 
 
-void RodPair::build(vector<shared_ptr<Module>>& rodTemplate) {
-  if (!parent_.mezzanine()) buildFull(rodTemplate);
-  else buildMezzanine(rodTemplate);
+void RodPair::build(const RodTemplate& rodTemplate) {
+  try {
+    check();
+    if (!mezzanine()) buildFull(rodTemplate);
+    else buildMezzanine(rodTemplate);
+    built_ = true;
+  } catch (PathfulException& pe) { pe.pushPath(fullid()); throw; }
 }
 
 void RodPair::translate(const XYZVector& translation) {
-  std::transform(modules_.begin(), modules_.end(), std::bind2nd(std::mem_fun<&Module::translate>(), translation));
+  for (auto& m : modules_) { m.translate(translation); }
 }
 
-void RodPair::rotatePhi(float phi) {
-  std::transform(modules_.begin(), modules_.end(), std::bind2nd(std::mem_fun<&Module::rotatePhi>(), phi));
+void RodPair::rotatePhi(double angle) {
+  for (auto& m : modules_) { m.rotatePhi(angle); }
 }
 
 
