@@ -2,7 +2,7 @@
 
 = Quick start recipe =
 
-NOTE: this quick start recipe details the procedure for compiling and running tkLayout revision 664 or greater on *lxplus* machines with *64-bit SLC5*.
+*NOTE*: this quick start recipe details the procedure for compiling and running tkLayout revision 664 or greater on *lxplus machines with 64-bit SLC5*.
 
 Some thinkering with library paths, environment variables and/or Makefile options might be needed to successfully compile tkLayout on other architectures/operating systems.
 
@@ -13,28 +13,28 @@ tkLayout requires:
 
 
 
-# All the necessary libraries and compiler versions are already installed on lxplus machines running 64-bit SLC5, thus after logging on, like this:
+1. All the necessary libraries and compiler versions are already installed on lxplus machines running 64-bit SLC5, thus after logging on, like this:
 
  `> ssh lx64slc5.cern.ch`
 
-# Then, you just need to source the following scripts to setup an appropriate environment:
+2. Then, you just need to source the following scripts to setup an appropriate environment:
 
  `> source /afs/cern.ch/sw/lcg/contrib/gcc/4.3/x86_64-slc5/setup.sh`
  
  `> source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.00/x86_64-slc5-gcc43-dbg/root/bin/thisroot.sh`
 
 
-# Then, proceed to the checkout of the code:
+3. Then, proceed to the checkout of the code:
 
  `> svn checkout http://tkgeometry.googlecode.com/svn/trunk/ tkgeometry
 
  `> cd tkgeometry`
 
-# Then, check your compiler version by running: 
+4. Then, check your compiler version by running: 
  
  `> gcc -v`
 
-# If gcc version is < 4.7, please edit the file Makefile and comment out the following two lines:
+5. If gcc version is < 4.7, please edit the file Makefile and comment out the following two lines:
 
   `COMPILERFLAGS+=-Wno-narrowing`
 
@@ -47,13 +47,11 @@ So that they look like this:
   `#COMPILERFLAGS+=-Wno-delete-non-virtual-dtor`
 
 
-# You can finally compile and install tkLayout with the following command:
+6. You can finally compile and install tkLayout with the following command:
 
   `> make clean && make -j4 && make install`
 
 
-# Once built, you can run:
+7. Once tklayout is built and installed, you can see the command line options with:
 
   `> tklayout --help`
-
-For the list of supported command line options
