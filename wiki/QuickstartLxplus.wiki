@@ -1,12 +1,47 @@
-#summary Quick-starrt guide to download and compile the software on lxplus.cern.ch
-= Introduction =
+#summary Quick-start guide to download and compile tklayout rev. 664 or greater on lxplus machines.
 
-Add your content here.
+= Quick start recipe =
+
+NOTE: this quick start recipe details the procedure for compiling and running tkLayout revision 664 or greater on LXPLUS machines with 64-BIT SCIENTIFIC LINUX CERN 5.
+
+Some thinkering with library paths, environment variables and/or Makefile options might be needed to successfully compile tkLayout on other architectures/operating systems.
+
+tkLayout requires:
+- ROOT version > 5.28.00
+- BOOST version > 1.41
+- gcc version > 4.2
 
 
-= Details =
+All the necessary libraries and compiler versions are already installed on lxplus machines running 64-bit SLC5, thus after logging on, like this:
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+  # ssh lx64slc5.cern.ch
+
+You just need to source the following scripts to setup an appropriate environment:
+
+  # source /afs/cern.ch/sw/lcg/contrib/gcc/4.3/x86_64-slc5/setup.sh
+  # source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.00/x86_64-slc5-gcc43-dbg/root/bin/thisroot.sh
+
+
+Then proceed to the checkout of the code:
+
+  # svn checkout http://tkgeometry.googlecode.com/svn/trunk/ tkgeometry
+  # cd tkgeometry
+
+Then, check your compiler version by running: 
+ 
+  # gcc -v
+
+If gcc version is < 4.7, please edit the file Makefile and comment out the following two lines:
+
+  COMPILERFLAGS+=-Wno-narrowing
+  COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
+
+So that they look like this:
+
+  #COMPILERFLAGS+=-Wno-narrowing
+  #COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
+
+
+You can now compile and install tkLayout with the following command:
+
+  # make clean && make -j4 && make install
