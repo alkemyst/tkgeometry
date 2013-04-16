@@ -18,14 +18,14 @@ All the necessary libraries and compiler versions are already installed on lxplu
 
 You just need to source the following scripts to setup an appropriate environment:
 
- `> source /afs/cern.ch/sw/lcg/contrib/gcc/4.3/x86_64-slc5/setup.sh`
- `> source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.00/x86_64-slc5-gcc43-dbg/root/bin/thisroot.sh`
+ `> source /afs/cern.ch/sw/lcg/contrib/gcc/4.3/x86_64-slc5/setup.sh
+ > source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.00/x86_64-slc5-gcc43-dbg/root/bin/thisroot.sh`
 
 
 Then proceed to the checkout of the code:
 
- `> svn checkout http://tkgeometry.googlecode.com/svn/trunk/ tkgeometry`
- `> cd tkgeometry`
+ `> svn checkout http://tkgeometry.googlecode.com/svn/trunk/ tkgeometry
+ > cd tkgeometry`
 
 Then, check your compiler version by running: 
  
@@ -33,13 +33,13 @@ Then, check your compiler version by running:
 
 If gcc version is < 4.7, please edit the file Makefile and comment out the following two lines:
 
-  `COMPILERFLAGS+=-Wno-narrowing`
-  `COMPILERFLAGS+=-Wno-delete-non-virtual-dtor`
+  `COMPILERFLAGS+=-Wno-narrowing
+  COMPILERFLAGS+=-Wno-delete-non-virtual-dtor`
 
 So that they look like this:
 
-  `#COMPILERFLAGS+=-Wno-narrowing`
-  `#COMPILERFLAGS+=-Wno-delete-non-virtual-dtor`
+  `#COMPILERFLAGS+=-Wno-narrowing
+  #COMPILERFLAGS+=-Wno-delete-non-virtual-dtor`
 
 
 You can now compile and install tkLayout with the following command:
