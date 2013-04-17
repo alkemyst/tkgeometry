@@ -33,7 +33,8 @@ cd tkgeometry</code>
 
 *4.* Then, check your compiler version by running: 
  
-<code language="bash">gcc -v</code>
+<code language="bash">
+gcc -v</code>
 
 *5.* If gcc version is < 4.7, please edit the file Makefile and comment out the following two lines:
 <code>
