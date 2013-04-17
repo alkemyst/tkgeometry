@@ -16,52 +16,41 @@ tkLayout requires:
 *1.* All the necessary libraries and compiler versions are already installed on lxplus machines running 64-bit SLC5, thus after logging on, like this:
 
 <code>
-ssh lx64slc5.cern.ch
-</code>
+ssh lx64slc5.cern.ch</code>
 
 *2.* Then, you just need to source the following scripts to setup an appropriate environment:
 
 <code>
 source /afs/cern.ch/sw/lcg/contrib/gcc/4.3/x86_64-slc5/setup.sh
-source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.00/x86_64-slc5-gcc43-dbg/root/bin/thisroot.sh
-</code>
+source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.00/x86_64-slc5-gcc43-dbg/root/bin/thisroot.sh</code>
 
 
 *3.* Then, proceed to the checkout of the code:
 
 <code>
 svn checkout http://tkgeometry.googlecode.com/svn/trunk/ tkgeometry
-cd tkgeometry
-</code>
+cd tkgeometry</code>
 
 *4.* Then, check your compiler version by running: 
  
 <code language="bash">gcc -v</code>
 
 *5.* If gcc version is < 4.7, please edit the file Makefile and comment out the following two lines:
-
 <code>
 COMPILERFLAGS+=-Wno-narrowing
-COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
-# Another comment
-dothis: depends $Antani
-</code>
+COMPILERFLAGS+=-Wno-delete-non-virtual-dtor</code>
 
 So that they look like this:
-
-{{{
+<code>
 #COMPILERFLAGS+=-Wno-narrowing
-#COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
-}}}
+#COMPILERFLAGS+=-Wno-delete-non-virtual-dtor</code>
 
 
 *6.* You can finally compile and install tkLayout with the following command:
 <code>
-make clean && make -j4 && make install
-</code>
+make clean && make -j4 && make install</code>
 
 
 *7.* Once tklayout is built and installed, you can see the command line options with:
 <code>
-tklayout --help
-</code>
+tklayout --help</code>
