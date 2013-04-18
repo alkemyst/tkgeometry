@@ -1012,6 +1012,8 @@ void BarrelLayer::buildTiltedLayer(const TiltedLayerSpecs& tiltlay, const Barrel
     for (ModuleVector::const_iterator it = aString.begin(); it != aString.end(); ++it) {
       BarrelModule* m = new BarrelModule(*static_cast<BarrelModule*>(*it));
       m->rotatePhi(i*phi);
+      m->setPhiIndex(i);
+      m->setContainerId(getContainerId());
       moduleSet_.push_back(m);
     }
   }
