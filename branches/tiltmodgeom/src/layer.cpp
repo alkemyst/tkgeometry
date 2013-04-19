@@ -979,6 +979,7 @@ ModuleVector BarrelLayer::buildTiltedString(const TiltedRodSpecs::const_iterator
     BarrelModule* m = new BarrelModule(*sampleModule);
     m->rotateX(side*it->gamma);
     m->translate(XYZVector(0, it->r, side*it->z));
+    m->setLayer(layerIndex_);
     m->setRing(ring++);
     m->setZSide(side);
     rod.push_back(m);
