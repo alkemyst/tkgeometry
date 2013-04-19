@@ -456,12 +456,15 @@ LayerVector Tracker::buildBarrel(int nLayer,
 LayerVector Tracker::buildTiltedBarrel(const std::string barrelName, const TiltedBarrelSpecs& tiltbar, const BarrelModule* sampleModule) { // this builds a barrel with tilted modules according to the specs passed as argument
   LayerVector thisBarrelLayerSet;
   std::ostringstream layerName;
-  int i = 0;
+
+  newContainerId();
+
+  int i = 1;
   for (TiltedBarrelSpecs::const_iterator it = tiltbar.begin(); it != tiltbar.end(); ++it) {
     BarrelLayer* aBarrelLayer = new BarrelLayer(*sampleModule);
     layerName.str("");
     layerName << "L" << std::dec << i;
-    aBarrelLayer->setName(layerName.str(), i);
+    aBarrelLayer->setName(layerName.str(), i++);
     aBarrelLayer->setContainerName(barrelName);
     aBarrelLayer->setContainerId(getCurrentContainerId());
 
