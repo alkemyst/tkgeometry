@@ -1,34 +1,22 @@
 
-class PathfulVisitor {
+class AnalyzerVisitor {
+public:
+  struct BarrelPath  { IdentifiableType tracker, barrel, layer, ring, rod;  };
+  struct EndcapPath  { IdentifiableType tracker, endcap, disk, ring, blade; };
+  struct SummaryPath { IdentifiableType tracker, table, row, column/*, phi*/;}; // provided for backwards compatibility for summary tables (the phi position is ignored, barrel and endcap have z and rho coords swapped)
+private:
   union {
-    struct BarrelPath {
-      HierarchyLevel<0>::id_type tracker;
-      HierarchyLevel<1>::id_type barrel;
-      HierarchyLevel<4>::id_type ring; // mind the inversion! necessary to be able to translate between paths
-      HierarchyLevel<2>::id_type layer;
-      HierarchyLevel<3>::id_type rod;
-    } barrelPath_;
-    struct EndcapPath {
-      HierarchyLevel<0>::id_type tracker;
-      HierarchyLevel<1>::id_type endcap;
-      HierarchyLevel<2>::id_type disk;
-      HierarchyLevel<3>::id_type ring;
-      HierarchyLevel<4>::id_type blade;
-    } endcapPath_;
-    struct UniformPath {
-      HierarchyLevel<0>::id_type tracker;
-      HierarchyLevel<1>::id_type container;
-      HierarchyLevel<3>::id_type secondary;
-      HierarchyLevel<2>::id_type primary;
-      HierarchyLevel<4>::id_type tertiary;
-    } uniformPath_;
-  };
+    BarrelPath barrelPath_;
+    EndcapPath endcapPath_;
+   // struct UniformPath { IdentifiableType tracker, cnt, z, rho, phi;          } uniformPath_;
+    SummaryPath summaryPath_; // provided for backwards compatibility for summary tables (the phi position is ignored, barrel and endcap have z and rho coords swapped)
+  } geomPath_;
 
 
 protected:
   const BarrelPath& barrelPath() const { return geomPath_.barrelPath_; }
   const EndcapPath& endcapPath() const { return geomPath_.endcapPath_; }
-  const UniformPath& uniformPath() const { return geomPath_.uniformPath_; }
+  const SummaryPath& summaryPath() const { return geomPath_.summaryPath_; }
 
   virtual void doVisit(const Tracker&) {}
   virtual void doVisit(const Barrel&) {}
@@ -41,65 +29,17 @@ protected:
   virtual void doVisit(const BarrelModule& bm) { doVisit((Module&)bm); }
   virtual void doVisit(const EndcapModule& em) { doVisit((Module&)em); }
 public:
-  void visit(const Tracker& t) { 
-    geomPath_.tracker_ = &t; 
-    std::get<0>(genericPath_) = any2str(t.myid()); 
-    doVisit(t);
-  }
-  void visit(const Barrel& b)  { 
-    geomPath_.barrelPath_.barrel_ = &b; 
-    std::get<1>(genericPath_) = any2str(b.myid());
-    doVisit(b);
-  }
-  void visit(const Layer& l) { 
-    geomPath_.barrelPath_.layer_ = &l;  
-    std::get<2>(genericPath_) = (int)l.myid();
-    doVisit(l);
-  }
-  void visit(const RodPair& r) { 
-    geomPath_.barrelPath_.rod_ = &r;    
-    std::get<4>(genericPath_) = (int)r.myid();
-    doVisit(r);
-  } 
-  void visit(const Endcap& e) { 
-    geomPath_.endcapPath_.endcap_ = &e; 
-    std::get<1>(genericPath_) = (int)e.myid(); 
-    doVisit(e);
-  }
-  void visit(const Disk& d) {
-    geomPath_.endcapPath_.disk_ = &d; 
-    std::get<2>(genericPath_) = (int)d.myid();
-    doVisit(d);
-  }
-  void visit(const Ring& r) { 
-    geomPath_.endcapPath_.ring_ = &r;
-    std::get<3>(genericPath_) = (int)r.myid();
-    doVisit(r);
-  }
-  void visit(const BarrelModule& bm) { 
-    geomPath_.barrelPath_.ring_ = bm.myid(); 
-    std::get<3>(genericPath_) = (int)bm.myid();
-    doVisit(bm); 
-  }
-  void visit(const EndcapModule& em) {
-    geomPath_.endcapPath_.blade_ = em.myid();
-    std::get<4>(genericPath_) = (int)em.myid();
-    doVisit(em);
-  }
-
+  void visit(const Tracker& t) { geomPath_.uniformPath_.tracker = t.myid(); doVisit(t); }
+  void visit(const Barrel& b)  { geomPath_.barrelPath_.barrel = b.myid();   doVisit(b); }
+  void visit(const Layer& l)   { geomPath_.barrelPath_.layer = l.myid();    doVisit(l); }
+  void visit(const RodPair& r) { geomPath_.barrelPath_.rod = r.myid();      doVisit(r); } 
+  void visit(const Endcap& e)  { geomPath_.endcapPath_.endcap = e.myid();   doVisit(e); }
+  void visit(const Disk& d)    { geomPath_.endcapPath_.disk = d.myid();     doVisit(d); }
+  void visit(const Ring& r)    { geomPath_.endcapPath_.ring = r.myid();     doVisit(r); }
+  void visit(const BarrelModule& bm) { geomPath_.barrelPath_.ring = bm.myid();   doVisit(bm); }
+  void visit(const EndcapModule& em) { geomPath_.endcapPath_.blade_ = em.myid(); doVisit(em); }
 
 };
-
-
-RodPair::accept(PathfulVisitor& pv) {
-  pv.visit(*this);
-  for (auto m : modules_) m.accept(pv);
-}
-
-Module::accept(PathfulVisitor& pv) {
-  pv.visit(*this);
-}
-
 
 
 
@@ -154,7 +94,7 @@ namespace VisitorHelpers {
 
 
 
-class TriggerProcessorBandwidthVisitor : public PathfulVisitor {
+class TriggerProcessorBandwidthVisitor : public AnalyzerVisitor {
   std::map<std::pair<int, int>, int> processorConnections;
   std::map<std::pair<int, int>, double> processorInboundBandwidths;
   std::map<std::pair<int, int>, double> processorInboundStubsPerEvent;
@@ -192,9 +132,7 @@ public:
   }
 
   void doVisit(const Module& m) {
-    string cntName;
-    int layer, ring;
-    std::tie(std::ignored, cntName, layer, ring, std::ignored) = genericPath();
+    SummaryPath p = summaryPath();
 
     int etaConnections = 0, totalConnections = 0;
 
@@ -208,10 +146,10 @@ public:
             processorConnections[std::make_pair(j,i)] += 1;
             processorConnectionSummary_.setCell(j+1, i+1, processorConnections[std::make_pair(j,i)]);
 
-            processorInboundBandwidths[std::make_pair(j,i)] += triggerDataBandwidths_[cntName][make_pair(layer, ring)]; // *2 takes into account negative Z's
+            processorInboundBandwidths[std::make_pair(j,i)] += triggerDataBandwidths_[p.table][make_pair(p.row, p.col)]; // *2 takes into account negative Z's
             processorInboundBandwidthSummary_.setCell(j+1, i+1, processorInboundBandwidths[std::make_pair(j,i)]);
 
-            processorInboundStubsPerEvent[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())];
+            processorInboundStubsPerEvent[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[p.table][make_pair(p.row, p.col)];
             processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent[std::make_pair(j,i)]);
 
           } 
@@ -244,11 +182,11 @@ class IrradiationPowerVisitor : public AnalyzerVisitor {
   double alphaParam       = tracker.getAlphaParam();
   double referenceTemp    = tracker.getReferenceTemp();
 public:
-  void beginVisit() {
+  void preVisit() {
     irradiatedPowerConsumptionSummaries_.clear();   
 
   }
-  void visit(const Tracker& t) {
+  void doVisit(const Tracker& t) {
     numInvFemtobarns = t.getNumInvFemtobarns();
     operatingTemp    = t.getOperatingTemp();
     chargeDepletionVoltage    = t.getChargeDepletionVoltage();
@@ -256,19 +194,17 @@ public:
     referenceTemp    = t.getReferenceTemp();
   }
 
-  void visit(const Barrel& b) {
-    string cntName = b.myid();
-    irradiatedPowerConsumptionSummaries_[cntName].setHeader("layer", "ring");
-    irradiatedPowerConsumptionSummaries_[cntName].setPrecision(3);        
+  void doVisit(const Barrel& b) {
+    irradiatedPowerConsumptionSummaries_[summaryPath().table].setHeader("layer", "ring");
+    irradiatedPowerConsumptionSummaries_[summaryPath().table].setPrecision(3);        
   }
 
-  void visit(const Endcap& e) {
-    string cntName = e.myid();
-    irradiatedPowerConsumptionSummaries_[cntName].setHeader("layer", "ring");
-    irradiatedPowerConsumptionSummaries_[cntName].setPrecision(3);        
+  void doVisit(const Endcap& e) {
+    irradiatedPowerConsumptionSummaries_[summaryPath().table].setHeader("layer", "ring");
+    irradiatedPowerConsumptionSummaries_[summaryPath().table].setPrecision(3);        
   }
 
-  void visit(const Module& m) {
+  void doVisit(const Module& m) {
     XYZVector center = m->center();
     if (center.Z()<0) continue;
     double volume  = module->sensorThickness() * module->area() / 1000.0 * module->numFaces(); // volume is in cm^3
@@ -290,16 +226,16 @@ public:
 
     //module->setIrradiatedPowerConsumption(irradiatedPowerConsumption); // CUIDADO CHECK WHERE IT IS NEEDED
 
-    irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
+    irradiatedPowerConsumptionSummaries_[summaryPath().table].setCell(summaryPath().row, summaryPath().col, irradiatedPowerConsumption);
   }
 };
 
 
 
-class BandwidthVisitor {
+class BandwidthVisitor : public AnalyzerVisitor {
 
 public:
-  void visit(Module& m) {
+  void doVisit(const Module& m) {
     LayerVector::iterator layIt;
     ModuleVector::iterator modIt;
     ModuleVector* aLay;
@@ -319,7 +255,6 @@ public:
     bandwidthDistributionSparsified.SetLineColor(kRed);
 
     int nChips;
-    LayerVector layerSet = tracker.getLayers();
     double nMB = tracker.getNMB();
 
   //  for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
@@ -356,7 +291,36 @@ public:
 };
 
 
-class TriggerDistanceTuningPlotsVisitor : public PathfulVisitor {
+class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
+
+  double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward) {  
+    // TODO: add a linear interpolation here
+    if (goForward) {
+      double xThreshold=0;
+      double binContent;
+      for (int i=1; i<=aProfile.GetNbinsX(); ++i) {
+        binContent = aProfile.GetBinContent(i);
+        if ((binContent!=0)&&(binContent<yThreshold)) {
+          // TODO: add a linear interpolation here
+          xThreshold = aProfile.GetBinCenter(i);
+          return xThreshold;
+        }
+      }
+      return 100;
+    } else {
+      double xThreshold=100;
+      double binContent;
+      for (int i=aProfile.GetNbinsX(); i>=1; --i) {
+        binContent = aProfile.GetBinContent(i);
+        if ((binContent!=0)&&(binContent>yThreshold)) {
+          // TODO: add a linear interpolation here
+          xThreshold = aProfile.GetBinCenter(i);
+          return xThreshold;
+        }
+      }
+      return 0;
+    }
+  }
 
 public:
   TriggerDistanceTuningPlotsVisitor(Tracker& tracker, const std::vector<double>& triggerMomenta) {
@@ -405,7 +369,7 @@ public:
   }
 
 
-  void visit(BarrelModule& aModule) {
+  void doVisit(const BarrelModule& aModule) {
 
     // Loop over all the tracker
     double myValue;
@@ -482,7 +446,7 @@ public:
   }
 
 
-  void visit(EndcapModule& aModule) {
+  void doVisit(const EndcapModule& aModule) {
   // If it's an endcap layer, scan over all disk 1 modules
 
   // Sort the plot by ring (using only disk 1)
@@ -565,7 +529,7 @@ public:
     }
   }
 
-  void postvisit() {
+  void postVisit() {
       // TODO: put also the limits into a configurable parameter
       // Scan again over the plots I just made in order to find the
       // interesting range, if we have 1 and 2 in the range (TODO: find
@@ -687,3 +651,119 @@ public:
       iPoints++;
     }
   }
+};
+
+
+
+
+class TriggerFrequencyVisitor : public AnalyzerVisitor {
+
+  std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
+  std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyInterestingParticleTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
+
+  void setupSummaries(const string& cntName) {
+    triggerFrequencyTrueSummaries_[cntName].setHeader("Layer", "Ring");
+    triggerFrequencyFakeSummaries_[cntName].setHeader("Layer", "Ring");
+    triggerRateSummaries_[cntName].setHeader("Layer", "Ring");
+    triggerPuritySummaries_[cntName].setHeader("Layer", "Ring");
+    triggerDataBandwidthSummaries_[cntName].setHeader("Layer", "Ring");
+    triggerFrequencyTrueSummaries_[cntName].setPrecision(3);
+    triggerFrequencyFakeSummaries_[cntName].setPrecision(3);
+    triggerRateSummaries_[cntName].setPrecision(3);
+    triggerPuritySummaries_[cntName].setPrecision(3);
+    triggerDataBandwidthSummaries_[cntName].setPrecision(3);
+  }
+
+  int nbins_;
+public:
+  TriggerFrequencyVisitor(Analyzer& analyzer) : analyzer_(analyzer) {
+    triggerFrequencyTrueSummaries_.clear();
+    triggerFrequencyFakeSummaries_.clear();
+    triggerRateSummaries_.clear();
+    triggerPuritySummaries_.clear();
+    triggerDataBandwidthSummaries_.clear();
+    triggerDataBandwidths_.clear();
+  }
+
+  void doVisit(const Layer& l) {
+    setupSummaries(summaryPath().cnt);
+    nbins = l.numModulesPerRod();
+  }
+
+  void doVisit(const Disk& d) {
+    setupSummaries(summaryPath().cnt);
+    nbins = d.numRings();
+  }
+
+  void doVisit(const Module& module) {
+    std::string cntName = summaryPath().cnt;
+
+    XYZVector center = module.getCenter();
+    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module.dsDistance()==0.0)) continue;
+
+      TH1D* currentTotalHisto;
+      TH1D* currentTrueHisto;
+
+      string cntName = summaryPath().cnt;
+      int layerIndex = summaryPath().row;
+      int ringIndex = summaryPath().col;
+
+      if (totalStubRateHistos_.count(std::make_pair(cntName, layerIndex)) == 0) {
+        currentTotalHisto = new TH1D(("totalStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins, 0.5, nbins+0.5);
+        currentTrueHisto = new TH1D(("trueStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins, 0.5, nbins+0.5); 
+        totalStubRateHistos_[std::make_pair(cntName, layerIndex)] = currentTotalHisto; 
+        trueStubRateHistos_[std::make_pair(cntName, layerIndex)] = currentTrueHisto; 
+      } else {
+        currentTotalHisto = totalStubRateHistos_[std::make_pair(cntName, layerIndex)]; 
+        currentTrueHisto = trueStubRateHistos_[std::make_pair(cntName, layerIndex)]; 
+      }
+
+
+      int curCnt = triggerFrequencyCounts[cntName][make_pair(layerIndex, ringIndex)]++;
+      double curAvgTrue = triggerFrequencyAverageTrue[cntName][make_pair(layerIndex, ringIndex)];
+      double curAvgInteresting = triggerFrequencyInterestingParticleTrue[cntName][make_pair(layerIndex, ringIndex)];
+      double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(layerIndex, ringIndex)];
+
+      //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+      //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+
+      // TODO! Important <- make this interestingPt cut configurable
+      const double interestingPt = 2;
+      curAvgTrue  = curAvgTrue + (module.triggerFrequencyTruePerEventAbove(interestingPt)*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+      curAvgInteresting += (module.particleFrequencyPerEventAbove(interestingPt)*tracker.getNMB() - curAvgInteresting)/(curCnt+1);
+      curAvgFake  = curAvgFake + ((module.triggerFrequencyFakePerEvent()*tracker.getNMB() + module.triggerFrequencyTruePerEventBelow(interestingPt))*tracker.getNMB() - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+
+      double curAvgTotal = curAvgTrue + curAvgFake;
+
+      triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTrue;            
+      triggerFrequencyInterestingParticleTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgInteresting;    
+      triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgFake;    
+
+      int triggerDataHeaderBits  = tracker.getModuleType(module->getType()).getTriggerDataHeaderBits();
+      int triggerDataPayloadBits = tracker.getModuleType(module->getType()).getTriggerDataPayloadBits();
+      double triggerDataBandwidth = (triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits) / (tracker.getBunchSpacingNs()); // GIGABIT/second
+      triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())] = triggerDataBandwidth;
+      triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTotal;
+
+      module->setProperty("triggerDataBandwidth", triggerDataBandwidth); // averaged over phi
+      module->setProperty("triggerFrequencyPerEvent", curAvgTotal); // averaged over phi
+
+
+      //                currentTotalGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+      //                currentTrueGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+
+      currentTotalHisto->SetBinContent(module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+      currentTrueHisto->SetBinContent(module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+
+      triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue);
+      triggerFrequencyInterestingSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgInteresting);
+      triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgFake);
+      triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTotal);             
+      triggerEfficiencySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/curAvgInteresting);                
+      triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/(curAvgTrue+curAvgFake));                
+      triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), module->getRing(), triggerDataBandwidth);
+
+    }
+  }
+
+}

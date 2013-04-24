@@ -80,13 +80,15 @@ RodTemplate Layer::makeRodTemplate(const PropertyTree& pt) {
     int ring = childTree.getValue<int>(0);
     if (ring > 0) {
       if (rodTemplate.size() < ring) rodTemplate.resize(ring);
-      (rodTemplate[ring-1] = std::make_shared<BarrelModule>())->store(childTree);
+      TypedModule* tm = ModuleTypeRepo::getInstance().decorateModule(new RectangularModule(), moduleType());
+      (rodTemplate[ring-1] = std::make_shared<BarrelModule>(tm))->store(childTree);  // decorator chain: new Barrel(new Typed(new Rectangular()))
     }
   }
   if (!numModules.state()) rodTemplate.push_back(NULL);// additional module built with default inherited properties to use in case the maxZ placement strategy requires additional modules than the ones constructed from mod-specific props
   for (auto& m : rodTemplate) {
     if (m == NULL) {
-      m = std::make_shared<BarrelModule>();
+      TypedModule* tm = ModuleTypeRepo::getInstance().decorateModule(new RectangularModule(), moduleType());
+      m = std::make_shared<BarrelModule>(tm);  // decorator chain: new Barrel(new Typed(new Rectangular()))
       m->store(propertyTree());
     }
     m->build();
