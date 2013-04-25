@@ -6,7 +6,7 @@
 using std::map;
 
 #include "Property.h"
-
+/*
 class ModuleType : public PropertyObject {
 public:
   Property<int, Default> numFaces;
@@ -51,6 +51,8 @@ public:
   ModuleType* get(const string& typestr) const { return types_.count(typestr) > 0 ? types_.at(typestr) : NULL; }
   ModuleType* getDefault() const { return defType_; }
 };
+*/
+
 
 
 #endif

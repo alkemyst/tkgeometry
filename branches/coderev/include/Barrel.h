@@ -24,14 +24,17 @@ private:
   Property<int, NoDefault> innerRadius;
   Property<int, NoDefault> outerRadius;
   Property<bool, Default> sameRods;
+
+  PropertyNode<int> layerNode;
 public:
   ReadonlyProperty<double, Computable> maxZ;
 
   Barrel() : 
-      numLayers("numLayers", checked()),
-      innerRadius("innerRadius", checked()),
-      outerRadius("outerRadius", checked()),
+      numLayers("numLayers", parsedAndChecked()),
+      innerRadius("innerRadius", parsedAndChecked()),
+      outerRadius("outerRadius", parsedAndChecked()),
       sameRods("sameRods", true),
+      layerNode("Layer", parsedOnly()),
       maxZ(Computable<double>([&]() { double max = 0; for (auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; })) 
   {}
 
