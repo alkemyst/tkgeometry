@@ -2,23 +2,8 @@
 
 
 
-void Module::translate(const XYZVector& translation) {
-  std::for_each(facePolys_.begin(), facePolys_.end(), std::bind2nd(std::mem_fun_ref(&Polygon3d<4>::translate), translation));
-}
 
-void Module::rotatePhi(double angle) {
- // std::for_each(facePolys_.begin(), facePolys_.end(), bind2nd(mem_fun_ref(&Polygon3d<4>::rotate), Math::RotationZ(angle)));
-  std::for_each(facePolys_.begin(), facePolys_.end(), std::bind2nd(std::mem_fun_ref(&Polygon3d<4>::rotateZ), angle));
-}
-/*
-void Module::rotate(const Rotation3D& rotation) {
-  std::for_each(facePolys_.begin(), facePolys_.end(), bind2nd(mem_fun_ref(&Polygon3d<4>::rotate), rotation));
-}
 
-void Module::transform(const Transform3D& transform) {
-  std::for_each(facePolys_.begin(), facePolys_.end(), bind2nd(mem_fun_ref(&Polygon3d<4>::transform), transform));
-}
-*/
 void RectangularModule::check() {
   Module::check();
 
@@ -34,58 +19,29 @@ void RectangularModule::check() {
   }
 }
 
-void BarrelModule::build() {
+
+void RectangularModule::build() {
   check();
 
   float l = length(), w = width();
-  Polygon3d<4> poly; 
-  poly << (XYZVector(0,  w/2,  l/2)) // a BarrelModule is generated lying flat on the YZ plane (like it were on the rod at phi=0)
-       << (XYZVector(0, -w/2,  l/2))
-       << (XYZVector(0, -w/2, -l/2))
-       << (XYZVector(0,  w/2, -l/2));
+  basePoly() << XYZVector( w/2, l/2, 0) 
+             << XYZVector(-w/2, l/2, 0)
+             << XYZVector(-w/2,-l/2, 0)
+             << XYZVector( w/2,-l/2, 0);
 
-  if (numFaces() == 1) {
-    facePolys_.push_back(poly);
-  } else {
-    Polygon3d<4> innerPoly(poly), outerPoly(poly);
-    innerPoly.translate(XYZVector(-dsDistance()/2, 0, 0));
-    outerPoly.translate(XYZVector( dsDistance()/2, 0, 0));
-    facePolys_.push_back(innerPoly);
-    facePolys_.push_back(outerPoly);
-  }
 }
 
-void RectangularEndcapModule::build() {
+
+
+void WedgeModule::build() {
   check();
-
-  float l = length(), w = width();
-  Polygon3d<4> poly;
-  poly << (XYZVector( l/2,  w/2, 0)) // a RectangularEndcapModule is generated lying flat on the XY plane, with the length along the X axis (like it were on a ring at phi=0)
-       << (XYZVector( l/2, -w/2, 0))
-       << (XYZVector(-l/2, -w/2, 0))
-       << (XYZVector(-l/2,  w/2, 0));
-
-  if (numFaces() == 1) {
-    facePolys_.push_back(poly);
-  } else {
-    Polygon3d<4> innerPoly(poly), outerPoly(poly);
-    innerPoly.translate(XYZVector(0, 0, -dsDistance()/2));
-    outerPoly.translate(XYZVector(0, 0,  dsDistance()/2));
-    facePolys_.push_back(innerPoly);
-    facePolys_.push_back(outerPoly);
-  }
-}
-
-void WedgeEndcapModule::build() {
-  check();
-
 
   //////// BEGIN COPY-PASTE WITH MINIMAL ADJUSTMENTS ////////
   cropped_ = false;
 
   double r = waferDiameter()/2.;
   double phi = buildAperture()/2.;// We need the half angle covered by the module
-  double d = buildRadius();
+  double d = buildDistance();
 
   //double gamma1; // alternate
   double gamma2;
@@ -113,11 +69,11 @@ void WedgeEndcapModule::build() {
 
   // Add a check: if the module overcomes the max rho
   // it must be cut.
-  if (cropRadius.state() && dfar > cropRadius()) {
-    amountCropped_ = dfar - cropRadius();
+  if (cropDistance.state() && dfar > cropDistance()) {
+    amountCropped_ = dfar - cropDistance();
     b1 = 0;
-    b2 = cropRadius() - d;
-    h2 = h1/d * cropRadius();
+    b2 = cropDistance() - d;
+    h2 = h1/d * cropDistance();
     cropped_ = true;
   }
 
@@ -130,21 +86,56 @@ void WedgeEndcapModule::build() {
   //dist_     = d;
   //aspectRatio_ = length_/(h1+h2);
 
-  Polygon3d<4> poly;
-  poly << (XYZVector( length_/2., maxWidth_/2., 0))
-       << (XYZVector( length_/2.,-maxWidth_/2., 0))
-       << (XYZVector(-length_/2.,-minWidth_/2., 0))
-       << (XYZVector(-length_/2., minWidth_/2., 0));
-
-  if (numFaces() == 1) {
-    facePolys_.push_back(poly);
-  } else {
-    Polygon3d<4> innerPoly(poly), outerPoly(poly);
-    innerPoly.translate(XYZVector(0, 0, -dsDistance()/2));
-    outerPoly.translate(XYZVector(0, 0,  dsDistance()/2));
-    facePolys_.push_back(innerPoly);
-    facePolys_.push_back(outerPoly);
-  }
+  basePoly() << (XYZVector( length_/2., maxWidth_/2., 0))
+             << (XYZVector( length_/2.,-maxWidth_/2., 0))
+             << (XYZVector(-length_/2.,-minWidth_/2., 0))
+             << (XYZVector(-length_/2., minWidth_/2., 0));
 }
 
-define_enum_strings(Shape) = { "rectangular", "wedge" };
+
+
+void BarrelModule::build() {
+  check();
+  decorated().store(propertyTree());
+  decorated().build();
+  decorated().rotateY(M_PI/2);
+}
+
+void EndcapModule::build() {
+  check();
+  decorated().store(propertyTree());
+  decorated().build();
+}
+
+
+void SingleSensorModule::build() {
+  check();
+  decorated().store(propertyTree());
+  decorated().build();
+  auto& children = propertyTree().getChildren("Sensor");
+  sensor_.store(!children.empty() ? children.front() : propertyTree());  
+  sensor_.poly(basePoly());
+  sensor_.build();
+}
+
+void DualSensorModule::build() {
+  check();
+  decorated().store(propertyTree());
+  decorated().build();
+  auto& childmap = propertyTree().getChildmap<int>("Sensor");
+  sensors_[0].store(childmap.count(1) > 0 ? childmap.at(1) : propertytree());
+  sensors_[0].poly((Polygon3d<4>(basepoly()).translate(-basePoly().normal()*dsDistance()/2));
+  sensors_[0].build();
+  sensors_[1].store(childmap.count(2) > 0 ? childmap.at(2) : propertytree());
+  sensors_[1].poly((Polygon3d<4>(basepoly()).translate(basePoly().normal()*dsDistance()/2));
+  sensors_[1].build();
+}
+
+
+TypedModule* TypedModule::decorate(const Module* m, ModuleType type) {
+  if (type == ModuleType::SINGLE_SENSOR) { return new SingleSensorModule(m); }
+  else { return new DualSensorModule(m); }
+}
+
+define_enum_strings(ModuleShape) = { "rectangular", "wedge" };
+define_enum_strings(ModuleType) = { "singlesensor", "dualsensor" };

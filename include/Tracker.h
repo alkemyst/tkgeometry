@@ -39,13 +39,18 @@ private:
   Property<int, NoDefault> ptCost;
   Property<int, NoDefault> stripCost;
   Property<double, NoDefault> efficiency;
+
+  PropertyNode<string> barrelNode;
+  PropertyNode<string> endcapNode;
 public:
   Tracker() :
-      numMinBiasEvents("numMinBiasEvents", checked()),
-      etaCut("etaCut", checked()),
-      ptCost("ptCost", checked()),
-      stripCost("stripCost", checked()),
-      efficiency("efficiency", checked())
+      numMinBiasEvents("numMinBiasEvents", parsedAndChecked()),
+      etaCut("etaCut", parsedAndChecked()),
+      ptCost("ptCost", parsedAndChecked()),
+      stripCost("stripCost", parsedAndChecked()),
+      efficiency("efficiency", parsedAndChecked()),
+      barrelNode("Barrel", parsedOnly()),
+      endcapNode("Endcap", parsedOnly())
   {}
 
 

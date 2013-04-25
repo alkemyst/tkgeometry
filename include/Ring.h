@@ -30,7 +30,8 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<Ring> 
   std::pair<double, int> computeOptimalRingParametersWedge(double moduleWaferDiameter);
   std::pair<double, int> computeOptimalRingParametersRectangle(double moduleWidth);
 
-  Property<Shape, NoDefault> moduleShape;
+  Property<ModuleShape, NoDefault> moduleShape;
+  Property<ModuleType, NoDefault> moduleType;
   Property<double, NoDefault> moduleOverlapPhi;
   Property<bool, Default> requireOddModsPerSlice;
   Property<int, NoDefault> numSlices;

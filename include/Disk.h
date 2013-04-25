@@ -22,6 +22,8 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> 
   Property<double, Default> minRingOverlap;
   Property<int, Default> diskParity;
 
+  PropertyNode<int> ringNode;
+
   void buildTopDown();
   void buildBottomUp();
 
@@ -35,7 +37,8 @@ public:
     bigDelta("bigDelta", checked()),
     zError("zError", checked()),
     minRingOverlap("minRingOverlap", unchecked(), 1.),
-    diskParity("diskParity", unchecked(), 1)
+    diskParity("diskParity", unchecked(), 1),
+    ringNode("Ring", unchecked())
   {}
 
   void build();

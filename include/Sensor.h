@@ -1,17 +1,17 @@
 
 class Sensor : public PropertyObject, public Buildable, public Identifiable<Sensor> {
-  Polygon3d<4> poly_; 
-  
 public:
   Property<int, NoDefault> xElements;
   Property<int, NoDefault> yElements;
-  Property<string, NoDefault> type;
+  Property<double, Default> sensorThickness;
+  Property<Polygon3d<4>, AutoDefault> poly;
 
-  Sensor(const Polygon3d<4>& poly) : 
-      poly_(poly),
+  Sensor() : 
       xElements("xElements", checked()),
       yElements("yElements", checked()),
-      type("type", checked())
+      sensorThickness("sensorThickness", 0.1)
   {}
+
+  void build() { check(); }
   
 };

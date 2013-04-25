@@ -19,10 +19,17 @@ protected:
   virtual Polygon3d<4>& basePoly() = 0;
 public:
   virtual const XYZVector& center() const = 0;
+  virtual double dsDistance() const = 0;
   virtual double thickness() const = 0;
 
   virtual Module* clone() = 0;
   virtual void build() = 0;
+
+  virtual void translate(const XYZVector& vector) = 0;
+  virtual void rotateZ(double angle) = 0;
+protected:
+  virtual void rotateX(double angle) = 0;
+  virtual void rotateY(double angle) = 0;
 };
 
 /// ===================================================== GEOMETRIC MODULES =====================================================
@@ -30,16 +37,21 @@ public:
 class GeometricModule : public Module {
   Polygon3d<4> basePoly_;
   Property<double, NoDefault> dsDistance_; // a GeometricModule is a purely 2d geometric object represented in 3d space with just a polygon and an additional for thickness value for tracker geometry construction
-protected:
-  Polygon3d<4>& basePoly() { return basePoly_; }
 public:
   GeometricModule() :
-      thickness_("thickness", checked())
+      dsDistance_("dsDistance", checked())
   {}
 
-  const XYZVector& center() const { return basePoly_.center(); }
-  double thickness() const { return thickness_; }
+  const Polygon3d<4>& basePoly() override { return basePoly_; }
+  const XYZVector& center() const override { return basePoly_.center(); }
+  double dsDistance() const override { return dsDistance_; }
+  double thickness() const override { return dsDistance_ + 0.1; } // for Geometric modules it is assumed they have a 0.1 mm thick generic sensor
 
+  void translate(const XYZVector& vector) override { basePoly_.translate(vector); }
+  void rotateZ(double angle) override { basePoly_.rotateZ(angle); }
+protected:
+  void rotateX(double angle) override { basePoly_.rotateX(angle); }
+  void rotateY(double angle) override { basePoly_.rotateY(angle); }
 };
 
 class RectangularModule : public GeometricModule {
@@ -54,15 +66,13 @@ public:
       width("width", unchecked())
   {}
 
-  RectangularModule* clone() { return new RectangularModule(*this); }
+  RectangularModule* clone() override { return new RectangularModule(*this); }
 
-  void check();
-  void build();
+  void check() override;
+  void build() override;
 }
 
-class WedgeModule : public GeometricModule {
-  Polygon3d<4> basePoly_;
-protected:
+class WedgeModule : public GeometricModule, public Cloneable<WedgeModule> {
   float length_, minWidth_, maxWidth_;
   float area_,/*dist_*/;
   bool cropped_;
@@ -80,11 +90,12 @@ public:
       cropDistance("cropDistance",   checked())
   {}
 
-  WedgeModule* clone() { return new WedgeModule(*this); }
+  WedgeModule* clone() override { return new WedgeModule(*this); }
 
-  void build();
+  void build() override;
 };
 
+enum class ModuleShape { RECTANGULAR, WEDGE };
 // ========================================================================================================================================
 
 
@@ -94,13 +105,19 @@ public:
 
 class DetectorModule : public Module, public Decorator<Module> {  // implementors of the DetectorModule interface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
 protected:
-  Polygon3d<4>& basePoly() override { return decorated()->basePoly(); }
+  Polygon3d<4>& basePoly() override { return decorated().basePoly(); }
 public:
   DetectorModule(const Module* decorated) : Decorator<Module>(decorated) {}
-  const XYZVector& center() const override { return decorated()->center(); }
-  double thickness() const override { return decorated()->thickness(); }
+  const XYZVector& center() const override { return decorated().center(); }
+  double dsDistance() const override { return decorated().dsDistance(); }
+  double thickness() const override { return decorated().thickness(); }
 
-  virtual void build() = 0;
+
+  void translate(const XYZVector& vector) override { decorated().translate(vector); }
+  void rotateZ(double angle) override { decorated().rotateZ(angle); }
+protected:
+  void rotateX(double angle) override { decorated().rotateX(angle); }
+  void rotateY(double angle) override { decorated().rotateY(angle); }
 };
 
 
@@ -138,15 +155,20 @@ public:
 // ======================================================== TYPED MODULE =============================================================
 
 
+enum class ModuleType { SINGLE_SENSOR, DUAL_SENSOR };
+
+
 class TypedModule : public Module, public Decorator<Module> {
 protected:
-  Polygon3d<4>& basePoly() override { return decorated()->basePoly(); }
+  Polygon3d<4>& basePoly() override { return decorated().basePoly(); }
 public:
-  TypedModule(const Module* decorated) : Decorator<Module>(decorated) {}
-  const XYZVector& center() const override { return decorated()->center(); }
-  Polygon3d<4>& thickness() override { return decorated()->thickness(); }
+  static TypedModule* decorate(const Module* m, ModuleType type); 
 
-  void build();
+  TypedModule(const Module* decorated) : Decorator<Module>(decorated) {}
+  const XYZVector& center() const override { return decorated().center(); }
+  double dsDistance() const override { return decorated().dsDistance(); }
+
+
 };
 
 class SingleSensorModule : public TypedModule {
@@ -154,9 +176,19 @@ class SingleSensorModule : public TypedModule {
 public:
   SingleSensorModule(const Module* decorated) : TypedModule(decorated) {}
 
+  double thickness() const { return decorated().dsDistance() + sensor_.sensorThickness(); }
+
   const Sensor& sensor() const { return sensor_; }
 
+  void build() override;
+
   SingleSensorModule* clone() override { return new SingleSensorModule(*this); }
+
+  void translate(const XYZVector& vector) override { decorated().translate(vector); sensor_.translate(vector); }
+  void rotateZ(double angle) override { decorated().rotateZ(angle); sensor_.rotateZ(angle); }
+protected:
+  void rotateX(double angle) override { decorated().rotateX(angle); sensor_.rotateX(angle); }
+  void rotateY(double angle) override { decorated().rotateY(angle); sensor_.rotateY(angle); }
 }; 
 
 class DualSensorModule : public TypedModule {
@@ -167,151 +199,22 @@ private:
 public:
   DualSensorModule(const Module* decorated) : TypedModule(decorated) {}
 
+  double thickness() const override { return decorated().dsDistance() + sensors_[0].sensorThickness()/2 + sensors_[1].sensorThickness()/2; }
+
   const Sensors& sensors() const { return sensors_; }
 
+  void build() override;
+
   DualSensorModule* clone() override { return new DualSensorModule(*this); }
-};
 
-
-
-enum class Shape { RECTANGULAR, WEDGE };
-
-
-class Module : public PropertyObject, public Buildable, public Placeable, public Identifiable<Module> {
+  void translate(const XYZVector& vector) override { decorated().translate(vector); for (auto& s : sensors_) s.translate(vector); }
+  void rotateZ(double angle) override { decorated().rotateZ(angle); for (auto& s : sensors_) s.rotateZ(angle); }
 protected:
-  ModuleType* type_;
-  vector<Polygon3d<4>> facePolys_;
-  
-  Property<string, NoDefault> moduleType;
-  Property<int, Computable> numFaces;
-  Property<float, Computable> sensorThickness;
-
-  const Polygon3d<4>& innerFace() const { return facePolys_.front(); }
-  const Polygon3d<4>& outerFace() const { return facePolys_.back(); }
-public:
-  ReadonlyProperty<float, Computable> waferDiameter;
-  ReadonlyProperty<float, Computable> dsDistance;
-
-  ReadonlyProperty<float, Computable> thickness;
-  ReadonlyProperty<float, Computable> aperture;
-
-
-//  virtual Shape shape() const = 0;
-
-  Module() :
-      moduleType("moduleType", unchecked()),
-      numFaces("numFaces", unchecked(), [this]() { return type_->numFaces(); }),
-      sensorThickness("sensorThickness", unchecked(), [this]() { return type_->sensorThickness(); }),
-
-      waferDiameter("waferDiameter", unchecked(), [this]() { return type_->waferDiameter(); }),
-      dsDistance("dsDistance", unchecked(), [this]() { return type_->dsDistance(); }),
-
-      thickness([&]() { return dsDistance() + sensorThickness(); }),
-      aperture([&]() { float max = 0, min = 999; 
-                       for (auto& vertex : outerFace()) { max = MAX(max, vertex.Phi()); min = MIN(min, vertex.Phi()); } 
-                       return max - min; })
-  {}
-
-  virtual Module* clone() = 0;
-  
-  virtual void check() {
-    type_ = moduleType.state() ? ModuleTypeRepo::getInstance().get(moduleType()) : ModuleTypeRepo::getInstance().getDefault();
-    PropertyObject::check();
-  }
-
-  virtual void build() = 0;
-  void translate(const XYZVector& translation);
-  void rotatePhi(double angle);
-
-
-  const XYZVector& getCorner(int index) const { return innerFace().getVertex(index); } // LEGACY INTERFACE 
-  const XYZVector& getMeanPoint() const { return center(); }
+  void rotateX(double angle) override { decorated().rotateX(angle); for (auto& s : sensors_) s.rotateX(angle); }
+  void rotateY(double angle) override { decorated().rotateY(angle); for (auto& s : sensors_) s.rotateY(angle); }
 };
 
-class RectangularModule : public virtual Module {
-  
-  Property<float, NoDefault> aspectRatio;
-public:
-  Property<float, NoDefault> length;
-  Property<float, NoDefault> width;
-//  Shape shape() const { return Shape::RECTANGULAR; }
-
-  RectangularModule() :
-      aspectRatio("aspectRatio", unchecked()),
-      length("length", unchecked()),
-      width("width", unchecked())
-  {}
-
-  virtual void check(); 
-
-};
-
-
-class WedgeModule : public virtual Module {
-protected:
-  float length_, minWidth_, maxWidth_;
-  float area_,/*dist_*/;
-  bool cropped_;
-  float amountCropped_;
-public:
-  Property<float, NoDefault> buildAperture, buildRadius, cropRadius;
-  float length() const { return length_; }
-  float minWidth() const { return minWidth_; }
-  float maxWidth() const { return maxWidth_; }
-//  Shape shape() const { return Shape::WEDGE; }
-  
-  WedgeModule() {}
-
-};
-
-
-
-
-class BarrelModule : public RectangularModule {
-public:
-  Property<int, AutoDefault> layer;
-  Property<int, AutoDefault> ring;
-  Property<int, AutoDefault> rod;
-  Property<int, AutoDefault> side;
-  BarrelModule* clone() override { return new BarrelModule(*this); }
-  void build();
-};
-
-class EndcapModule : public virtual Module {
-public:
-  Property<int, AutoDefault> disk;
-  Property<int, AutoDefault> ring;
-  Property<int, AutoDefault> blade; // CUIDADO Think of a better name!
-  Property<int, AutoDefault> side;
-  virtual EndcapModule* clone() = 0;
-  void build() = 0;
-};
-
-class RectangularEndcapModule : public EndcapModule, public RectangularModule {
-public:
-  //void check() { RectangularModule::check(); }
-  RectangularEndcapModule* clone() override { return new RectangularEndcapModule(*this); }
-  void build();
-};
-
-
-class WedgeEndcapModule : public EndcapModule, public WedgeModule {
-public:
-  //void check() { WedgeModule::check(); }
-  WedgeEndcapModule* clone() override { return new WedgeEndcapModule(*this); }
-  void build();
-};
-
-
-
-Module * m = new EndcapM(new RectM(new DualSided(new )));
-
-
-
-class PtModule : public M {
-public:
-
-}; 
+// ===================================================================================================================================
 
 
 
