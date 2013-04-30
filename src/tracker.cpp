@@ -757,6 +757,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
                                   oddSegments, alignEdges,
                                   sampleModule,
                                   ringDirectives_,
+                                  ringGaps_,
                                   diskParity,
                                   sectioned );
   } else {
@@ -770,6 +771,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
                                   oddSegments, alignEdges,
                                   sampleModule,
                                   ringDirectives_,
+                                  ringGaps_,
                                   diskParity,
                                   sectioned );
   }

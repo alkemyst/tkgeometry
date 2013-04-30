@@ -560,6 +560,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 
   // Directives (this are communicated to the Tracker object)
   std::map<int, int> ringDirective;
+  std::map<int, double> ringGaps;
 
   // Tracker should be already there
   if (!myTracker_) {
@@ -743,6 +744,16 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
             << "\" should be ring+increment or ring-decrement )" << endl;
           throw parsingException();
         }
+      } else if (parameterName=="ringGap") {
+        int ringNum; float gap;
+        if (sscanf(parameterValue.c_str(), "%d%f", &ringNum, &gap)==2) {
+          if (gap!=0) ringGaps[ringNum]=gap;
+        } else {
+          cerr << "ERROR: Parsing endcap \"" << myName
+               << "\": wrong syntax for a ring gap: \"" << parameterValue
+               << "\" should be ring+gap or ring-gap )" << endl;
+          throw parsingException();
+        }
       } else if (parameterName=="removeRings") {
         // Example of the syntax "D1R4+"
         int diskNum, ringNum;
@@ -880,7 +891,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     // possible previous directives coming from a different endcap
     myTracker_->setRingDirectives(ringDirective);
     myTracker_->setPhiSegments(phiSegments);
-
+    myTracker_->setRingGaps(ringGaps);
 
 
     if (rhoIn!=0 || nRings != 0) {

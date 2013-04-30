@@ -329,6 +329,7 @@ public:
                        bool oddSegments, bool alignEdges,
                        std::map<int, EndcapModule*> sampleModule, 
                        std::map<int, int> ringDirectives, 
+                       std::map<int, double> ringGaps, 
                        int diskParity,
                        int sectioned = NoSection);
 
@@ -344,6 +345,7 @@ public:
                        bool oddSegments, bool alignEdges,
                        std::map<int, EndcapModule*> sampleModule, 
                        std::map<int, int> ringDirectives, 
+                       std::map<int, double> ringGaps, 
                        int diskParity,
                        int sectioned = NoSection);
 
