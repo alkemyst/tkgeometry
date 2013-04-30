@@ -144,6 +144,7 @@ namespace insur {
     static const int TriggeredProfile;
     static const int TriggerProfile;
     static const int TriggeredFractionProfile;
+    static const int TriggerPurityProfile;
     static const std::string TriggerProfileName;
     static const std::string TriggerProfileNameWindow;
     static const std::string TurnOnCurveName;
@@ -300,6 +301,8 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+    std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
+    std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
 
     SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
     std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
@@ -374,6 +377,8 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
     std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
+    std::map<std::string, SummaryTable> stripOccupancySummaries_;
+    std::map<std::string, SummaryTable> hitOccupancySummaries_;
 
     SummaryTable processorConnectionSummary_;
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
@@ -433,7 +438,8 @@ namespace insur {
                          const std::vector<Track>& trackVector,
                          int graphAttributes);
     void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
-                                     const std::vector<Track>& trackVector);
+                                     const std::vector<Track>& trackVector,
+                                     const Tracker& tracker);
     void fillTriggerPerformanceMaps(Tracker& tracker);
     void fillPowerMap(Tracker& tracker);
     void clearMaterialBudgetHistograms();

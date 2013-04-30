@@ -1435,6 +1435,7 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
                                   bool oddSegments, bool alignEdges,
                                   std::map<int, EndcapModule*> sampleModules,
                                   std::map<int, int> ringDirectives,
+                                  std::map<int, double> ringGaps, 
                                   int diskParity,
                                   int sectioned /*=NoSection*/) {
 
@@ -1492,7 +1493,15 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
 
     nextRho -= sampleModule->getHeight(); // we do this because the buildRing builds modules from bottom to top, so we tell it to start building the ring from the min radius
     // ringParity = 1 means the ring is nearer to the interaction point
-    //
+    
+    if (ringGaps[nRing]) {
+      nextRho -= ringGaps[nRing];
+      tempString.str(""); tempString << "ring " << nRing
+                                     << " has a gap of " << ringGaps[nRing]
+                                     << " mm after it, which moves nextrho to: " << nextRho;
+      logDEBUG(tempString);
+    }
+
     int numPlacedModules; // set by buildring
     lastRho = buildRing(nextRho,
                         smallDelta,
@@ -1525,9 +1534,9 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
     double originZ = ringParity > 0 ? zError : -zError;
     double nextRhoOrigin = (nextRho + overlap)/lastZ * newZ;
     double nextRhoShifted = nextRho/(lastZ - originZ) * (newZ - originZ);
-
+    
     nextRho = nextRhoOrigin > nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
-
+    
   }
 
   nOfRings_ = nRings;
@@ -1550,6 +1559,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
                                   bool oddSegments, bool alignEdges,
                                   std::map<int, EndcapModule*> sampleModules,
                                   std::map<int, int> ringDirectives,
+                                  std::map<int, double> ringGaps,
                                   int diskParity,
                                   int sectioned /*=NoSection*/) {
 
@@ -1603,6 +1613,15 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 
     int numPlacedModules;
     // ringParity = 1 means the ring is nearer to the interaction point
+
+    if (ringGaps[nRing-1]) {
+      nextRho += ringGaps[nRing-1];
+      tempString.str(""); tempString << "ring " << nRing
+                                     << " has a gap of " << ringGaps[nRing-1]
+                                     << " mm after it, which moves nextrho to: " << nextRho;
+      logDEBUG(tempString);
+    }
+
     lastRho = buildRing(nextRho,
                         smallDelta,
                         ringParity*bigDelta,
@@ -1640,6 +1659,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     nextRho = nextRhoOrigin < nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
   
     nextRhoOrigin2 = nextRhoOrigin2;
+    
   }
 
   nOfRings_ = nRing - 1;
