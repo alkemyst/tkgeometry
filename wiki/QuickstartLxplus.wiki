@@ -4,7 +4,7 @@
 
 *NOTE*: this quick start recipe details the procedure for compiling and running tkLayout revision 664 or greater on *lxplus machines with 64-bit SLC5*.
 
-Some thinkering with library paths, environment variables and/or Makefile options might be needed to successfully compile tkLayout on other architectures/operating systems.
+Some tinkering with library paths, environment variables and/or Makefile options might be needed to successfully compile tkLayout on other architectures/operating systems.
 
 tkLayout requires:
  * ROOT version > 5.28.00
@@ -51,7 +51,12 @@ So that they look like this:
 <code>
 make clean && make -j4 && make install</code>
 
+*7.* The install process will ask some questions, namely: where to copy the executable, where to store the html output and where to store the "standard output" (xml and some configuration files).
+Pay attention to specify *different paths for them than the source code path*, lest the installer fail.
 
-*7.* Once tklayout is built and installed, you can see the command line options with:
+tkLayout stores the installation configuration in the file "~/.tkgeometryrc", so that in case wrong data is entered, one can remove the file and rerun "make install".
+
+
+*8.* Once tklayout is built and installed, you can see the command line options with:
 <code>
 tklayout --help</code>
