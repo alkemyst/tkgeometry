@@ -18,20 +18,29 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<Endc
   enum class MinZType { ABSOLUTE, BARRELGAP };
 
   Property<int, NoDefault> numDisks;
-  Property<MinZType, Default> minZType;
+  Property<float, NoDefault> barrelGap;
   Property<float, NoDefault> minZ;
   Property<float, NoDefault> maxZ;
+  PropertyNode<int> diskNode;
+  
+  vector<double> findMaxDsDistances();
 public:
   Property<float, NoDefault> barrelMaxZ;
 
   Endcap() :
-      numDisks("numDisks", checked()),
-      minZType("minZType", unchecked(), MinZType::BARRELGAP),
-      minZ("minZ", checked()),
-      maxZ("maxZ", checked())
+      numDisks("numDisks", parsedAndChecked()),
+      barrelGap("barrelGap", parsedOnly()),
+      minZ("minZ", parsedOnly()),
+      maxZ("maxZ", parsedAndChecked()),
+      diskNode("Disk", parsedOnly())
   {}
 
   void build();
+
+  void accept(GenericGeometryVisitor& v) { 
+    v.visit(*this); 
+    for (auto& d : disks_) { d.accept(v); }
+  }
 };
 
 

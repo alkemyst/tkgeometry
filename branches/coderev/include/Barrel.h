@@ -16,7 +16,7 @@ using std::vector;
 
 class Barrel : public PropertyObject, public Buildable, public Identifiable<Barrel> {
 public:
-  typedef boost::ptr_vector<Layer> container;
+  typedef boost::ptr_vector<Layer> Container;
 private:
   Container layers_;
 
@@ -41,6 +41,11 @@ public:
   void build(); 
 
   const Container& layers() const { return layers_; }
+
+  void accept(GenericGeometryVisitor& v) { 
+    v.visit(*this); 
+    for (auto& l : layers_) { l.accept(v); }
+  }
 };
 
 #endif

@@ -26,8 +26,12 @@ protected:
   virtual void doVisit(const Disk&) {}
   virtual void doVisit(const Ring&) {}
   virtual void doVisit(const Module&) {}
-  virtual void doVisit(const BarrelModule& bm) { doVisit((Module&)bm); }
-  virtual void doVisit(const EndcapModule& em) { doVisit((Module&)em); }
+  virtual void doVisit(const BarrelModule&) {}
+  virtual void doVisit(const EndcapModule&) {}
+  virtual void doVisit(const SingleSensorModule&) {}
+  virtual void doVisit(const DualSensorModule&) {}
+  virtual void doVisit(const RectangularModule& rm) { doVisit((Module&)rm); }
+  virtual void doVisit(const WedgeModule& wm) { doVisit((Module&)wm); }
 public:
   void visit(const Tracker& t) { geomPath_.uniformPath_.tracker = t.myid(); doVisit(t); }
   void visit(const Barrel& b)  { geomPath_.barrelPath_.barrel = b.myid();   doVisit(b); }
@@ -36,9 +40,12 @@ public:
   void visit(const Endcap& e)  { geomPath_.endcapPath_.endcap = e.myid();   doVisit(e); }
   void visit(const Disk& d)    { geomPath_.endcapPath_.disk = d.myid();     doVisit(d); }
   void visit(const Ring& r)    { geomPath_.endcapPath_.ring = r.myid();     doVisit(r); }
-  void visit(const BarrelModule& bm) { geomPath_.barrelPath_.ring = bm.myid();   doVisit(bm); }
+  void visit(const BarrelModule& bm) { geomPath_.barrelPath_.ring_ = bm.myid();  doVisit(bm); }
   void visit(const EndcapModule& em) { geomPath_.endcapPath_.blade_ = em.myid(); doVisit(em); }
-
+  void visit(const SingleSensorModule& ssm) { doVisit(ssm); }
+  void visit(const DualSensorModule& em)    { doVisit(dsm); }
+  void visit(const RectangularModule& rm)   { doVisit(rm);  }
+  void visit(const WedgeModule& wm)         { doVisit(wm);  }
 };
 
 
@@ -293,6 +300,8 @@ public:
 
 class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
 
+  std::map<std::string, ModuleVector> selectedModules;
+
   double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward) {  
     // TODO: add a linear interpolation here
     if (goForward) {
@@ -377,7 +386,6 @@ public:
     std::ostringstream tempSS;
 
 
-    std::map<std::string, ModuleVector> selectedModules;
 
 
     std::vector<Module*>& theseBarrelModules = selectedModules[barrelPath().barrel() + "_" + barrelPath().layer()];
@@ -687,12 +695,12 @@ public:
 
   void doVisit(const Layer& l) {
     setupSummaries(summaryPath().cnt);
-    nbins = l.numModulesPerRod();
+    nbins_ = l.numModulesPerRod();
   }
 
   void doVisit(const Disk& d) {
     setupSummaries(summaryPath().cnt);
-    nbins = d.numRings();
+    nbins_ = d.numRings();
   }
 
   void doVisit(const Module& module) {
@@ -709,8 +717,8 @@ public:
       int ringIndex = summaryPath().col;
 
       if (totalStubRateHistos_.count(std::make_pair(cntName, layerIndex)) == 0) {
-        currentTotalHisto = new TH1D(("totalStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins, 0.5, nbins+0.5);
-        currentTrueHisto = new TH1D(("trueStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins, 0.5, nbins+0.5); 
+        currentTotalHisto = new TH1D(("totalStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins_, 0.5, nbins_+0.5);
+        currentTrueHisto = new TH1D(("trueStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins_, 0.5, nbins_+0.5); 
         totalStubRateHistos_[std::make_pair(cntName, layerIndex)] = currentTotalHisto; 
         trueStubRateHistos_[std::make_pair(cntName, layerIndex)] = currentTrueHisto; 
       } else {
@@ -766,4 +774,179 @@ public:
     }
   }
 
+};
+
+
+namespace AnalyzerHelpers {
+
+  void drawModuleOnMap(const Module& m, double val, TH2D& map, TH2D& counter) {
+    const Polygon3d<4>& poly = m.basePoly();
+    XYZVector start = (poly.getVertex(0) + poly.getVertex(1))/2;
+    XYZVector end = (poly.getVertex(2) + poly.getVertex(3))/2;
+    XYZVector diff = end-start;
+    XYZVector point;
+    for (double l=0; l<=1; l+=0.1) {
+      point = start + l * diff;
+      map.Fill(point.Z(), point.Rho(), val);
+      counter.Fill(point.Z(), point.Rho(), 1);
+    }
+  }
+  void drawModuleOnMap(const Module& m, double val, TH2D& map) {
+    const Polygon3d<4>& poly = m.basePoly();
+    XYZVector start = (poly.getVertex(0) + poly.getVertex(1))/2;
+    XYZVector end = (poly.getVertex(2) + poly.getVertex(3))/2;
+    XYZVector diff = end-start;
+    XYZVector point;
+    for (double l=0; l<=1; l+=0.1) {
+      point = start + l * diff;
+      map.Fill(point.Z(), point.Rho(), val);
+    }
+  }
+
 }
+
+
+
+class TriggerEfficiencyMapVisitor : public AnalyzerVisitor {
+  double myPt;
+  TH2D& myMap;
+  TH2D* counter;
+public:
+  PtThresholdMapVisitor(TH2D& map, double pt) : myMap(map), myPt(pt) { counter = (TH2D*)map.Clone(); }
+
+  void doVisit(const DualSensorModule& aModule) {
+    double myValue = aModule.triggerProbability(myPt);
+    if (myValue>=0) VisitorHelpers::drawModuleOnMap(aModule, myValue, myMap, counter);
+  }
+
+  void postVisit() {
+    for (int i=1; i<=myMap.GetNbinsX(); ++i)
+      for (int j=1; j<=myMap.GetNbinsY(); ++j)
+        if (counter->GetBinContent(i,j)!=0)
+          myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+    // ... and get rid of the counter
+  }
+
+  ~TriggerEfficiencyMapVisitor() { delete counter; }
+};
+
+
+
+
+
+class PtThresholdMapVisitor : public TriggerPerformanceVisitor {
+  double myPt;
+  TH2D& myMap;
+  TH2D counter;
+public:
+  PtThresholdMapVisitor(TH2D& map, double pt) : myMap(map), myPt(pt) { counter = (TH2D*)map.Clone(); }
+
+  void doVisit(const DualSensorModule& aModule) {
+    double myValue = aModule.ptThreshold(myPt);
+    if (myValue >= 0) AnalyzerHelpers::drawModuleOnMap(aModule, myValue, myMap, counter);
+  }
+
+  void postVisit() {
+    for (int i=1; i<=myMap.GetNbinsX(); ++i)
+      for (int j=1; j<=myMap.GetNbinsY(); ++j)
+        if (counter()->GetBinContent(i,j)!=0)
+          myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter()->GetBinContent(i,j));
+    // ... and get rid of the counter
+  }
+
+  ~PtThresholdMapVisitor() { delete counter; }
+};
+
+
+
+
+
+class SpacingCutVisitor : public TriggerPerformanceVisitor {
+  TH2D& thicknessMap;
+  TH2D& windowMap;
+  TH2D& suggestedSpacingMap;
+  TH2D& suggestedSpacingMapAW;
+  TH2D& nominalCutMap;
+  TH2D *counter, *counterSpacing, *counterSpacingAW;
+public:
+  ModuleSpacingVisitor(TH2D& thicknessMap_, TH2D& windowMap_, TH2D& suggestedSpacingMap_, TH2D& suggestedSpacingMapAW_, TH2D& nominalCutMap_) : 
+      thicknessMap(thicknessMap_), windowMap(windowMap_), suggestedSpacingMap(suggestedSpacingMap), suggestedSpacingMapAW(suggestedSpacingMapAW_), nominalCutMap(nominalCutMap_) {
+        counter = (TH2D*)thicknessMap.Clone();
+        counterSpacing = (TH2D*)suggestedSpacingMap.Clone();
+        counterSpacingAW = (TH2D*)suggestedSpacingMapAW.Clone();
+  }
+
+  void doVisit(const DualSensorModule& aModule) {
+    if (!aModule.ptCapable()) continue;
+    double myThickness = aModule.thickness();
+    double myWindow = aModule.triggerWindow();
+    //myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
+    double mySuggestedSpacing = aModule.optimalSpacingWithTriggerWindow(5); // TODO: put this 5 in a configuration of some sort
+    double mySuggestedSpacingAW = aModule.optimalSpacingWithTriggerWindow(aModule.triggerWindow());
+    double nominalCut = aModule.ptCut();
+
+    drawModuleOnMap(aModule, myThickness, thicknessMap);
+    drawModuleOnMap(aModule, myWindow, windowMap);
+    drawModuleOnMap(aModule, nominalCut, nominalCut);
+    if (mySuggestedSpacing != 0) drawModuleOnMap(aModule, mySuggestedSpacing, suggestedSpacingMap, counterSpacing);
+    if (mySuggestedSpacingAW != 0) drawModuleOnMap(aModule, mySuggestedSpacingAW, suggestedSpacingMapAW, counterSpacingAW);
+
+  }
+
+  void postVisit() {
+    for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
+        if (counter->GetBinContent(i,j)!=0) {
+          thicknessMap.SetBinContent(i,j, thicknessMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+          windowMap.SetBinContent(i,j, windowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+          nominalCutMap.SetBinContent(i,j, nominalCutMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+          if ((suggestedSpacingMap.GetBinContent(i,j)/counterSpacing->GetBinContent(i,j))>50) {
+            std::cout << "debug: for bin " << i << ", " << j << " suggestedSpacing is " << suggestedSpacingMap.GetBinContent(i,j)
+              << " and counter is " << counterSpacing->GetBinContent(i,j) << std::endl;
+          }
+          suggestedSpacingMap.SetBinContent(i,j, suggestedSpacingMap.GetBinContent(i,j) / counterSpacing->GetBinContent(i,j));
+          suggestedSpacingMapAW.SetBinContent(i,j, suggestedSpacingMapAW.GetBinContent(i,j) / counterSpacingAW->GetBinContent(i,j));
+        }
+      }
+    }
+  }
+
+  ~ModuleSpacingVisitor() {
+    delete counter;
+    delete counterSpacing;
+    delete counterSpacingAW;
+  }
+
+};
+
+
+class IrradiatedPowerMapVisitor {
+  TH2D &irradiatedPowerConsumptionMap, &totalPowerConsumptionMap;
+  TH2D *counter;
+public:
+  IrradiatedPowerMapVisitor(TH2D& irradiatedPowerConsumptionMap_, TH2D& totalPowerConsumptionMap_) : irradiatedPowerConsumptionMap(irradiatedPowerConsumptionMap_), totalPowerConsumptionMap(totalPowerConsumptionMap_) {
+    counter = (TH2D*)irradiatedPowerConsumptionMap.Clone();
+  }
+  void visit(const TypedModule& aModule) {
+    if ((aModule.center().Z()<0) || (aModule.center().Phi()<0) || (aModule.center().Phi()>M_PI/2)) continue;
+    double myPower = aModule.sensorPowerConsumptionAfterIrradiation();
+    double myPowerChip = aModule.chipPowerConsumption();
+
+    VisitorHelpers::drawModuleOnMap(aModule, myPower, irradiatedPowerConsumptionMap, counter);
+    VisitorHelpers::drawModuleOnMap(aModule, myPower+myPowerChip, totalPowerConsumptionMap); // only the first time counter is updated, but in postVisit both maps are averaged bin for bin over the counter value  
+  }
+
+  void postVisit() {
+    for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
+        if (counter->GetBinContent(i,j)!=0) {
+          irradiatedPowerConsumptionMap.SetBinContent(i,j, irradiatedPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+          totalPowerConsumptionMap.SetBinContent(i,j, totalPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+        }
+      }
+    }
+  }
+
+  ~IrradiatedPowerMapVisitor() { delete counter; }
+
+};

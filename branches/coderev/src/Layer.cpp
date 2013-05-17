@@ -1,6 +1,16 @@
 #include "Layer.h"
 #include "RodPair.h"
 
+#include <iostream>
+
+void Layer::check() {
+  PropertyObject::check();
+
+  if (numModules.state() && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+  else if (!numModules.state() && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+
+}
+
 
 double Layer::calculatePlaceRadius(int numRods,
                                    double bigDelta,
@@ -32,75 +42,70 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
   // CUIDADO fix placeRadiusHint!!!!!
   double maxDsDistance = (*std::max_element(rodTemplate.begin(), 
                                             rodTemplate.end(), 
-                                            [](shared_ptr<BarrelModule> m1, shared_ptr<BarrelModule> m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
+                                            [](const unique_ptr<RectangularModule>& m1, const unique_ptr<RectangularModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
   float moduleWidth = (*rodTemplate.rbegin())->width();
-  float f = moduleWidth/2 - rodOverlap()/2;
-  float gamma = atan(f/placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
-  float tentativeSlices = M_2_PI/(gamma * modsPerSlice());
+  float f = moduleWidth/2 - rodOverlapPhi()/2;
+  float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
+  float tentativeModsPerSegment = 2*M_PI/(gamma * phiSegments());
 
   float optimalRadius;
-  int optimalSlices;
+  int optimalModsPerSegment;
 
   switch (radiusMode()) {
   case SHRINK:
-    optimalSlices = floor(tentativeSlices);
-    optimalRadius = calculatePlaceRadius(optimalSlices*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
+    optimalModsPerSegment = floor(tentativeModsPerSegment);
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
     break;
   case ENLARGE:
-    optimalSlices = ceil(tentativeSlices);
-    optimalRadius = calculatePlaceRadius(optimalSlices*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
+    optimalModsPerSegment = ceil(tentativeModsPerSegment);
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
     break;
   case FIXED:
-    optimalSlices = ceil(tentativeSlices);
+    optimalModsPerSegment = ceil(tentativeModsPerSegment);
     optimalRadius = placeRadiusHint();
     break;
-  case AUTO:
-    int slicesLo = floor(tentativeSlices);
-    int slicesHi = ceil(tentativeSlices);
-    float radiusLo = calculatePlaceRadius(slicesLo*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
-    float radiusHi = calculatePlaceRadius(slicesHi*modsPerSlice(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlap());
+  case AUTO: {
+    int modsPerSegLo = floor(tentativeModsPerSegment);
+    int modsPerSegHi = ceil(tentativeModsPerSegment);
+    float radiusLo = calculatePlaceRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
+    float radiusHi = calculatePlaceRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
 
     if (fabs(radiusHi - placeRadiusHint()) < fabs(radiusLo - placeRadiusHint())) {
       optimalRadius = radiusHi;
-      optimalSlices = slicesHi;
+      optimalModsPerSegment = modsPerSegHi;
     } else {
       optimalRadius = radiusLo;
-      optimalSlices = slicesLo;
+      optimalModsPerSegment = modsPerSegLo;
     }
     break;
+             }
+  default:
+    throw PathfulException("Invalid value for enum radiusMode");
   }
 
-  return std::make_pair(optimalRadius, optimalSlices*modsPerSlice());
+  return std::make_pair(optimalRadius, optimalModsPerSegment*phiSegments());
 }
 
 
-RodTemplate Layer::makeRodTemplate(const PropertyTree& pt) {
-  RodTemplate rodTemplate(numModules.state() ? numModules() : 0);
-  for (auto& childTree : pt.getChildren("Module")) {
-    int ring = childTree.getValue<int>(0);
-    if (ring > 0) {
-      if (rodTemplate.size() < ring) rodTemplate.resize(ring);
-      TypedModule* tm = ModuleTypeRepo::getInstance().decorateModule(new RectangularModule(), moduleType());
-      (rodTemplate[ring-1] = std::make_shared<BarrelModule>(tm))->store(childTree);  // decorator chain: new Barrel(new Typed(new Rectangular()))
-    }
-  }
-  if (!numModules.state()) rodTemplate.push_back(NULL);// additional module built with default inherited properties to use in case the maxZ placement strategy requires additional modules than the ones constructed from mod-specific props
-  for (auto& m : rodTemplate) {
-    if (m == NULL) {
-      TypedModule* tm = ModuleTypeRepo::getInstance().decorateModule(new RectangularModule(), moduleType());
-      m = std::make_shared<BarrelModule>(tm);  // decorator chain: new Barrel(new Typed(new Rectangular()))
-      m->store(propertyTree());
-    }
-    m->build();
+
+RodTemplate Layer::makeRodTemplate() {
+  RodTemplate rodTemplate(numModules.state() ? numModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
+  for (int i = 0; i < rodTemplate.size(); i++) {
+    rodTemplate[i] = std::move(unique_ptr<RectangularModule>(new RectangularModule()));
+    rodTemplate[i]->store(propertyTree());
+    if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
+    rodTemplate[i]->build();
   }
   return rodTemplate;
 }
 
+
 void Layer::build() {
   try { 
+    std::cout << ">>> Building " << fullid() << " <<<" << std::endl;
     check();
 
-    RodTemplate rodTemplate = makeRodTemplate(propertyTree());
+    RodTemplate rodTemplate = makeRodTemplate();
 
     std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
     placeRadius_ = optimalLayerParms.first; 
@@ -110,31 +115,36 @@ void Layer::build() {
       maxBuildRadius(placeRadius_);
     }
 
-    float rodPhiRotation = M_2_PI/numRods_;
+    float rodPhiRotation = 2*M_PI/numRods_;
 
     RodPair* first = new RodPair();
     first->myid(1);
     first->minBuildRadius(minBuildRadius()-bigDelta());
     first->maxBuildRadius(maxBuildRadius()+bigDelta());
+    if (numModules.state()) first->numModules(numModules());
+    else if (maxZ.state()) first->maxZ(maxZ());
     first->smallDelta(smallDelta());
+    first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
     first->store(propertyTree());
+    first->build(rodTemplate);
 
+    std::cout << ">>> Copying rod " << first->fullid() << " <<<" << std::endl;
     RodPair* second = new RodPair(*first);
     second->myid(2);
-    if (!sameParityRods()) second->zPlusParity(second->zPlusParity()*-1);
+    if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
 
-    first->build(rodTemplate);
-    first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
+    first->translateR(placeRadius_ + bigDelta());
+    //first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
     rods_.push_back(first);
 
-    second->build(rodTemplate);
-    second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
-    second->rotatePhi(rodPhiRotation);
+    second->translateR(placeRadius_ - bigDelta());
+    //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
+    second->rotateZ(rodPhiRotation);
     rods_.push_back(second);
 
     for (int i = 2; i < numRods_; i++) {
       RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
-      rod->rotatePhi(rodPhiRotation*i);
+      rod->rotateZ(rodPhiRotation*i);
       rod->myid(i+1);
       rods_.push_back(rod);
     }
@@ -143,6 +153,9 @@ void Layer::build() {
     pe.pushPath(fullid()); 
     throw; 
   }
+
+  cleanup();
+  builtok(true);
 }
 
 
