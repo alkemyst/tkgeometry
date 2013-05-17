@@ -8,6 +8,7 @@
 #include <map>
 #include <sstream>
 #include <algorithm>
+#include <iterator>
 #include <type_traits>
 
 template<typename T>
@@ -83,6 +84,16 @@ template<typename T> T str2any(const std::string& from) {
 
 
 std::vector<std::string> split(const std::string& str, const std::string& seps = " \t\n", bool keepEmpty = false);
+
+template<class T, class I> std::string join(I begin, I end, const std::string& sep) {
+  std::stringstream ss;
+  std::copy(begin, end, std::ostream_iterator<T>(ss, sep.c_str()));
+  return ss.str().substr(0, ss.str().length()-1);
+}
+
+template<class T> std::string join(const std::vector<T>& vec, const std::string& sep) { return join<T>(vec.begin(), vec.end(), sep); }
+
+
 std::string ltrim(std::string str);
 std::string rtrim(std::string str);
 std::string trim(std::string str);
@@ -103,6 +114,14 @@ template<int Magnification, typename ArgType> int mapint(const ArgType& x) {
   return floor(x * p + 0.5);
 }
 
+template<class I>
+struct RangePair : std::pair<I, I> {
+  RangePair(const std::pair<I, I>& p) : std::pair<I, I>(p) {}
+  I begin() const { return this->first; }
+  I end()   const { return this->second; }
+};
+
+template<class I> inline RangePair<I> pair2range(const std::pair<I, I>& p) { return RangePair<I>(p); }
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))

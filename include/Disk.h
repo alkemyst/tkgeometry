@@ -24,25 +24,32 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> 
 
   PropertyNode<int> ringNode;
 
-  void buildTopDown();
-  void buildBottomUp();
+  inline double getDsDistance(const vector<double>& buildDsDistances, int rindex) const;
+  void buildTopDown(const vector<double>& buildDsDistances);
+  void buildBottomUp(const vector<double>& buildDsDistances);
 
 public:
   Property<double, NoDefault> buildZ;
 
   Disk() :
-    numRings("numRings", checked()),
-    innerRadius("innerRadius", checked()),
-    outerRadius("outerRadius", checked()),
-    bigDelta("bigDelta", checked()),
-    zError("zError", checked()),
-    minRingOverlap("minRingOverlap", unchecked(), 1.),
-    diskParity("diskParity", unchecked(), 1),
-    ringNode("Ring", unchecked())
+    numRings("numRings", parsedAndChecked()),
+    innerRadius("innerRadius", parsedAndChecked()),
+    outerRadius("outerRadius", parsedAndChecked()),
+    bigDelta("bigDelta", parsedAndChecked()),
+    zError("zError", parsedAndChecked()),
+    minRingOverlap("minRingOverlap", parsedOnly(), 1.),
+    diskParity("diskParity", parsedOnly(), 1),
+    ringNode("Ring", parsedOnly())
   {}
 
-  void build();
+  void check() override;
+  void build(const vector<double>& buildDsDistances);
   void translateZ(double z);
+
+  void accept(GenericGeometryVisitor& v) { 
+    v.visit(*this); 
+    for (auto& r : rings_) { r.accept(v); }
+  }
 };
 
 #endif

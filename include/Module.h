@@ -5,20 +5,38 @@
 #include <string>
 #include <algorithm>
 #include <functional>
+#include <array>
+
+#include <boost/property_tree/info_parser.hpp>
 
 using std::vector;
 using std::string;
+using std::array;
 
 #include "Polygon3d.h"
 #include "Property.h"
-#include "ModuleType.h"
+#include "Sensor.h"
+#include "Visitor.h"
+
+
+namespace ModuleHelpers {
+  double polygonAperture(const Polygon3d<4>& poly); 
+}
+
+namespace Paths {
+  const string stdconfig = "stdcfg";
+  const string moduleTypes = "moduleTypes";
+  const string sep = "/";
+}
 
 
 class Module : public PropertyObject, public Buildable, public Placeable, public Identifiable<Module> {
-protected:
-  virtual Polygon3d<4>& basePoly() = 0;
 public:
+  virtual const Polygon3d<4>& basePoly() = 0;
+
   virtual const XYZVector& center() const = 0;
+  virtual const XYZVector& normal() const = 0;
+  virtual double aperture() const = 0;
   virtual double dsDistance() const = 0;
   virtual double thickness() const = 0;
 
@@ -26,73 +44,87 @@ public:
   virtual void build() = 0;
 
   virtual void translate(const XYZVector& vector) = 0;
-  virtual void rotateZ(double angle) = 0;
-protected:
   virtual void rotateX(double angle) = 0;
   virtual void rotateY(double angle) = 0;
+  virtual void rotateZ(double angle) = 0;
+
+  virtual void accept(GenericGeometryVisitor& v) = 0;
 };
 
 /// ===================================================== GEOMETRIC MODULES =====================================================
 //
 class GeometricModule : public Module {
+  Property<double, Default> dsDistance_; // a GeometricModule is a purely 2d geometric object represented in 3d space with just a polygon and an additional for thickness value for tracker geometry construction
+  Property<double, UncachedComputable> aperture_;
+protected:
   Polygon3d<4> basePoly_;
-  Property<double, NoDefault> dsDistance_; // a GeometricModule is a purely 2d geometric object represented in 3d space with just a polygon and an additional for thickness value for tracker geometry construction
 public:
   GeometricModule() :
-      dsDistance_("dsDistance", checked())
+      dsDistance_("dsDistance", parsedAndChecked(), 0.),
+      aperture_([this](){ return ModuleHelpers::polygonAperture(basePoly_); })
   {}
 
   const Polygon3d<4>& basePoly() override { return basePoly_; }
-  const XYZVector& center() const override { return basePoly_.center(); }
-  double dsDistance() const override { return dsDistance_; }
-  double thickness() const override { return dsDistance_ + 0.1; } // for Geometric modules it is assumed they have a 0.1 mm thick generic sensor
+  const XYZVector& center() const override { return basePoly_.getCenter(); }
+  const XYZVector& normal() const override { return basePoly_.getNormal(); }
+  double aperture() const { return aperture_(); }
+  double dsDistance() const override { return dsDistance_(); }
+  void dsDistance(double dist) { dsDistance_(dist); }
+  double thickness() const override { return dsDistance_() + 0.1; } // for Geometric modules it is assumed they have a 0.1 mm thick generic sensor
 
   void translate(const XYZVector& vector) override { basePoly_.translate(vector); }
-  void rotateZ(double angle) override { basePoly_.rotateZ(angle); }
-protected:
   void rotateX(double angle) override { basePoly_.rotateX(angle); }
   void rotateY(double angle) override { basePoly_.rotateY(angle); }
+  void rotateZ(double angle) override { basePoly_.rotateZ(angle); }
 };
 
 class RectangularModule : public GeometricModule {
 public:
-  Property<float, NoDefault> aspectRatio;
   Property<float, NoDefault> length;
   Property<float, NoDefault> width;
+  Property<float, NoDefault> aspectRatio;
+  Property<float, Default> waferDiameter;
 
   RectangularModule() :
-      aspectRatio("aspectRatio", unchecked()),
-      length("length", unchecked()),
-      width("width", unchecked())
+      length("length", parsedOnly()), // not checked because a custom checker is defined for RectangularModules
+      width("width", parsedOnly()),  // same here
+      aspectRatio("aspectRatio", parsedOnly()), // same here
+      waferDiameter("waferDiameter", parsedAndChecked(), 131.)
   {}
 
   RectangularModule* clone() override { return new RectangularModule(*this); }
 
   void check() override;
   void build() override;
-}
 
-class WedgeModule : public GeometricModule, public Cloneable<WedgeModule> {
-  float length_, minWidth_, maxWidth_;
-  float area_,/*dist_*/;
+  void accept(GenericGeometryVisitor& v) { v.visit(*this); }
+};
+
+class WedgeModule : public GeometricModule {
+  double length_, minWidth_, maxWidth_;
+  double area_,/*dist_*/;
   bool cropped_;
-  float amountCropped_;
+  double amountCropped_;
 public:
-  Property<float, NoDefault> buildAperture, buildDistance, cropDistance;
-  float length() const { return length_; }
+  Property<float, NoDefault> buildAperture, buildDistance, buildCropDistance;
+  Property<float, Default> waferDiameter;
+  double length() const { return length_; }
   float minWidth() const { return minWidth_; }
   float maxWidth() const { return maxWidth_; }
 //  Shape shape() const { return Shape::WEDGE; }
   
   WedgeModule() :
-      buildAperture("buildAperture", checked()),
-      buildDistance("buildDistance", checked()),
-      cropDistance("cropDistance",   checked())
+      buildAperture("buildAperture", parsedAndChecked()),
+      buildDistance("buildDistance", parsedAndChecked()),
+      buildCropDistance("buildCropDistance", parsedAndChecked()),
+      waferDiameter("waferDiameter", parsedAndChecked(), 131.)
   {}
 
   WedgeModule* clone() override { return new WedgeModule(*this); }
 
   void build() override;
+
+  void accept(GenericGeometryVisitor& v) { v.visit(*this); }
 };
 
 enum class ModuleShape { RECTANGULAR, WEDGE };
@@ -104,35 +136,50 @@ enum class ModuleShape { RECTANGULAR, WEDGE };
 
 
 class DetectorModule : public Module, public Decorator<Module> {  // implementors of the DetectorModule interface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
-protected:
-  Polygon3d<4>& basePoly() override { return decorated().basePoly(); }
 public:
-  DetectorModule(const Module* decorated) : Decorator<Module>(decorated) {}
+  DetectorModule(Module* decorated) : Decorator<Module>(decorated) {}
+
+  const Polygon3d<4>& basePoly() override { return decorated().basePoly(); }
+
   const XYZVector& center() const override { return decorated().center(); }
+  const XYZVector& normal() const override { return decorated().normal(); }
+  double aperture() const override { return decorated().aperture(); }
   double dsDistance() const override { return decorated().dsDistance(); }
   double thickness() const override { return decorated().thickness(); }
 
-
   void translate(const XYZVector& vector) override { decorated().translate(vector); }
-  void rotateZ(double angle) override { decorated().rotateZ(angle); }
-protected:
   void rotateX(double angle) override { decorated().rotateX(angle); }
   void rotateY(double angle) override { decorated().rotateY(angle); }
+  void rotateZ(double angle) override { decorated().rotateZ(angle); }
 };
 
 
 
 class BarrelModule : public DetectorModule {
+//  double sideDisplacement_[2];
 public:
+  enum class SideZ { MINZ = 0, MAXZ = 1 };
+
   Property<int, AutoDefault> layer;
   Property<int, AutoDefault> ring;
   Property<int, AutoDefault> rod;
   Property<int, AutoDefault> side;
 
-  BarrelModule(const Module* decorated) : DetectorModule(decorated) {}
+  Property<double, UncachedComputable> minZ, maxZ; // CUIDADO add caching
+
+  BarrelModule(Module* decorated) : DetectorModule(decorated), 
+    minZ([this]() { double min = std::numeric_limits<double>::max(); for (const auto& v : basePoly()) { min = MIN(min, v.Z()); } return min; }),
+    maxZ([this]() { double max = std::numeric_limits<double>::min(); for (const auto& v : basePoly()) { max = MAX(max, v.Z()); } return max; })
+  {}
 
   BarrelModule* clone() override { return new BarrelModule(*this); }
   void build();
+
+  void accept(GenericGeometryVisitor& v) { v.visit(*this); decorated().accept(v); }
+
+  void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); }
+//  void translateZ(SideZ side, double z) { decorated().translate(XYZVector(0, 0, z + sideDisplacement_[SideZ])); }
+  void translateR(double radius) { decorated().translate(decorated().normal()*radius); }
 };
 
 class EndcapModule : public DetectorModule {
@@ -142,10 +189,15 @@ public:
   Property<int, AutoDefault> blade; // CUIDADO Think of a better name!
   Property<int, AutoDefault> side;
 
-  EndcapModule(const Module* decorated) : DecoratorModule(decorated) {}
+  EndcapModule(Module* decorated) : DetectorModule(decorated) {}
 
   EndcapModule* clone() override { return new EndcapModule(*this); }
   void build();
+
+  void accept(GenericGeometryVisitor& v) { v.visit(*this); decorated().accept(v); }
+
+  void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); }
+  void translateR(double radius) { decorated().translate(decorated().center().Unit()*radius); }
 };
 
 // ===================================================================================================================================
@@ -159,23 +211,27 @@ enum class ModuleType { SINGLE_SENSOR, DUAL_SENSOR };
 
 
 class TypedModule : public Module, public Decorator<Module> {
-protected:
-  Polygon3d<4>& basePoly() override { return decorated().basePoly(); }
 public:
-  static TypedModule* decorate(const Module* m, ModuleType type); 
+  static Module* decorate(const string& type, Module* m); 
 
-  TypedModule(const Module* decorated) : Decorator<Module>(decorated) {}
+  TypedModule(Module* decorated) : Decorator<Module>(decorated) {}
+
+  const Polygon3d<4>& basePoly() override { return decorated().basePoly(); }
+
   const XYZVector& center() const override { return decorated().center(); }
+  const XYZVector& normal() const override { return decorated().normal(); }
   double dsDistance() const override { return decorated().dsDistance(); }
-
 
 };
 
 class SingleSensorModule : public TypedModule {
   Sensor sensor_;
+  PropertyNode<int> sensorNode;
 public:
-  SingleSensorModule(const Module* decorated) : TypedModule(decorated) {}
+  SingleSensorModule(Module* decorated) : TypedModule(decorated), 
+    sensorNode("Sensor", parsedOnly()) {}
 
+  double aperture() const { return decorated().aperture(); }
   double thickness() const { return decorated().dsDistance() + sensor_.sensorThickness(); }
 
   const Sensor& sensor() const { return sensor_; }
@@ -184,21 +240,29 @@ public:
 
   SingleSensorModule* clone() override { return new SingleSensorModule(*this); }
 
-  void translate(const XYZVector& vector) override { decorated().translate(vector); sensor_.translate(vector); }
-  void rotateZ(double angle) override { decorated().rotateZ(angle); sensor_.rotateZ(angle); }
-protected:
-  void rotateX(double angle) override { decorated().rotateX(angle); sensor_.rotateX(angle); }
-  void rotateY(double angle) override { decorated().rotateY(angle); sensor_.rotateY(angle); }
+  void translate(const XYZVector& vector) override { decorated().translate(vector); sensor_.poly().translate(vector); }
+  void rotateX(double angle) override { decorated().rotateX(angle); sensor_.poly().rotateX(angle); }
+  void rotateY(double angle) override { decorated().rotateY(angle); sensor_.poly().rotateY(angle); }
+  void rotateZ(double angle) override { decorated().rotateZ(angle); sensor_.poly().rotateZ(angle); }
+
+  void accept(GenericGeometryVisitor& v) { v.visit(*this); decorated().accept(v); }
 }; 
 
 class DualSensorModule : public TypedModule {
 public:
-  typedef array<2, Sensor> Sensors;
+  typedef array<Sensor, 2> Sensors;
 private:
+  Property<double, UncachedComputable> aperture_;
+  PropertyNode<int> sensorNode;
   Sensors sensors_;
 public:
-  DualSensorModule(const Module* decorated) : TypedModule(decorated) {}
+  DualSensorModule(Module* decorated) :
+      TypedModule(decorated),
+      aperture_([this](){ return ModuleHelpers::polygonAperture(sensors_[0].poly()); }),
+      sensorNode("Sensor", parsedOnly())
+  {}
 
+  double aperture() const { return aperture_(); }
   double thickness() const override { return decorated().dsDistance() + sensors_[0].sensorThickness()/2 + sensors_[1].sensorThickness()/2; }
 
   const Sensors& sensors() const { return sensors_; }
@@ -207,11 +271,12 @@ public:
 
   DualSensorModule* clone() override { return new DualSensorModule(*this); }
 
-  void translate(const XYZVector& vector) override { decorated().translate(vector); for (auto& s : sensors_) s.translate(vector); }
-  void rotateZ(double angle) override { decorated().rotateZ(angle); for (auto& s : sensors_) s.rotateZ(angle); }
-protected:
-  void rotateX(double angle) override { decorated().rotateX(angle); for (auto& s : sensors_) s.rotateX(angle); }
-  void rotateY(double angle) override { decorated().rotateY(angle); for (auto& s : sensors_) s.rotateY(angle); }
+  void translate(const XYZVector& vector) override { decorated().translate(vector); for (auto& s : sensors_) s.poly().translate(vector); }
+  void rotateX(double angle) override { decorated().rotateX(angle); for (auto& s : sensors_) s.poly().rotateX(angle); }
+  void rotateY(double angle) override { decorated().rotateY(angle); for (auto& s : sensors_) s.poly().rotateY(angle); }
+  void rotateZ(double angle) override { decorated().rotateZ(angle); for (auto& s : sensors_) s.poly().rotateZ(angle); }
+
+  void accept(GenericGeometryVisitor& v) { v.visit(*this); decorated().accept(v); }
 };
 
 // ===================================================================================================================================
