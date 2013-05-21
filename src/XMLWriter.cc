@@ -422,7 +422,9 @@ namespace insur {
             }
         }
 */
-        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        /*NICOLA
+		
+		pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
                 std::string compstring = t.at(pos).partselectors.at(i);
@@ -486,7 +488,20 @@ namespace insur {
                 out << xml_spec_par_parameter_first << xml_roc_y << xml_spec_par_parameter_second << rocy << xml_spec_par_close;
             }
         }
-/*
+
+	end NICOLA */
+		
+	
+
+		//Write specPar blocks for ROC parameters 
+		pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+		if (pos != -1) {
+			  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, strm);
+		
+		}
+
+
+	    /*
         //find final marker
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         //      add one SpecPar block for every entry in t where parameter.first == PixelROC_X
@@ -735,7 +750,8 @@ namespace insur {
         for (titer = t.begin(); titer != tguard; titer++) specPar(titer->name, titer->parameter, titer->partselectors, stream);
         stream << xml_spec_par_section_close;
     }
-    
+   
+
     /**
      * This formatter writes an XML entry describing a call to a volume placement algorithm to the stream that serves as a
      * buffer for the output file contents.
@@ -967,6 +983,29 @@ namespace insur {
     }
 
 
+    /**
+     * This formatter writes XML entries describing ROC parameters
+     * @param param The name and value of the additional parameter, given as instances of <i>std::string</i> and packaged into a <i>std::pair</i>
+	 * @param minfo Values of ROC parameters for the module 
+     * @param partsel A list of logical volume names that the additional parameter applies to
+     * @param stream A reference to the output buffer
+     */
+
+	void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ostringstream& stream) {
+		  for (unsigned i = 0; i < partsel.size(); i++) {
+				stream <<xml_spec_par_open << partsel.at(i)<<xml_par_tail<<xml_general_inter;
+				stream << xml_spec_par_selector <<partsel.at(i) << xml_general_endline;
+				stream<< xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second  << param.second  << xml_general_endline;
+				stream<< xml_spec_par_parameter_first << xml_roc_rows_name   << xml_spec_par_parameter_second  << minfo.at(i).rocrows  << xml_general_endline;
+				//TO DO get rid of this if loop
+				if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptMixed"){
+					  minfo.at(i).roccols = "16";
+				}
+				stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;
+				stream<< xml_spec_par_parameter_first << xml_roc_x           << xml_spec_par_parameter_second  << minfo.at(i).rocx     << xml_general_endline;
+				stream<< xml_spec_par_parameter_first << xml_roc_y           << xml_spec_par_parameter_second  << minfo.at(i).rocy     << xml_spec_par_close;
+		  }
+	}
 
     
     //private
