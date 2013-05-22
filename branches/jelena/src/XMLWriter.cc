@@ -422,7 +422,7 @@ namespace insur {
             }
         }
 */
-        /*NICOLA
+        /* NICOLA
 		
 		pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
         if (pos != -1) {
@@ -488,20 +488,10 @@ namespace insur {
                 out << xml_spec_par_parameter_first << xml_roc_y << xml_spec_par_parameter_second << rocy << xml_spec_par_close;
             }
         }
-
-	end NICOLA */
+        
+		NICOLA */
 		
-	
-
-		//Write specPar blocks for ROC parameters 
-		pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
-		if (pos != -1) {
-			  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, strm);
-		
-		}
-
-
-	    /*
+		/*
         //find final marker
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         //      add one SpecPar block for every entry in t where parameter.first == PixelROC_X
@@ -517,6 +507,23 @@ namespace insur {
         }
         out << strm.str();
 */
+
+		
+		//Write specPar blocks for ROC parameters 
+		//TOB
+		pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+		if (pos != -1) {
+			  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out);
+		
+		}
+
+		//TID
+		pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+		if (pos != -1) {
+			  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out);
+		
+		}
+
         //copy rest of skeleton file unchanged
         while (std::getline(in, line)) out << line << std::endl;
 
@@ -991,7 +998,7 @@ namespace insur {
      * @param stream A reference to the output buffer
      */
 
-	void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ostringstream& stream) {
+	void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream) {
 		  for (unsigned i = 0; i < partsel.size(); i++) {
 				stream <<xml_spec_par_open << partsel.at(i)<<xml_par_tail<<xml_general_inter;
 				stream << xml_spec_par_selector <<partsel.at(i) << xml_general_endline;

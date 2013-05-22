@@ -414,6 +414,8 @@ namespace insur {
 		  ModuleROCInfo minfo;
 		  ModuleROCInfo minfo_zero={};  
 		  SpecParInfo rocdims, lspec, rspec, mspec;
+		  
+		  
 		  // Layer
 		  lspec.name = xml_subdet_layer + xml_par_tail;
 		  lspec.parameter.first = xml_tkddd_structure;
@@ -644,6 +646,7 @@ namespace insur {
 
 								  // topology
 								  mspec.partselectors.push_back(logic.name_tag);
+								  
 								  minfo.name  = iiter->getModule().getType();
 								  std::ostringstream bob;
 								  bob <<iiter->getModule().getNROCRows();
@@ -671,17 +674,17 @@ namespace insur {
 										//t.at(id).moduletypes.push_back(iiter->getModule().getType());
 								  }
 								  else {
-										rocdims.partselectors.clear();
-										rocdims.moduletypes.clear();
-										rocdims.name = specname.str();
-										rocdims.parameter.first = xml_roc_x;
-										specname.str("");
-										specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-										rocdims.parameter.second = specname.str();
-										rocdims.partselectors.push_back(logic.name_tag);
-										rocdims.moduletypes.push_back(minfo);
+										//rocdims.partselectors.clear();
+										//rocdims.moduletypes.clear();
+										//rocdims.name = specname.str();
+										//rocdims.parameter.first = xml_roc_x;
+										//specname.str("");
+										//specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+										//rocdims.parameter.second = specname.str();
+										//rocdims.partselectors.push_back(logic.name_tag);
+										//rocdims.moduletypes.push_back(minfo);
 										//rocdims.moduletypes.push_back(iiter->getModule().getType());
-										t.push_back(rocdims);
+										//t.push_back(rocdims);
 								  }
 								  specname.str("");
 
