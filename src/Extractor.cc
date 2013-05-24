@@ -663,57 +663,6 @@ namespace insur {
 
 						mspec.moduletypes.push_back(minfo);
 
-						//mspec.moduletypes.push_back(iiter->getModule().getType());
-						// J. TODO The part of the code below dealing with roc_x and roc_y is obsolete now.
-						//Check with Giovanni 
-						specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-						int id = findSpecParIndex(t, specname.str());
-						if (id >= 0) {
-							t.at(id).partselectors.push_back(logic.name_tag);
-							t.at(id).moduletypes.push_back(minfo);
-							//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-						}
-						else {
-							//rocdims.partselectors.clear();
-							//rocdims.moduletypes.clear();
-							//rocdims.name = specname.str();
-							//rocdims.parameter.first = xml_roc_x;
-							//specname.str("");
-							//specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-							//rocdims.parameter.second = specname.str();
-							//rocdims.partselectors.push_back(logic.name_tag);
-							//rocdims.moduletypes.push_back(minfo);
-							//rocdims.moduletypes.push_back(iiter->getModule().getType());
-							//t.push_back(rocdims);
-						}
-						specname.str("");
-
-						// TODO: model correctly the modules with different segmentation
-						specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
-						id = findSpecParIndex(t, specname.str());
-						if (id >= 0) {
-							t.at(id).partselectors.push_back(logic.name_tag);
-							t.at(id).moduletypes.push_back(minfo);
-							//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-						}
-						else {
-							rocdims.partselectors.clear();
-							rocdims.moduletypes.clear();
-							rocdims.name = specname.str();
-							rocdims.parameter.first = xml_roc_y;
-							specname.str("");
-							// TODO: model correctly the modules with different segmentation
-							specname << iiter->getModule().getNMaxSegments();
-							rocdims.parameter.second = specname.str();
-							rocdims.partselectors.push_back(logic.name_tag);
-							rocdims.moduletypes.push_back(minfo);
-							//rocdims.moduletypes.push_back(iiter->getModule().getType());
-							t.push_back(rocdims);
-						}
-						specname.str("");
-
-
-
 						// This is a replica for Pt-modules
 						if (iiter->getModule().getNFaces() == 2) { 
 
@@ -735,55 +684,7 @@ namespace insur {
 							// topology
 							mspec.partselectors.push_back(logic.name_tag);
 							mspec.moduletypes.push_back(minfo);
-							//mspec.moduletypes.push_back(iiter->getModule().getType());
-							specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-							int id = findSpecParIndex(t, specname.str());
-							if (id >= 0) {
-								t.at(id).partselectors.push_back(logic.name_tag);
-								t.at(id).moduletypes.push_back(minfo);
-								//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-							}
-							else {
-								rocdims.partselectors.clear();
-								rocdims.moduletypes.clear();
-								rocdims.name = specname.str();
-								rocdims.parameter.first = xml_roc_x;
 
-								specname.str("");
-								specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-
-								rocdims.parameter.second = specname.str();
-								rocdims.partselectors.push_back(logic.name_tag);
-								rocdims.moduletypes.push_back(minfo);
-								//rocdims.moduletypes.push_back(iiter->getModule().getType());
-
-								t.push_back(rocdims);
-							}
-							specname.str("");
-
-							// TODO: model correctly the modules with different segmentation
-							specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
-							id = findSpecParIndex(t, specname.str());
-							if (id >= 0) {
-								t.at(id).partselectors.push_back(logic.name_tag);
-								t.at(id).moduletypes.push_back(minfo);
-								//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-							}
-							else {
-								rocdims.partselectors.clear();
-								rocdims.moduletypes.clear();
-								rocdims.name = specname.str();
-								rocdims.parameter.first = xml_roc_y;
-								specname.str("");
-								// TODO: model correctly the modules with different segmentation
-								specname << iiter->getModule().getNMaxSegments();
-								rocdims.parameter.second = specname.str();
-								rocdims.partselectors.push_back(logic.name_tag);
-								rocdims.moduletypes.push_back(minfo);
-								//rocdims.moduletypes.push_back(iiter->getModule().getType());
-								t.push_back(rocdims);
-							}
-							specname.str("");
 
 						} // End of replica for Pt-modules
 
@@ -1188,53 +1089,6 @@ namespace insur {
 
 						mspec.moduletypes.push_back(minfo);
 
-						//mspec.moduletypes.push_back(iiter->getModule().getType());
-						specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-						int id = findSpecParIndex(t, specname.str());
-						if (id >= 0) {
-							t.at(id).partselectors.push_back(logic.name_tag);
-							t.at(id).moduletypes.push_back(minfo);
-							//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-						}
-						else {
-							rocdims.partselectors.clear();
-							rocdims.moduletypes.clear();
-							rocdims.name = specname.str();
-							rocdims.parameter.first = xml_roc_x;
-							specname.str("");
-							specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-							rocdims.parameter.second = specname.str();
-							rocdims.partselectors.push_back(logic.name_tag);
-							rocdims.moduletypes.push_back(minfo);
-							//rocdims.moduletypes.push_back(iiter->getModule().getType());
-							t.push_back(rocdims);
-						}
-						specname.str("");
-
-						// TODO: model correctly the modules with different segmentation
-						specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
-						id = findSpecParIndex(t, specname.str());
-						if (id >= 0) {
-							t.at(id).partselectors.push_back(logic.name_tag);
-							t.at(id).moduletypes.push_back(minfo);
-							//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-						}
-						else {
-							rocdims.partselectors.clear();
-							rocdims.moduletypes.clear();
-							rocdims.name = specname.str();
-							rocdims.parameter.first = xml_roc_y;
-							specname.str("");
-							// TODO: model correctly the modules with different segmentation
-							specname << iiter->getModule().getNMaxSegments();
-							rocdims.parameter.second = specname.str();
-							rocdims.partselectors.push_back(logic.name_tag);
-							rocdims.moduletypes.push_back(minfo);
-							//rocdims.moduletypes.push_back(iiter->getModule().getType());
-							t.push_back(rocdims);
-						}
-						specname.str("");
-
 
 
 						// This is just a replica for Pt-modules
@@ -1261,52 +1115,7 @@ namespace insur {
 							// topology
 							mspec.partselectors.push_back(logic.name_tag);
 							mspec.moduletypes.push_back(minfo);
-							//mspec.moduletypes.push_back(iiter->getModule().getType());
-							specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-							int id = findSpecParIndex(t, specname.str());
-							if (id >= 0) {
-								t.at(id).partselectors.push_back(logic.name_tag);
-								t.at(id).moduletypes.push_back(minfo);
-								//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-							}
-							else {
-								rocdims.partselectors.clear();
-								rocdims.moduletypes.clear();
-								rocdims.name = specname.str();
-								rocdims.parameter.first = xml_roc_x;
-								specname.str("");
-								specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
-								rocdims.parameter.second = specname.str();
-								rocdims.partselectors.push_back(logic.name_tag);
-								rocdims.moduletypes.push_back(minfo);
-								//rocdims.moduletypes.push_back(iiter->getModule().getType());
-								t.push_back(rocdims);
-							}
-							specname.str("");
 
-							// TODO: model correctly the modules with different segmentation
-							specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
-							id = findSpecParIndex(t, specname.str());
-							if (id >= 0) {
-								t.at(id).partselectors.push_back(logic.name_tag);
-								t.at(id).moduletypes.push_back(minfo);
-								//t.at(id).moduletypes.push_back(iiter->getModule().getType());
-							}
-							else {
-								rocdims.partselectors.clear();
-								rocdims.moduletypes.clear();
-								rocdims.name = specname.str();
-								rocdims.parameter.first = xml_roc_y;
-								specname.str("");
-								// TODO: model correctly the modules with different segmentation
-								specname << iiter->getModule().getNMaxSegments();
-								rocdims.parameter.second = specname.str();
-								rocdims.partselectors.push_back(logic.name_tag);
-								rocdims.moduletypes.push_back(minfo);
-								//rocdims.moduletypes.push_back(iiter->getModule().getType());
-								t.push_back(rocdims);
-							}
-							specname.str("");
 						}
 
 						// material properties
