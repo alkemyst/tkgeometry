@@ -18,7 +18,6 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, NoDefault> zError;
   Property<double, Default> minRingOverlap;
   Property<int, Default> diskParity;
 
@@ -29,6 +28,7 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> 
   void buildBottomUp(const vector<double>& buildDsDistances);
 
 public:
+  Property<double, NoDefault> zError;
   Property<double, NoDefault> buildZ;
 
   Disk() :

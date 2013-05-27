@@ -33,7 +33,7 @@ public:
       numLayers("numLayers", parsedAndChecked()),
       innerRadius("innerRadius", parsedAndChecked()),
       outerRadius("outerRadius", parsedAndChecked()),
-      sameRods("sameRods", true),
+      sameRods("sameRods", parsedAndChecked(), false),
       layerNode("Layer", parsedOnly()),
       maxZ(Computable<double>([&]() { double max = 0; for (auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; })) 
   {}

@@ -197,7 +197,7 @@ public:
   void accept(GenericGeometryVisitor& v) { v.visit(*this); decorated().accept(v); }
 
   void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); }
-  void translateR(double radius) { decorated().translate(decorated().center().Unit()*radius); }
+  //void translateR(double radius) { decorated().translate(radiusVector_*radius); } // CUIDADO it would need a translateR for symmetry with BarrelModules
 };
 
 // ===================================================================================================================================
@@ -267,9 +267,9 @@ public:
 
   const Sensors& sensors() const { return sensors_; }
 
-  void build() override;
+  virtual void build() override;
 
-  DualSensorModule* clone() override { return new DualSensorModule(*this); }
+  virtual DualSensorModule* clone() override { return new DualSensorModule(*this); }
 
   void translate(const XYZVector& vector) override { decorated().translate(vector); for (auto& s : sensors_) s.poly().translate(vector); }
   void rotateX(double angle) override { decorated().rotateX(angle); for (auto& s : sensors_) s.poly().rotateX(angle); }
@@ -277,6 +277,19 @@ public:
   void rotateZ(double angle) override { decorated().rotateZ(angle); for (auto& s : sensors_) s.poly().rotateZ(angle); }
 
   void accept(GenericGeometryVisitor& v) { v.visit(*this); decorated().accept(v); }
+};
+
+
+class PtModule : public DualSensorModule {
+public:
+  PtModule* clone() override { return new PtModule(*this); }
+};
+
+class StereoModule : public DualSensorModule {
+public:
+  ReadonlyProperty<double, AutoDefault> stereoRotation;
+
+  StereoModule* clone() override { return new StereoModule(*this); }
 };
 
 // ===================================================================================================================================
