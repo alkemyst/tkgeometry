@@ -189,13 +189,14 @@ Module* TypedModule::decorate(const string& type, Module* m) {
   Module* tmod = m;
   try {
     info_parser::read_info(join<string>({Paths::stdconfig, Paths::moduleTypes, type}, Paths::sep), pt);
-    int ns = pt.get<int>("numSensors", 0);
-    if (ns == 1) tmod = new SingleSensorModule(m);
-    else if (ns == 2) tmod = new DualSensorModule(m);
-    else throw InvalidPropertyValue("numSensors", any2str(ns));
+    string layout = pt.get<string>("sensorLayout", "");
+    if (layout == "mono") tmod = new SingleSensorModule(m);
+    else if (layout == "pt") tmod = new PtModule(m);
+    else if (layout == "stereo") tmod = new StereoModule(m);
+    else throw InvalidPropertyValue("sensorLayout", layout);
   } 
   catch(info_parser::info_parser_error& e) { throw InvalidPropertyValue("moduleType", type); }
-  catch(ptree_bad_path& e) { throw CheckedPropertyMissing("numSensors"); }
+  catch(ptree_bad_path& e) { throw CheckedPropertyMissing("sensorLayout"); }
 
   tmod->store(pt);
 

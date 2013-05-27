@@ -38,14 +38,14 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<Ring> 
   Property<bool, Default> requireOddModsPerSlice;
   Property<int, Default> phiSegments;
   Property<int, Default> additionalModules;
-  Property<int, Default> alignEdge;
-  Property<double, NoDefault> smallDelta;
+  Property<bool, Default> alignEdge;
 
   double minRadius_, maxRadius_;
 
 public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
   Property<int, AutoDefault> disk;
+  ReadonlyProperty<double, NoDefault> smallDelta;
   Property<BuildDirection, NoDefault> buildDirection;
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
@@ -55,11 +55,11 @@ public:
 
   Ring() :
       moduleShape           ("moduleShape"           , parsedAndChecked()),
-      moduleOverlapPhi      ("moduleOverlapPhi"      , parsedAndChecked(), 1.),
-      requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly()      , false),
-      phiSegments           ("phiSegments"           , parsedAndChecked(), 4),
-      additionalModules     ("additionalModules"     , parsedOnly()      , 0),
-      alignEdge             ("alignEdge"             , parsedOnly()      , 0),
+      moduleOverlapPhi      ("moduleOverlapPhi"      , parsedOnly(), 1.),
+      requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
+      phiSegments           ("phiSegments"           , parsedOnly(), 4),
+      additionalModules     ("additionalModules"     , parsedOnly(), 0),
+      alignEdge             ("alignEdge"             , parsedOnly(), true),
       smallDelta            ("smallDelta"            , parsedAndChecked())
   {}
   
