@@ -1495,9 +1495,9 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
   }
 
   myTracker_->setModuleTypes(myName,
-                             nStripsAcross, nROCRows,nROCCols ,nSides, nSegments, type, dsDistance, triggerWindow, dsRotation, divideBack,
+                             nStripsAcross, nROCRows, nROCCols ,nSides, nSegments, type, dsDistance, triggerWindow, dsRotation, divideBack,
                              xResolution, yResolution,
-                             nStripsAcrossSecond, nROCRowsSecond,nROCColsSecond, nSidesSecond, nSegmentsSecond, typeSecond,
+                             nStripsAcrossSecond, nROCRowsSecond, nROCColsSecond, nSidesSecond, nSegmentsSecond, typeSecond,
                              dsDistanceSecond, triggerWindowSecond, dsRotationSecond, divideBackSecond, specialSecond);
 
   return true;
