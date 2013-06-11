@@ -413,6 +413,7 @@ namespace insur {
 		rot.thetaz = 0.0;
 
 		ModuleROCInfo minfo;
+		//ModuleROCInfo minfo;
 		ModuleROCInfo minfo_zero={}; 
 		SpecParInfo rocdims, lspec, rspec, mspec;
 		// Layer
@@ -652,13 +653,13 @@ namespace insur {
 						bob.str("");
 
 						bob<<iiter->getModule().getNROCCols();
-						//std::cout<<"COLS = "<<iiter->getModule().getNROCCols()<<std::endl;
+						std::cout<<"COLS = "<<iiter->getModule().getNROCCols()<<std::endl;
 						minfo.roccols = bob.str();
 						bob.str("");
 
 						double a = iiter->getModule().getNStripsAcross();
 						double b = iiter->getModule().getNROCRows();
-						//std::cout<<"ROWS = "<<iiter->getModule().getNROCRows()<<std::endl;
+						std::cout<<"ROWS = "<<iiter->getModule().getNROCRows()<<std::endl;
 						int rx = (int)(a/b);
 						bob<<rx;
 						minfo.rocx = bob.str();
