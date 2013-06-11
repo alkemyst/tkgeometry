@@ -1389,7 +1389,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
             nStripsAcross[mainIndex]=atoi(parameterValue.c_str());
           } else if (parameterName=="nROCRows") {
             nROCRows[mainIndex]=atoi(parameterValue.c_str());
-		  } else if(parameterName=="nROCCOls"){
+		  } else if(parameterName=="nROCCols"){
 				nROCCols[mainIndex]=atoi(parameterValue.c_str());
 		  } else if (parameterName=="nSides") {
             nSides[mainIndex]=atoi(parameterValue.c_str());
@@ -1425,6 +1425,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
           } else if (parameterName=="nROCRows") {
             if (atoi(parameterValue.c_str())!=nROCRows[mainIndex]) {
               nROCRowsSecond[specialIndex]=atoi(parameterValue.c_str());
+			  std::cout<<"ROWS" <<atoi(parameterValue.c_str())<<std::endl; 
               specialSecond[specialIndex]=true;
               isSpecial = true;
             }
@@ -1432,6 +1433,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
 		  } else if(parameterName=="nROCCols"){
             if (atoi(parameterValue.c_str())!=nROCCols[mainIndex]) {
               nROCColsSecond[specialIndex]=atoi(parameterValue.c_str());
+			  std::cout<<"COLS" <<atoi(parameterValue.c_str())<<std::endl; 
               specialSecond[specialIndex]=true;
               isSpecial = true;
             }
