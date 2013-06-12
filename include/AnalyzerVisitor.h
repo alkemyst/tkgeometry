@@ -1,26 +1,77 @@
 #ifndef ANALYZERVISITOR_H
 #define ANALYZERVISITOR_H
 
+#include <string>
+#include <map>
+#include <vector>
+#include <utility>
+
+#include <TH1.h>
+#include <TH2.h>
+#include <TProfile.h>
+#include <TGraph.h>
+#include <TGraphErrors.h>
+
+#include "Tracker.h"
+#include "Barrel.h"
+#include "Endcap.h"
+#include "Layer.h"
+#include "Disk.h"
+#include "RodPair.h"
+#include "Ring.h"
+#include "Module.h"
+#include "SimParms.h"
+
 #include "Visitor.h"
 
+#include "ShapeShifter.h"
+
+#include "Bag.h"
+#include "SummaryTable.h"
+
+using std::string;
+using std::map;
+using std::vector;
+using std::pair;
 
 class AnalyzerVisitor : public GenericGeometryVisitor {
+  struct GeometryPath {
+    string tracker, subdet;
+    int modref[3];
+  };
 public:
-  struct BarrelPath  { IdentifiableType tracker, barrel, layer, ring, rod;  };
-  struct EndcapPath  { IdentifiableType tracker, endcap, disk, ring, blade; };
-  struct SummaryPath { IdentifiableType tracker, table, row, column/*, phi*/;}; // provided for backwards compatibility for summary tables (the phi position is ignored, barrel and endcap have z and rho coords swapped)
+  struct BarrelPath {
+    string &tracker, &barrel;
+    int &layer, &ring, &rod;
+    BarrelPath(GeometryPath& gp) : tracker(gp.tracker), barrel(gp.subdet), layer(gp.modref[0]), ring(gp.modref[1]), rod(gp.modref[2]) {}
+  };
+  struct EndcapPath {
+    string &tracker, &endcap;
+    int &disk, &ring, &blade;
+    EndcapPath(GeometryPath& gp) : tracker(gp.tracker), endcap(gp.subdet), disk(gp.modref[0]), ring(gp.modref[1]), blade(gp.modref[2]) {}
+  };
+  struct SummaryPath {
+    string &tracker, &table;
+    int &row, &col;
+    SummaryPath(GeometryPath& gp) : tracker(gp.tracker), table(gp.subdet), row(gp.modref[0]), col(gp.modref[1]) {}
+  };
+
 private:
+  GeometryPath geometryPath_;
   union {
     BarrelPath barrelPath_;
     EndcapPath endcapPath_;
    // struct UniformPath { IdentifiableType tracker, cnt, z, rho, phi;          } uniformPath_;
     SummaryPath summaryPath_; // provided for backwards compatibility for summary tables (the phi position is ignored, barrel and endcap have z and rho coords swapped)
-  } geomPath_;
+  } convertedPath_;
+
+  bool barrelModule_;
 
 protected:
-  const BarrelPath& barrelPath() const { return geomPath_.barrelPath_; }
-  const EndcapPath& endcapPath() const { return geomPath_.endcapPath_; }
-  const SummaryPath& summaryPath() const { return geomPath_.summaryPath_; }
+  AnalyzerVisitor() : convertedPath_{BarrelPath(geometryPath_)} {}
+  const BarrelPath& barrelPath() const { return convertedPath_.barrelPath_; }
+  const EndcapPath& endcapPath() const { return convertedPath_.endcapPath_; }
+  const SummaryPath& summaryPath() const { return convertedPath_.summaryPath_; }
 
   bool isBarrelModule() const { return barrelModule_; }
   bool isEndcapModule() const { return !barrelModule_; } 
@@ -32,39 +83,49 @@ protected:
   virtual void doVisit(const Endcap&) {}
   virtual void doVisit(const Disk&) {}
   virtual void doVisit(const Ring&) {}
+
   virtual void doVisit(const Module&) {}
+
+  virtual void doVisit(const DetectorModule&) {}
   virtual void doVisit(const BarrelModule&) {}
   virtual void doVisit(const EndcapModule&) {}
+
+  virtual void doVisit(const TypedModule&) {}
   virtual void doVisit(const SingleSensorModule&) {}
   virtual void doVisit(const DualSensorModule&) {}
   virtual void doVisit(const PtModule&) {}
   virtual void doVisit(const StereoModule&) {}
-  virtual void doVisit(const RectangularModule& rm) { doVisit((Module&)rm); }
-  virtual void doVisit(const WedgeModule& wm) { doVisit((Module&)wm); }
+
+  virtual void doVisit(const GeometricModule&) {}
+  virtual void doVisit(const RectangularModule&) {}
+  virtual void doVisit(const WedgeModule&) {}
+
+  virtual void doVisit(const SimParms&) {}
 public:
-  void visit(const Tracker& t) { geomPath_.uniformPath_.tracker = t.myid(); doVisit(t); }
-  void visit(const Barrel& b)  { geomPath_.barrelPath_.barrel = b.myid();   doVisit(b); }
-  void visit(const Layer& l)   { geomPath_.barrelPath_.layer = l.myid();    doVisit(l); }
-  void visit(const RodPair& r) { geomPath_.barrelPath_.rod = r.myid();      doVisit(r); } 
-  void visit(const Endcap& e)  { geomPath_.endcapPath_.endcap = e.myid();   doVisit(e); }
-  void visit(const Disk& d)    { geomPath_.endcapPath_.disk = d.myid();     doVisit(d); }
-  void visit(const Ring& r)    { geomPath_.endcapPath_.ring = r.myid();     doVisit(r); }
-  void visit(const BarrelModule& bm) { geomPath_.barrelPath_.ring_ = bm.myid(); barrelModule_ = true;  doVisit(bm); }
-  void visit(const EndcapModule& em) { geomPath_.endcapPath_.blade_= em.myid(); barrelModule_ = false; doVisit(em); }
-  void visit(const SingleSensorModule& ssm) { doVisit(ssm); }
-  //void visit(const DualSensorModule& dsm)   { doVisit(dsm); }
-  void visit(const PtModule& pm)            { doVisit((DualSensorModule&)pm); doVisit(pm); }
-  void visit(const StereoModule& sm)        { doVisit((DualSensorModule&)sm); doVisit(sm); }
-  void visit(const RectangularModule& rm)   { doVisit(rm);  }
-  void visit(const WedgeModule& wm)         { doVisit(wm);  }
+  void visit(const Tracker& t) override { convertedPath_.summaryPath_.tracker = t.myid(); doVisit(t); }
+  void visit(const Barrel& b) override  { convertedPath_.barrelPath_.barrel   = b.myid(); doVisit(b); }
+  void visit(const Layer& l) override   { convertedPath_.barrelPath_.layer = str2any<int>(l.myid()); doVisit(l); }
+  void visit(const RodPair& r) override { convertedPath_.barrelPath_.rod   = str2any<int>(r.myid()); doVisit(r); } 
+  void visit(const Endcap& e) override  { convertedPath_.endcapPath_.endcap= str2any<int>(e.myid()); doVisit(e); }
+  void visit(const Disk& d) override    { convertedPath_.endcapPath_.disk  = str2any<int>(d.myid()); doVisit(d); }
+  void visit(const Ring& r) override    { convertedPath_.endcapPath_.ring  = str2any<int>(r.myid()); doVisit(r); }
+  void visit(const BarrelModule& bm) override { convertedPath_.barrelPath_.ring = str2any<int>(bm.myid()); barrelModule_ = true;  doVisit((Module&)bm); doVisit((DetectorModule&)bm); doVisit(bm); }
+  void visit(const EndcapModule& em) override { convertedPath_.endcapPath_.blade= str2any<int>(em.myid()); barrelModule_ = false; doVisit((Module&)em); doVisit((DetectorModule&)em); doVisit(em); }
+  void visit(const SingleSensorModule& ssm) override { doVisit((TypedModule&)ssm); doVisit(ssm); }
+  void visit(const PtModule& pm) override          { doVisit((TypedModule&)pm); doVisit((DualSensorModule&)pm); doVisit(pm); }
+  void visit(const StereoModule& sm) override      { doVisit((TypedModule&)sm); doVisit((DualSensorModule&)sm); doVisit(sm); }
+  void visit(const RectangularModule& rm) override { doVisit((GeometricModule&)rm); doVisit(rm); }
+  void visit(const WedgeModule& wm) override       { doVisit((GeometricModule&)wm); doVisit(wm); }
+
+  void visit(const SimParms& sp) override { doVisit(sp); }
 };
 
 
 
-namespace VisitorHelpers {
+namespace AnalyzerHelpers {
 
-  bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const; 
-  bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
+  bool isModuleInEtaSector(const SimParms& simParms, const Tracker& tracker, const DetectorModule& module, int etaSector); 
+  bool isModuleInPhiSector(const SimParms& simParms, const DetectorModule& module, int phiSector);
 
 }
 
@@ -77,16 +138,25 @@ class TriggerProcessorBandwidthVisitor : public AnalyzerVisitor {
   ProcessorInboundBandwidths processorInboundBandwidths_;
   ProcessorInboundStubsPerEvent processorInboundStubsPerEvent_;
 
-  SummaryTable &processorConnectionSummary_, &processorInboundBandwidthSummary_, &processorInboundStubsPerEventSummary_;
+  map<string, map<pair<int, int>, double>> &triggerDataBandwidths_, triggerFrequenciesPerEvent_;
+  SummaryTable &processorConnectionSummary_, &processorInboundBandwidthSummary_, &processorInboundStubPerEventSummary_;
   TH1I& moduleConnectionsDistribution_;
 
+  const Tracker* tracker_;
+  const SimParms* simParms_;
 
-  struct ModuleConnectionData {
-    Property<int, Default> phiCpuConnections, etaCpuConnections;
-    Property<int, Computable> totalCpuConnections;
-    ConnectionData() : phiCpuConnections(0), etaCpuConnections(0), totalCpuConnections([&]() { return phiCpuConnections()*etaCpuConnections(); }) {}
+
+  class ModuleConnectionData {
+    int phiCpuConnections_, etaCpuConnections_;
+  public:
+    int phiCpuConnections() const { return phiCpuConnections_; }
+    int etaCpuConnections() const { return etaCpuConnections_; }
+    int totalCpuConnections() const { return phiCpuConnections_*etaCpuConnections_; }
+    void phiCpuConnections(int conn) { phiCpuConnections_ = conn; }
+    void etaCpuConnections(int conn) { etaCpuConnections_ = conn; }
+    ModuleConnectionData() : phiCpuConnections_(0), etaCpuConnections_(0) {}
   };
-  map<Module*,ModuleConnectionData> moduleConnections_;
+  map<const Module*,ModuleConnectionData> moduleConnections_;
 
   int numProcEta, numProcPhi;
 
@@ -95,10 +165,12 @@ class TriggerProcessorBandwidthVisitor : public AnalyzerVisitor {
   double inboundStubsPerEventTotal = 0.;
 public:
 
-  TriggerProcessorBandwidthVisitor(SummaryTable& processorConnectionSummary, SummaryTable& processorInboundBandwidthSummary, SummaryTable& processorInboundStubsPerEventSummary, TH1I& moduleConnectionsDistribution) :
+  TriggerProcessorBandwidthVisitor(SummaryTable& processorConnectionSummary, SummaryTable& processorInboundBandwidthSummary, SummaryTable& processorInboundStubPerEventSummary, map<string, map<pair<int, int>, double>>& triggerDataBandwidths, map<string, map<pair<int, int>, double>>& triggerFrequenciesPerEvent, TH1I& moduleConnectionsDistribution) :
       processorConnectionSummary_(processorConnectionSummary),
       processorInboundBandwidthSummary_(processorInboundBandwidthSummary),
-      processorInboundStubsPerEventSummary_(processorInboundStubsPerEventSummary),
+      processorInboundStubPerEventSummary_(processorInboundStubPerEventSummary),
+      triggerDataBandwidths_(triggerDataBandwidths),
+      triggerFrequenciesPerEvent_(triggerFrequenciesPerEvent),
       moduleConnectionsDistribution_(moduleConnectionsDistribution)
   {}
 
@@ -110,40 +182,46 @@ public:
     processorInboundBandwidthSummary_.setPrecision(3);
     processorInboundStubPerEventSummary_.setPrecision(3);
 
-    numProcEta = tracker.getTriggerProcessorsEta();
-    numProcPhi = tracker.getTriggerProcessorsPhi();
-
-    moduleConnectionsDistribution.Reset();
-    moduleConnectionsDistribution.SetNameTitle("ModuleConnDist", "Number of connections to trigger processors;Connections;Modules");
-    moduleConnectionsDistribution.SetBins(11, -.5, 10.5);
+    moduleConnectionsDistribution_.Reset();
+    moduleConnectionsDistribution_.SetNameTitle("ModuleConnDist", "Number of connections to trigger processors;Connections;Modules");
+    moduleConnectionsDistribution_.SetBins(11, -.5, 10.5);
   }
 
-  void doVisit(const Module& m) {
+  void doVisit(const SimParms& sp) {
+    simParms_ = &sp;
+    numProcEta = sp.numTriggerTowersEta();
+    numProcPhi = sp.numTriggerTowersPhi();
+  }
+
+  void doVisit(const Tracker& t) { tracker_ = &t; }
+
+  void doVisit(const DetectorModule& m) {
     SummaryPath p = summaryPath();
 
     int etaConnections = 0, totalConnections = 0;
 
     for (int i=0; i < numProcEta; i++) {
-      if (VisitorHelpers::isModuleInEtaSector(tracker(), m, i)) {
+      if (AnalyzerHelpers::isModuleInEtaSector(*simParms_, *tracker_, m, i)) {
         etaConnections++;
         for (int j=0; j < numProcPhi; j++) {
-          if (VisitorHelpers::isModuleInPhiSector(tracker(), m, j)) {
+          if (AnalyzerHelpers::isModuleInPhiSector(*simParms_, m, j)) {
             totalConnections++;
 
             processorConnections_[std::make_pair(j,i)] += 1;
             processorConnectionSummary_.setCell(j+1, i+1, processorConnections_[std::make_pair(j,i)]);
 
-            processorInboundBandwidths_[std::make_pair(j,i)] += triggerDataBandwidths_[p.table][make_pair(p.row, p.col)]; // *2 takes into account negative Z's
+            processorInboundBandwidths_[std::make_pair(j,i)] += triggerDataBandwidths_[p.table][std::make_pair(p.row, p.col)]; // *2 takes into account negative Z's
             processorInboundBandwidthSummary_.setCell(j+1, i+1, processorInboundBandwidths_[std::make_pair(j,i)]);
 
-            processorInboundStubsPerEvent_[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[p.table][make_pair(p.row, p.col)];
+            processorInboundStubsPerEvent_[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[p.table][std::make_pair(p.row, p.col)];
             processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent_[std::make_pair(j,i)]);
 
           } 
         }
       }
     }
-    moduleConnections[&module].etaPhiCpuConnections(etaConnections, totalConnections > 0 ? totalConnections/etaConnections : 0);
+    moduleConnections_[&m].etaCpuConnections(etaConnections);
+    moduleConnections_[&m].phiCpuConnections(totalConnections > 0 ? totalConnections/etaConnections : 0);
 
     for (const auto& mvp : processorInboundBandwidths_) inboundBandwidthTotal += mvp.second;
     for (const auto& mvp : processorConnections_) processorConnectionsTotal += mvp.second;
@@ -155,7 +233,7 @@ public:
     processorConnectionSummary_.setSummaryCell("Total", processorConnectionsTotal);
     processorInboundStubPerEventSummary_.setSummaryCell("Total", inboundStubsPerEventTotal);
 
-    for (auto mvp : connectionMap) moduleConnectionsDistribution.Fill(mvp.second.totalCpuConnections(), 1);
+    for (auto mvp : moduleConnections_) moduleConnectionsDistribution_.Fill(mvp.second.totalCpuConnections(), 1);
   }
 };
 
@@ -168,7 +246,7 @@ class IrradiationPowerVisitor : public AnalyzerVisitor {
   double chargeDepletionVoltage;
   double alphaParam;
   double referenceTemp;
-  IrradiationMap& irradiationMap_;
+  const IrradiationMap* irradiationMap_;
   MultiSummaryTable& irradiatedPowerConsumptionSummaries_;
 public:
   IrradiationPowerVisitor(MultiSummaryTable& irradiatedPowerConsumptionSummaries) : irradiatedPowerConsumptionSummaries_(irradiatedPowerConsumptionSummaries) {}
@@ -177,13 +255,13 @@ public:
     irradiatedPowerConsumptionSummaries_.clear();   
   }
 
-  void doVisit(const Tracker& t) {
-    numInvFemtobarns = t.numInvFemtobarns();
-    operatingTemp    = t.operatingTemp();
-    chargeDepletionVoltage    = t.chargeDepletionVoltage();
-    alphaParam       = t.alphaParam();
-    referenceTemp    = t.referenceTemp();
-    irradiationMap   = &t.irradiationMap();
+  void doVisit(const SimParms& sp) {
+    numInvFemtobarns = sp.timeIntegratedLumi();
+    operatingTemp    = sp.operatingTemp();
+    chargeDepletionVoltage = sp.chargeDepletionVoltage();
+    alphaParam       = sp.alphaParm();
+    referenceTemp    = sp.referenceTemp();
+    irradiationMap_  = &sp.irradiationMap();
   }
 
   void doVisit(const Barrel& b) {
@@ -196,20 +274,21 @@ public:
     irradiatedPowerConsumptionSummaries_[summaryPath().table].setPrecision(3);        
   }
 
-  void doVisit(const Module& m) {
-    XYZVector center = m->center();
-    if (center.Z()<0) continue;
-    double volume  = module->sensorThickness() * module->area() / 1000.0 * module->numFaces(); // volume is in cm^3
+  void doVisit(const TypedModule& m) {
+    XYZVector center = m.center();
+    if (center.Z() < 0) return;
+    double volume = 0.;
+    for (const auto& s : m.sensors()) volume += s.sensorThickness() * m.area() / 1000.0; // volume is in cm^3
     double x  = center.Z()/25;
     double y  = center.Rho()/25;
     double x1 = floor(x);
     double x2 = ceil(x);
     double y1 = floor(y);
     double y2 = ceil(y);
-    double irr11 = irradiationMap_[make_pair(int(x1), int(y1))]; 
-    double irr21 = irradiationMap_[make_pair(int(x2), int(y1))];
-    double irr12 = irradiationMap_[make_pair(int(x1), int(y2))];
-    double irr22 = irradiationMap_[make_pair(int(x2), int(y2))];
+    double irr11 = irradiationMap_->at(std::make_pair(int(x1), int(y1))); 
+    double irr21 = irradiationMap_->at(std::make_pair(int(x2), int(y1)));
+    double irr12 = irradiationMap_->at(std::make_pair(int(x1), int(y2)));
+    double irr22 = irradiationMap_->at(std::make_pair(int(x2), int(y2)));
     double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
     double fluence = irrxy * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
     double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
@@ -224,8 +303,9 @@ public:
 
 
 
+
 class BandwidthVisitor : public AnalyzerVisitor {
-  TH1D &chanHitDistribution_, &bandwidthDistribution, &bandwidthDistributionSparsified;
+  TH1D &chanHitDistribution_, &bandwidthDistribution_, &bandwidthDistributionSparsified_;
 
   double nMB_;
 public:
@@ -249,9 +329,55 @@ public:
     bandwidthDistributionSparsified_.SetLineColor(kRed);
   }
 
-  void doVisit(const Tracker& t) {
-    nMB_ = t.numMinBiasEvents();
+  void doVisit(const SimParms& sp) {
+    nMB_ = sp.numMinBiasEvents();
   }
+
+  void doVisit(const DetectorModule& m) { stripOccupancyPerEvent_ = m.phiAperture() * (log(tan(m.maxTheta()/2.)) - log(tan(m.minTheta()/2.))); }
+  void doVisit(const BarrelModule& m) { 
+    double rho = m.center().Rho()/10.;
+    double theta = m.center().Theta();
+    double myOccupancyBarrel=(1.63e-4)+(2.56e-4)*rho-(1.92e-6)*rho*rho;
+    double factor = fabs(sin(theta))*2; // 2 is a magic adjustment factor
+    stripOccupancyPerEvent_ *= myOccupancyBarrel / factor / (90/1e3); 
+  }
+  void doVisit(const EndcapModule& m) {
+    double rho = m.center().Rho()/10.;
+    double theta = m.center().Theta();
+    double myOccupancyEndcap=(-6.20e-5)+(1.75e-4)*rho-(1.08e-6)*rho*rho+(1.50e-5)*(z);
+    double factor=fabs(cos(theta))*2; // 2 is a magic adjustment factor
+    stripOccupancyPerEvent_ *= myOccupancyBarrel / factor / (90/1e3);
+  }
+  void doVisit(const TypedModule& m) { stripOccupancyPerEvent_ /= std::min_element(m.sensors.begin(), m.sensors.end(), [](const Sensor& s1, const Sensor& s2) { return s1.numSegments() < s2.numSegments(); })->numSegments(); }
+  void doVisit(const DualSensorModule& m) { stripOccupancyPerEvent_ /= m.sensors[0].numStripsAcross(); }
+  void doVisit(const WedgeModule& m) { stripOccupancyPerEvent_ *= (m.minWidth() + m.maxWidth())/2; }
+  void doVisit(const RectangularModule& m) { stripOccupancyPerEvent_ *= m.width(); }
+
+
+  void doVisit(const BarrelModule& m) { ss_ << m; }
+  void doVisit(const EndcapModule& m) { ss_ << m; }
+  
+
+  void doVisit(const ShapeShifter<BarrelModule, DualSensorModule, RectangularModule>& m) {
+    auto bm = m.as<BarrelModule>();
+    auto dsm = m.as<DualSensorModule>();
+    auto rm = m.as<RectangularModule>();
+
+    double rho = rm.center().Rho()/10.;
+    double theta = rm.center().Theta();
+    double myOccupancyBarrel=(1.63e-4)+(2.56e-4)*rho-(1.92e-6)*rho*rho;
+    double factor = fabs(sin(theta))*2; // 2 is a magic adjustment factor
+    
+    double stripOccupancyPerEvent = rm.phiAperture() * (log(tan(rm.maxTheta()/2.)) - log(tan(rm.minTheta()/2.))) * myOccupancyBarrel / factor / (90/1e3);
+  }
+
+  void doVisit(const ShapeShifter<EndcapModule, DualSensorModule, RectangularModule>& m) {
+
+
+  }
+
+  void doVisit(const ShapeShifter<
+
 
   void doVisit(const DualSensorModule& m) {
     double hitChannels;
@@ -262,7 +388,7 @@ public:
   //  for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
   //   aLay = (*layIt)->getModuleVector();
   //   for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-    if (m.sensors.at(1).type() == SensorType::Strip) {
+    if (m.sensors().back().type() == SensorType::Strip) {
       for (auto s : m.sensors()) {
         //   for (int nFace=1; nFace<=(*modIt)->getNFaces() ; nFace++) {
         hitChannels = m.hitOccupancyPerEvent()*nMB_*(s.numChannels());
@@ -286,22 +412,31 @@ public:
       }
     }
 
-    savingGeometryV.push_back(chanHitDistribution_);
-    savingGeometryV.push_back(bandwidthDistribution_);
-    savingGeometryV.push_back(bandwidthDistributionSparsified_);
+ //   savingGeometryV.push_back(chanHitDistribution_);
+ //   savingGeometryV.push_back(bandwidthDistribution_);
+ //   savingGeometryV.push_back(bandwidthDistributionSparsified_);
   }
 };
 
 
 class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
-
+  typedef std::vector<const PtModule*> ModuleVector;
   std::map<std::string, ModuleVector> selectedModules_;
-  std::vector<double> spacingOptions_;
+  std::set<double> foundSpacing_;
+  const std::vector<double>& triggerMomenta_;
   const unsigned int nWindows_ = 5;
 
-  SummaryTable &optimalSpacingDistribution_, &optimalSpacingDistributionAW_;
+  profileBag& myProfileBag_;
+  TH1D &optimalSpacingDistribution_, &optimalSpacingDistributionAW_;
   std::map<std::string, bool> preparedProfiles_;
   std::map<std::string, bool> preparedTurnOn_;
+
+  std::map<std::string, double>& triggerRangeLowLimit_;
+  std::map<std::string, double>& triggerRangeHighLimit_;
+  
+  TH1D& spacingTuningFrame_;
+  std::map<int, TGraphErrors>& spacingTuningGraphs_; // TODO: find a way to communicate the limits, not their plots!
+  std::map<int, TGraphErrors>& spacingTuningGraphsBad_; // TODO: find a way to communicate the limits, not their plots!
 
   double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward) {  
     // TODO: add a linear interpolation here
@@ -333,27 +468,23 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
   }
  
   void doVisitBarrelPtModule(const PtModule& aModule) {
-    double myValue;
 
-    std::string myBaseName;
+    std::string myName = any2str(barrelPath().barrel) + "_" + any2str(barrelPath().layer);
 
-    std::ostringstream tempSS;
-    std::string myName = barrelPath().barrel() + "_" + barrelPath().layer();
+    std::vector<const PtModule*>& theseBarrelModules = selectedModules_[myName];
 
-    std::vector<Module*>& theseBarrelModules = selectedModules[myName];
-
-    if (aModule.dsDistance()<=0) || (aModule.triggerWindow()==0) continue;
+    if (aModule.dsDistance() <= 0 || aModule.triggerWindow() == 0) return;
 
     // Prepare the variables to hold the profiles
-    std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+    std::map<double, TProfile>& tuningProfiles = myProfileBag_.getNamedProfiles(profileBag::TriggerProfileName + myName);
     // Prepare the variables to hold the turn-on curve profiles
-    std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
+    std::map<double, TProfile>& turnonProfiles = myProfileBag_.getNamedProfiles(profileBag::TurnOnCurveName + myName);
 
     //  Profiles
     if (!preparedProfiles_[myName]) {
       preparedProfiles_[myName] = true;
-      for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
-        tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
+      for (std::vector<double>::const_iterator it=triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
+        std::ostringstream tempSS; tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
         tuningProfiles[*it].SetTitle(tempSS.str().c_str());
         tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it) << "GeV";
         tuningProfiles[*it].SetName(tempSS.str().c_str());
@@ -362,11 +493,11 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
     }
 
     // Turn-on curve
-    if (!preparedTurnOn[myName]) {
-      preparedTurnOn[myName] = true;
-      for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+    if (!preparedTurnOn_[myName]) {
+      preparedTurnOn_[myName] = true;
+      for (unsigned int iWindow=0; iWindow<nWindows_; ++iWindow) {
         double windowSize=iWindow*2+1;
-        tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
+        std::ostringstream tempSS; tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
         turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
         tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << int(windowSize);
         turnonProfiles[windowSize].SetName(tempSS.str().c_str());
@@ -376,14 +507,14 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
 
 
     XYZVector center = aModule.center();
-    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
-    theseBarrelModules.push_back(aModule);
+    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) return;
+    theseBarrelModules.push_back(&aModule);
 
     // Fill the tuning profiles for the windows actually set
     for (double dist=0.5; dist<=6; dist+=0.02) {
-      for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+      for (std::vector<double>::const_iterator it=triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
         double myPt = (*it);
-        myValue = 100 * aModule.triggerProbability(myPt, dist);
+        double myValue = 100 * aModule.triggerProbability(myPt, dist);
         if ((myValue>=0) && (myValue<=100))
           tuningProfiles[myPt].Fill(dist, myValue);
       }
@@ -391,10 +522,10 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
 
     // Fill the turnon curves profiles for the distance actually set
     for (double myPt=0.5; myPt<=10; myPt+=0.02) {
-      for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+      for (unsigned int iWindow=0; iWindow<nWindows_; ++iWindow) {
         double windowSize=iWindow*2+1;
         double distance = aModule.dsDistance();
-        myValue = 100 * aModule.triggerProbability(myPt, distance, int(windowSize));
+        double myValue = 100 * aModule.triggerProbability(myPt, distance, int(windowSize));
         if ((myValue>=0) && (myValue<=100))
           turnonProfiles[windowSize].Fill(myPt, myValue);
       }
@@ -402,41 +533,33 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
   }
 
 
-  void doVisit(const EndcapModule& aModule) {
-  // If it's an endcap layer, scan over all disk 1 modules
+  void doVisitEndcapPtModule(const PtModule& aModule) {
 
-  // Sort the plot by ring (using only disk 1)
-    tempSS << "_D";
-    tempSS.width(2).fill('0'); 
-    tempSS << endcapPath().disk(); 
-    myBaseName = aLayer.getContainerName() + tempSS.str();
 
-    // Actually scan the modules
-    if ((aModule.getStereoDistance()<=0) || (aModule->getTriggerWindow()==0)) continue;
 
-    XYZVector center = aModule->getMeanPoint();
+    string myBaseName = any2str(endcapPath().ring) + "_D" + any2str(endcapPath().disk);
+
+    if ((aModule.dsDistance()<=0) || (aModule.triggerWindow()==0)) return;
+
+    XYZVector center = aModule.center();
     // std::cerr << myBaseName << " z=" << center.Z() << ", Phi=" << center.Phi() << ", Rho=" << center.Rho() << std::endl; // debug
-    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
+    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) return;
 
 
-    tempSS.str("");
-    tempSS << "R";
-    tempSS.width(2); tempSS.fill('0');
-    tempSS << endcapPath().ring();
-    myName = myBaseName + tempSS.str();
-    ModuleVector& theseEndcapModules = selectedModules[myName];
-    theseEndcapModules.push_back(aModule);
+    string myName = myBaseName + "R" + any2str(endcapPath().ring);
+    ModuleVector& theseEndcapModules = selectedModules_[myName];
+    theseEndcapModules.push_back(&aModule);
 
               // Prepare the variables to hold the profiles
-    std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+    std::map<double, TProfile>& tuningProfiles = myProfileBag_.getNamedProfiles(profileBag::TriggerProfileName + myName);
     // Prepare the variables to hold the turn-on curve profiles
-    std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
+    std::map<double, TProfile>& turnonProfiles = myProfileBag_.getNamedProfiles(profileBag::TurnOnCurveName + myName);
 
     // Tuning profile
-    if (!preparedProfiles[myName]) {
-      preparedProfiles[myName] = true;
-      for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
-        tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << " GeV;Sensor spacing [mm];Efficiency [%]";
+    if (!preparedProfiles_[myName]) {
+      preparedProfiles_[myName] = true;
+      for (std::vector<double>::const_iterator it=triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
+        std::ostringstream tempSS; tempSS << "Trigger efficiency for " << myName.c_str() << " GeV;Sensor spacing [mm];Efficiency [%]";
         tuningProfiles[*it].SetTitle(tempSS.str().c_str());
         tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it);
         tuningProfiles[*it].SetName(tempSS.str().c_str());
@@ -445,11 +568,11 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
     }
 
     // Turn-on curve
-    if (!preparedTurnOn[myName]) {
-      preparedTurnOn[myName] = true;
-      for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+    if (!preparedTurnOn_[myName]) {
+      preparedTurnOn_[myName] = true;
+      for (unsigned int iWindow=0; iWindow<nWindows_; ++iWindow) {
         double windowSize=iWindow*2+1;
-        tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
+        std::ostringstream tempSS; tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
         turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
         tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << windowSize;
         turnonProfiles[windowSize].SetName(tempSS.str().c_str());
@@ -457,13 +580,11 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
       }     
     }
 
-
-
     // Fill the tuning profiles for the windows actually set
     for (double dist=0.5; dist<=6; dist+=0.02) {
-      for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+      for (std::vector<double>::const_iterator it=triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
         double myPt = (*it);
-        myValue = 100 * aModule->getTriggerProbability(myPt, dist);
+        double myValue = 100 * aModule.triggerProbability(myPt, dist);
         if ((myValue>=0) && (myValue<=100))
           tuningProfiles[myPt].Fill(dist, myValue);
       }
@@ -471,10 +592,10 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
 
     // Fill the turnon curves profiles for the distance actually set
     for (double myPt=0.5; myPt<=10; myPt+=0.02) {
-      for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+      for (unsigned int iWindow=0; iWindow<nWindows_; ++iWindow) {
         double windowSize=iWindow*2+1;
-        double distance = aModule->getStereoDistance();
-        myValue = 100 * aModule->getTriggerProbability(myPt, distance, int(windowSize));
+        double distance = aModule.dsDistance();
+        double myValue = 100 * aModule.triggerProbability(myPt, distance, int(windowSize));
         if ((myValue>=0) && (myValue<=100))
           turnonProfiles[windowSize].Fill(myPt, myValue);
       }
@@ -482,12 +603,29 @@ class TriggerDistanceTuningPlotsVisitor : public AnalyzerVisitor {
   }
 
 public:
-  TriggerDistanceTuningPlotsVisitor(SummaryTable& optimalSpacingDistribution, SummaryTable& optimalSpacingDistributionAW, const std::vector<double>& triggerMomenta) {
+  TriggerDistanceTuningPlotsVisitor(TH1D& optimalSpacingDistribution,
+                                    TH1D& optimalSpacingDistributionAW, 
+                                    profileBag& myProfileBag, 
+                                    std::pair<std::map<string, double>, std::map<string, double>>& triggerRangeLimits, 
+                                    TH1D& spacingTuningFrame,
+                                    std::map<int, TGraphErrors>& spacingTuningGraphs,
+                                    std::map<int, TGraphErrors>& spacingTuningGraphsBad,
+                                    const std::vector<double>& triggerMomenta) :
+    optimalSpacingDistribution_(optimalSpacingDistribution), 
+    optimalSpacingDistributionAW_(optimalSpacingDistributionAW_), 
+    myProfileBag_(myProfileBag), 
+    triggerRangeLowLimit_(triggerRangeLimits.first), 
+    triggerRangeHighLimit_(triggerRangeLimits.second),
+    spacingTuningFrame_(spacingTuningFrame),
+    spacingTuningGraphs_(spacingTuningGraphs),
+    spacingTuningGraphsBad_(spacingTuningGraphsBad),
+    triggerMomenta_(triggerMomenta) 
+  {
 
     /************************************************/
 
     // TODO: clear only the relevant ones?
-    myProfileBag.clearTriggerNamedProfiles();
+    myProfileBag_.clearTriggerNamedProfiles();
     optimalSpacingDistribution_.SetName("optimalSpacing");
     optimalSpacingDistribution_.SetTitle("Optimal spacing [default window]");
     optimalSpacingDistribution_.SetXTitle("Spacing [mm]");
@@ -506,12 +644,8 @@ public:
 
   }
 
-  void doVisit(const Tracker& tracker) {
-    fillAvailableSpacing(tracker, spacingOptions_);
-  }
-
-
   void doVisit(const PtModule& aModule) {
+    if (aModule.dsDistance() > 0.) foundSpacing_.insert(aModule.dsDistance());
     if (isBarrelModule()) doVisitBarrelPtModule(aModule);
     else doVisitEndcapPtModule(aModule);
   }
@@ -525,20 +659,25 @@ public:
       // a better way to find the interesting margins)
 
       // Run once per possible position in the tracker
+      
+    std::vector<double> spacingOptions(foundSpacing_.begin(), foundSpacing_.end());
+    foundSpacing_.clear();    
+     
     unsigned int nSpacingOptions = spacingOptions.size();             // TODO: keep this here!!
-
-    std::vector<std::string> profileNames = myProfileBag.getProfileNames(profileBag::TriggerProfileName);
-    for (std::vector<std::string>::const_iterator itName=profileNames.begin(); itName!=profileNames.end(); ++itName) {
-      std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(*itName);
-      TProfile& lowTuningProfile = tuningProfiles[spacingTuningMomenta_.first];
-      TProfile& highTuningProfile = tuningProfiles[spacingTuningMomenta_.second];
-      triggerRangeLowLimit[*itName] = findXThreshold(lowTuningProfile, 1, true);
-      triggerRangeHighLimit[*itName] = findXThreshold(highTuningProfile, 90, false);
-    }
 
     std::pair<double, double> spacingTuningMomenta;
     spacingTuningMomenta.first = 1.;
     spacingTuningMomenta.second = 2.5;
+
+    std::vector<std::string> profileNames = myProfileBag_.getProfileNames(profileBag::TriggerProfileName);
+    for (std::vector<std::string>::const_iterator itName=profileNames.begin(); itName!=profileNames.end(); ++itName) {
+      std::map<double, TProfile>& tuningProfiles = myProfileBag_.getNamedProfiles(*itName);
+      TProfile& lowTuningProfile = tuningProfiles[spacingTuningMomenta.first];
+      TProfile& highTuningProfile = tuningProfiles[spacingTuningMomenta.second];
+      triggerRangeLowLimit_[*itName] = findXThreshold(lowTuningProfile, 1, true);
+      triggerRangeHighLimit_[*itName] = findXThreshold(highTuningProfile, 90, false);
+    }
+
 
     // Now loop over the selected modules and build the curves for the
     // hi-lo thingy (sensor spacing tuning)
@@ -549,46 +688,46 @@ public:
     TProfile tempProfileHigh("tempProfileHigh", "", 100, 0.5, 6); // TODO: these numbers should go into some kind of const
 
     // TODO: IMPORTANT!!!!!! clear the spacing tuning graphs and frame here
-    spacingTuningFrame.SetBins(selectedModules.size(), 0, selectedModules.size());
-    spacingTuningFrame.SetYTitle("Optimal distance range [mm]");
-    spacingTuningFrame.SetMinimum(0);
-    spacingTuningFrame.SetMaximum(6);
-    TAxis* xAxis = spacingTuningFrame.GetXaxis();
+    spacingTuningFrame_.SetBins(selectedModules_.size(), 0, selectedModules_.size());
+    spacingTuningFrame_.SetYTitle("Optimal distance range [mm]");
+    spacingTuningFrame_.SetMinimum(0);
+    spacingTuningFrame_.SetMaximum(6);
+    TAxis* xAxis = spacingTuningFrame_.GetXaxis();
 
     int iType=0;
     std::map<double, bool> availableThinkness;
     // Loop over the selected module types
-    for(std::map<std::string, ModuleVector>::iterator itTypes = selectedModules.begin();
-        itTypes!=selectedModules.end(); ++itTypes) {
+    for(std::map<std::string, ModuleVector>::iterator itTypes = selectedModules_.begin();
+        itTypes!=selectedModules_.end(); ++itTypes) {
       const std::string& myName = itTypes->first;
       const ModuleVector& myModules = itTypes->second;
       xAxis->SetBinLabel(iType+1, myName.c_str());
 
       // Loop over the possible search windows
-      for (unsigned int iWindow = 0; iWindow<nWindows; ++iWindow) {
+      for (unsigned int iWindow = 0; iWindow<nWindows_; ++iWindow) {
         windowSize = 1 + iWindow * 2;
         // Loop over the modules of type myName
         for (ModuleVector::const_iterator itModule = myModules.begin(); itModule!=myModules.end(); ++itModule) {
-          aModule = (*itModule);
+          const PtModule* aModule = (*itModule);
           // Loop over the possible distances
           double minDistBelow = 0.;
-          availableThinkness[aModule->getStereoDistance()] = true;
+          availableThinkness[aModule->dsDistance()] = true;
           for (double dist=0.5; dist<=6; dist+=0.02) { // TODO: constant here
             // First with the high momentum
             myPt = (spacingTuningMomenta.second);
-            myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
+            double myValue = 100 * aModule->triggerProbability(myPt, dist, windowSize);
             if ((myValue>=0)&&(myValue<=100))
               tempProfileHigh.Fill(dist, myValue);
             // Then with low momentum
             myPt = (spacingTuningMomenta.first);
-            myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
+            myValue = 100 * aModule->triggerProbability(myPt, dist, windowSize);
             if ((myValue>=0)&&(myValue<=100))
               tempProfileLow.Fill(dist, myValue);
             if (myValue>1) minDistBelow = dist;
           }
           if (minDistBelow>=0) {
-            if (windowSize==5) optimalSpacingDistribution.Fill(minDistBelow);
-            if (windowSize==aModule->getTriggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
+            if (windowSize==5) optimalSpacingDistribution_.Fill(minDistBelow);
+            if (windowSize==aModule->triggerWindow()) optimalSpacingDistributionAW_.Fill(minDistBelow);
           }
 
           /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) { // debug
@@ -613,21 +752,21 @@ public:
           }
           /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
             std::cout << " - approx to " << minDistBelow << " for a window of " << windowSize << std::endl;*/
-          aModule->setOptimalSpacing(windowSize, minDistBelow);
+          aModule->optimalSpacing(windowSize, minDistBelow);
         }
         // Find the "high" and "low" points
         double lowEdge = findXThreshold(tempProfileLow, 1, true);
         double highEdge = findXThreshold(tempProfileHigh, 90, false);
         // std::cerr << myName << ": " << lowEdge << " -> " << highEdge << std::endl; // debug
         double centerX; double sizeX;
-        centerX = iType+(double(iWindow)+0.5)/(double(nWindows));
-        sizeX = 1./ (double(nWindows)) * 0.8; // 80% of available space, so that they will not touch
+        centerX = iType+(double(iWindow)+0.5)/(double(nWindows_));
+        sizeX = 1./ (double(nWindows_)) * 0.8; // 80% of available space, so that they will not touch
         if (lowEdge<highEdge) {
-          spacingTuningGraphs[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
-          spacingTuningGraphs[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+          spacingTuningGraphs_[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+          spacingTuningGraphs_[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
         } else {
-          spacingTuningGraphsBad[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
-          spacingTuningGraphsBad[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+          spacingTuningGraphsBad_[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+          spacingTuningGraphsBad_[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
         }
         tempProfileLow.Reset();
         tempProfileHigh.Reset();
@@ -636,12 +775,12 @@ public:
     }
 
     // TODO: properly reset this!
-    TGraphErrors& antani = spacingTuningGraphs[-1];
+    TGraphErrors& antani = spacingTuningGraphs_[-1];
     int iPoints=0;
     for (std::map<double, bool>::iterator it = availableThinkness.begin(); it!= availableThinkness.end(); ++it) {
       iPoints++;
-      antani.SetPoint(iPoints, selectedModules.size()/2., it->first);
-      antani.SetPointError(iPoints, selectedModules.size()/2., 0);
+      antani.SetPoint(iPoints, selectedModules_.size()/2., it->first);
+      antani.SetPointError(iPoints, selectedModules_.size()/2., 0);
       iPoints++;
     }
   }
@@ -651,26 +790,49 @@ public:
 
 
 class TriggerFrequencyVisitor : public AnalyzerVisitor {
+  typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
 
-  std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
-  std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyInterestingParticleTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
+  std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts_;
+  std::map<std::string, std::map<std::pair<int,int>, double> >  triggerFrequencyAverageTrue_, triggerFrequencyInterestingParticleTrue_, triggerFrequencyAverageFake_, triggerDataBandwidths_, triggerFrequenciesPerEvent_; // trigger frequency by module in Z and R, averaged over Phi
+  StubRateHistos totalStubRateHistos_, trueStubRateHistos_;
+
+  MultiSummaryTable &triggerFrequencyTrueSummaries_, &triggerFrequencyFakeSummaries_, &triggerFrequencyInterestingSummaries_, &triggerRateSummaries_, &triggerEfficiencySummaries_,&triggerPuritySummaries_, &triggerDataBandwidthSummaries_;
+
+  int nbins_;
+  double bunchSpacingNs_, nMB_;
 
   void setupSummaries(const string& cntName) {
     triggerFrequencyTrueSummaries_[cntName].setHeader("Layer", "Ring");
     triggerFrequencyFakeSummaries_[cntName].setHeader("Layer", "Ring");
+    triggerFrequencyInterestingSummaries_[cntName].setHeader("Layer", "Ring");
     triggerRateSummaries_[cntName].setHeader("Layer", "Ring");
+    triggerEfficiencySummaries_[cntName].setHeader("Layer", "Ring");
     triggerPuritySummaries_[cntName].setHeader("Layer", "Ring");
     triggerDataBandwidthSummaries_[cntName].setHeader("Layer", "Ring");
     triggerFrequencyTrueSummaries_[cntName].setPrecision(3);
     triggerFrequencyFakeSummaries_[cntName].setPrecision(3);
+    triggerFrequencyInterestingSummaries_[cntName].setPrecision(3);
     triggerRateSummaries_[cntName].setPrecision(3);
+    triggerEfficiencySummaries_[cntName].setPrecision(3);
     triggerPuritySummaries_[cntName].setPrecision(3);
     triggerDataBandwidthSummaries_[cntName].setPrecision(3);
   }
-
-  int nbins_;
 public:
-  TriggerFrequencyVisitor(Analyzer& analyzer) : analyzer_(analyzer) {
+  TriggerFrequencyVisitor(MultiSummaryTable& triggerFrequencyTrueSummaries, 
+                          MultiSummaryTable& triggerFrequencyFakeSummaries, 
+                          MultiSummaryTable& triggerFrequencyInterestingSummaries, 
+                          MultiSummaryTable& triggerRateSummaries, 
+                          MultiSummaryTable& triggerEfficiencySummaries,
+                          MultiSummaryTable& triggerPuritySummaries,
+                          MultiSummaryTable& triggerDataBandwidthSummaries) :
+    triggerFrequencyTrueSummaries_(triggerFrequencyTrueSummaries),
+    triggerFrequencyFakeSummaries_(triggerFrequencyFakeSummaries),
+    triggerFrequencyInterestingSummaries_(triggerFrequencyInterestingSummaries),
+    triggerRateSummaries_(triggerRateSummaries),
+    triggerEfficiencySummaries_(triggerEfficiencySummaries),
+    triggerPuritySummaries_(triggerPuritySummaries),
+    triggerDataBandwidthSummaries_(triggerDataBandwidthSummaries)
+  {
     triggerFrequencyTrueSummaries_.clear();
     triggerFrequencyFakeSummaries_.clear();
     triggerRateSummaries_.clear();
@@ -679,85 +841,85 @@ public:
     triggerDataBandwidths_.clear();
   }
 
+  void doVisit(const SimParms& sp) {
+    bunchSpacingNs_ = sp.bunchSpacingNs();
+    nMB_ = sp.numMinBiasEvents();
+  }
+
   void doVisit(const Layer& l) {
-    setupSummaries(summaryPath().cnt);
-    nbins_ = l.numModulesPerRod();
+    setupSummaries(summaryPath().table);
+    nbins_ = l.numModules(); // numModules() returns the num modules per rod -- CUIDADO misleading?
   }
 
   void doVisit(const Disk& d) {
-    setupSummaries(summaryPath().cnt);
+    setupSummaries(summaryPath().table);
     nbins_ = d.numRings();
   }
 
-  void doVisit(const Module& module) {
-    std::string cntName = summaryPath().cnt;
+  void doVisit(const PtModule& module) {
 
-    XYZVector center = module.getCenter();
-    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module.dsDistance()==0.0)) continue;
+    XYZVector center = module.center();
+    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module.dsDistance()==0.0)) return;
 
-      TH1D* currentTotalHisto;
-      TH1D* currentTrueHisto;
+    TH1D* currentTotalHisto;
+    TH1D* currentTrueHisto;
 
-      string cntName = summaryPath().cnt;
-      int layerIndex = summaryPath().row;
-      int ringIndex = summaryPath().col;
+    string table = summaryPath().table;
+    int row = summaryPath().row;
+    int col = summaryPath().col;
 
-      if (totalStubRateHistos_.count(std::make_pair(cntName, layerIndex)) == 0) {
-        currentTotalHisto = new TH1D(("totalStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins_, 0.5, nbins_+0.5);
-        currentTrueHisto = new TH1D(("trueStubsPerEventHisto" + cntName + any2str(layerIndex)).c_str(), ";Modules;MHz/cm^2", nbins_, 0.5, nbins_+0.5); 
-        totalStubRateHistos_[std::make_pair(cntName, layerIndex)] = currentTotalHisto; 
-        trueStubRateHistos_[std::make_pair(cntName, layerIndex)] = currentTrueHisto; 
-      } else {
-        currentTotalHisto = totalStubRateHistos_[std::make_pair(cntName, layerIndex)]; 
-        currentTrueHisto = trueStubRateHistos_[std::make_pair(cntName, layerIndex)]; 
-      }
-
-
-      int curCnt = triggerFrequencyCounts[cntName][make_pair(layerIndex, ringIndex)]++;
-      double curAvgTrue = triggerFrequencyAverageTrue[cntName][make_pair(layerIndex, ringIndex)];
-      double curAvgInteresting = triggerFrequencyInterestingParticleTrue[cntName][make_pair(layerIndex, ringIndex)];
-      double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(layerIndex, ringIndex)];
-
-      //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
-      //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
-
-      // TODO! Important <- make this interestingPt cut configurable
-      const double interestingPt = 2;
-      curAvgTrue  = curAvgTrue + (module.triggerFrequencyTruePerEventAbove(interestingPt)*tracker.getNMB() - curAvgTrue)/(curCnt+1);
-      curAvgInteresting += (module.particleFrequencyPerEventAbove(interestingPt)*tracker.getNMB() - curAvgInteresting)/(curCnt+1);
-      curAvgFake  = curAvgFake + ((module.triggerFrequencyFakePerEvent()*tracker.getNMB() + module.triggerFrequencyTruePerEventBelow(interestingPt))*tracker.getNMB() - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
-
-      double curAvgTotal = curAvgTrue + curAvgFake;
-
-      triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTrue;            
-      triggerFrequencyInterestingParticleTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgInteresting;    
-      triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgFake;    
-
-      int triggerDataHeaderBits  = tracker.getModuleType(module->getType()).getTriggerDataHeaderBits();
-      int triggerDataPayloadBits = tracker.getModuleType(module->getType()).getTriggerDataPayloadBits();
-      double triggerDataBandwidth = (triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits) / (tracker.getBunchSpacingNs()); // GIGABIT/second
-      triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())] = triggerDataBandwidth;
-      triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTotal;
-
-      module->setProperty("triggerDataBandwidth", triggerDataBandwidth); // averaged over phi
-      module->setProperty("triggerFrequencyPerEvent", curAvgTotal); // averaged over phi
-
-
-      //                currentTotalGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
-      //                currentTrueGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
-
-      currentTotalHisto->SetBinContent(module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
-      currentTrueHisto->SetBinContent(module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
-
-      triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue);
-      triggerFrequencyInterestingSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgInteresting);
-      triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgFake);
-      triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTotal);             
-      triggerEfficiencySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/curAvgInteresting);                
-      triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/(curAvgTrue+curAvgFake));                
-      triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), module->getRing(), triggerDataBandwidth);
-
+    if (totalStubRateHistos_.count(std::make_pair(table, row)) == 0) {
+      currentTotalHisto = new TH1D(("totalStubsPerEventHisto" + table + any2str(row)).c_str(), ";Modules;MHz/cm^2", nbins_, 0.5, nbins_+0.5);
+      currentTrueHisto = new TH1D(("trueStubsPerEventHisto" + table + any2str(row)).c_str(), ";Modules;MHz/cm^2", nbins_, 0.5, nbins_+0.5); 
+      totalStubRateHistos_[std::make_pair(table, row)] = currentTotalHisto; 
+      trueStubRateHistos_[std::make_pair(table, row)] = currentTrueHisto; 
+    } else {
+      currentTotalHisto = totalStubRateHistos_[std::make_pair(table, row)]; 
+      currentTrueHisto = trueStubRateHistos_[std::make_pair(table, row)]; 
     }
+
+
+    int curCnt = triggerFrequencyCounts_[table][std::make_pair(row, col)]++;
+    double curAvgTrue = triggerFrequencyAverageTrue_[table][std::make_pair(row, col)];
+    double curAvgInteresting = triggerFrequencyInterestingParticleTrue_[table][std::make_pair(row, col)];
+    double curAvgFake = triggerFrequencyAverageFake_[table][std::make_pair(row, col)];
+
+    //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+    //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+
+    // TODO! Important <- make this interestingPt cut configurable
+    const double interestingPt = 2;
+    curAvgTrue  = curAvgTrue + (module.triggerFrequencyTruePerEventAbove(interestingPt)*nMB_ - curAvgTrue)/(curCnt+1);
+    curAvgInteresting += (module.particleFrequencyPerEventAbove(interestingPt)*nMB_ - curAvgInteresting)/(curCnt+1);
+    curAvgFake  = curAvgFake + ((module.triggerFrequencyFakePerEvent()*nMB_ + module.triggerFrequencyTruePerEventBelow(interestingPt))*nMB_ - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+
+    double curAvgTotal = curAvgTrue + curAvgFake;
+
+    triggerFrequencyAverageTrue_[table][std::make_pair(row, col)] = curAvgTrue;            
+    triggerFrequencyInterestingParticleTrue_[table][std::make_pair(row, col)] = curAvgInteresting;    
+    triggerFrequencyAverageFake_[table][std::make_pair(row, col)] = curAvgFake;    
+
+    int triggerDataHeaderBits  = module.numTriggerDataHeaderBits();
+    int triggerDataPayloadBits = module.numTriggerDataPayloadBits();
+    double triggerDataBandwidth = (triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits) / (bunchSpacingNs_); // GIGABIT/second
+    triggerDataBandwidths_[table][std::make_pair(row, col)] = triggerDataBandwidth;
+    triggerFrequenciesPerEvent_[table][std::make_pair(row, col)] = curAvgTotal;
+
+
+    //                currentTotalGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+    //                currentTrueGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+
+    currentTotalHisto->SetBinContent(col, curAvgTotal*(1000/bunchSpacingNs_)*(100/module.area()));
+    currentTrueHisto->SetBinContent(col, curAvgTrue*(1000/bunchSpacingNs_)*(100/module.area()));
+
+    triggerFrequencyTrueSummaries_[table].setCell(row, col, curAvgTrue);
+    triggerFrequencyInterestingSummaries_[table].setCell(row, col, curAvgInteresting);
+    triggerFrequencyFakeSummaries_[table].setCell(row, col, curAvgFake);
+    triggerRateSummaries_[table].setCell(row, col, curAvgTotal);             
+    triggerEfficiencySummaries_[table].setCell(row, col, curAvgTrue/curAvgInteresting);                
+    triggerPuritySummaries_[table].setCell(row, col, curAvgTrue/(curAvgTrue+curAvgFake));                
+    triggerDataBandwidthSummaries_[table].setCell(row, col, triggerDataBandwidth);
+
   }
 
 };
@@ -765,105 +927,83 @@ public:
 
 namespace AnalyzerHelpers {
 
-  void drawModuleOnMap(const Module& m, double val, TH2D& map, TH2D& counter) {
-    const Polygon3d<4>& poly = m.basePoly();
-    XYZVector start = (poly.getVertex(0) + poly.getVertex(1))/2;
-    XYZVector end = (poly.getVertex(2) + poly.getVertex(3))/2;
-    XYZVector diff = end-start;
-    XYZVector point;
-    for (double l=0; l<=1; l+=0.1) {
-      point = start + l * diff;
-      map.Fill(point.Z(), point.Rho(), val);
-      counter.Fill(point.Z(), point.Rho(), 1);
-    }
-  }
-  void drawModuleOnMap(const Module& m, double val, TH2D& map) {
-    const Polygon3d<4>& poly = m.basePoly();
-    XYZVector start = (poly.getVertex(0) + poly.getVertex(1))/2;
-    XYZVector end = (poly.getVertex(2) + poly.getVertex(3))/2;
-    XYZVector diff = end-start;
-    XYZVector point;
-    for (double l=0; l<=1; l+=0.1) {
-      point = start + l * diff;
-      map.Fill(point.Z(), point.Rho(), val);
-    }
-  }
+  void drawModuleOnMap(const Module& m, double val, TH2D& map, TH2D& counter);
+  void drawModuleOnMap(const Module& m, double val, TH2D& map);
 
 }
 
 
 
 class TriggerEfficiencyMapVisitor : public AnalyzerVisitor {
-  double myPt;
-  TH2D& myMap;
-  TH2D* counter;
+  double myPt_;
+  TH2D& myMap_;
+  TH2D* counter_;
 public:
-  PtThresholdMapVisitor(TH2D& map, double pt) : myMap(map), myPt(pt) { counter = (TH2D*)map.Clone(); }
+  TriggerEfficiencyMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
 
-  void doVisit(const DualSensorModule& aModule) {
-    double myValue = aModule.triggerProbability(myPt);
-    if (myValue>=0) VisitorHelpers::drawModuleOnMap(aModule, myValue, myMap, counter);
+  void doVisit(const PtModule& aModule) {
+    double myValue = aModule.triggerProbability(myPt_);
+    if (myValue>=0) AnalyzerHelpers::drawModuleOnMap(aModule, myValue, myMap_, *counter_);
   }
 
   void postVisit() {
-    for (int i=1; i<=myMap.GetNbinsX(); ++i)
-      for (int j=1; j<=myMap.GetNbinsY(); ++j)
-        if (counter->GetBinContent(i,j)!=0)
-          myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+    for (int i=1; i<=myMap_.GetNbinsX(); ++i)
+      for (int j=1; j<=myMap_.GetNbinsY(); ++j)
+        if (counter_->GetBinContent(i,j)!=0)
+          myMap_.SetBinContent(i,j, myMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
     // ... and get rid of the counter
   }
 
-  ~TriggerEfficiencyMapVisitor() { delete counter; }
+  ~TriggerEfficiencyMapVisitor() { delete counter_; }
 };
 
 
 
 
 
-class PtThresholdMapVisitor : public TriggerPerformanceVisitor {
-  double myPt;
-  TH2D& myMap;
-  TH2D counter;
+class PtThresholdMapVisitor : public AnalyzerVisitor {
+  double myPt_;
+  TH2D& myMap_;
+  TH2D* counter_;
 public:
-  PtThresholdMapVisitor(TH2D& map, double pt) : myMap(map), myPt(pt) { counter = (TH2D*)map.Clone(); }
+  PtThresholdMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
 
-  void doVisit(const DualSensorModule& aModule) {
-    double myValue = aModule.ptThreshold(myPt);
-    if (myValue >= 0) AnalyzerHelpers::drawModuleOnMap(aModule, myValue, myMap, counter);
+  void doVisit(const PtModule& aModule) {
+    double myValue = aModule.ptThreshold(myPt_);
+    if (myValue >= 0) AnalyzerHelpers::drawModuleOnMap(aModule, myValue, myMap_, *counter_);
   }
 
   void postVisit() {
-    for (int i=1; i<=myMap.GetNbinsX(); ++i)
-      for (int j=1; j<=myMap.GetNbinsY(); ++j)
-        if (counter()->GetBinContent(i,j)!=0)
-          myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter()->GetBinContent(i,j));
+    for (int i=1; i<=myMap_.GetNbinsX(); ++i)
+      for (int j=1; j<=myMap_.GetNbinsY(); ++j)
+        if (counter_->GetBinContent(i,j)!=0)
+          myMap_.SetBinContent(i,j, myMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
     // ... and get rid of the counter
   }
 
-  ~PtThresholdMapVisitor() { delete counter; }
+  ~PtThresholdMapVisitor() { delete counter_; }
 };
 
 
 
 
 
-class SpacingCutVisitor : public TriggerPerformanceVisitor {
-  TH2D& thicknessMap;
-  TH2D& windowMap;
-  TH2D& suggestedSpacingMap;
-  TH2D& suggestedSpacingMapAW;
-  TH2D& nominalCutMap;
-  TH2D *counter, *counterSpacing, *counterSpacingAW;
+class SpacingCutVisitor : public AnalyzerVisitor {
+  TH2D& thicknessMap_;
+  TH2D& windowMap_;
+  TH2D& suggestedSpacingMap_;
+  TH2D& suggestedSpacingMapAW_;
+  TH2D& nominalCutMap_;
+  TH2D *counter_, *counterSpacing_, *counterSpacingAW_;
 public:
-  ModuleSpacingVisitor(TH2D& thicknessMap_, TH2D& windowMap_, TH2D& suggestedSpacingMap_, TH2D& suggestedSpacingMapAW_, TH2D& nominalCutMap_) : 
-      thicknessMap(thicknessMap_), windowMap(windowMap_), suggestedSpacingMap(suggestedSpacingMap), suggestedSpacingMapAW(suggestedSpacingMapAW_), nominalCutMap(nominalCutMap_) {
-        counter = (TH2D*)thicknessMap.Clone();
-        counterSpacing = (TH2D*)suggestedSpacingMap.Clone();
-        counterSpacingAW = (TH2D*)suggestedSpacingMapAW.Clone();
+  SpacingCutVisitor(TH2D& thicknessMap, TH2D& windowMap, TH2D& suggestedSpacingMap, TH2D& suggestedSpacingMapAW, TH2D& nominalCutMap) : 
+      thicknessMap_(thicknessMap), windowMap_(windowMap), suggestedSpacingMap_(suggestedSpacingMap), suggestedSpacingMapAW_(suggestedSpacingMapAW), nominalCutMap_(nominalCutMap) {
+        counter_ = (TH2D*)thicknessMap.Clone();
+        counterSpacing_ = (TH2D*)suggestedSpacingMap.Clone();
+        counterSpacingAW_ = (TH2D*)suggestedSpacingMapAW.Clone();
   }
 
-  void doVisit(const DualSensorModule& aModule) {
-    if (!aModule.ptCapable()) continue;
+  void doVisit(const PtModule& aModule) {
     double myThickness = aModule.thickness();
     double myWindow = aModule.triggerWindow();
     //myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
@@ -871,69 +1011,69 @@ public:
     double mySuggestedSpacingAW = aModule.optimalSpacingWithTriggerWindow(aModule.triggerWindow());
     double nominalCut = aModule.ptCut();
 
-    drawModuleOnMap(aModule, myThickness, thicknessMap);
-    drawModuleOnMap(aModule, myWindow, windowMap);
-    drawModuleOnMap(aModule, nominalCut, nominalCut);
-    if (mySuggestedSpacing != 0) drawModuleOnMap(aModule, mySuggestedSpacing, suggestedSpacingMap, counterSpacing);
-    if (mySuggestedSpacingAW != 0) drawModuleOnMap(aModule, mySuggestedSpacingAW, suggestedSpacingMapAW, counterSpacingAW);
+    AnalyzerHelpers::drawModuleOnMap(aModule, myThickness, thicknessMap_);
+    AnalyzerHelpers::drawModuleOnMap(aModule, myWindow, windowMap_);
+    AnalyzerHelpers::drawModuleOnMap(aModule, nominalCut, nominalCutMap_);
+    if (mySuggestedSpacing != 0) AnalyzerHelpers::drawModuleOnMap(aModule, mySuggestedSpacing, suggestedSpacingMap_, *counterSpacing_);
+    if (mySuggestedSpacingAW != 0) AnalyzerHelpers::drawModuleOnMap(aModule, mySuggestedSpacingAW, suggestedSpacingMapAW_, *counterSpacingAW_);
 
   }
 
   void postVisit() {
-    for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
-      for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
-        if (counter->GetBinContent(i,j)!=0) {
-          thicknessMap.SetBinContent(i,j, thicknessMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-          windowMap.SetBinContent(i,j, windowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-          nominalCutMap.SetBinContent(i,j, nominalCutMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-          if ((suggestedSpacingMap.GetBinContent(i,j)/counterSpacing->GetBinContent(i,j))>50) {
-            std::cout << "debug: for bin " << i << ", " << j << " suggestedSpacing is " << suggestedSpacingMap.GetBinContent(i,j)
-              << " and counter is " << counterSpacing->GetBinContent(i,j) << std::endl;
+    for (int i=1; i<=thicknessMap_.GetNbinsX(); ++i) {
+      for (int j=1; j<=thicknessMap_.GetNbinsY(); ++j) {
+        if (counter_->GetBinContent(i,j)!=0) {
+          thicknessMap_.SetBinContent(i,j, thicknessMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
+          windowMap_.SetBinContent(i,j, windowMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
+          nominalCutMap_.SetBinContent(i,j, nominalCutMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
+          if ((suggestedSpacingMap_.GetBinContent(i,j)/counterSpacing_->GetBinContent(i,j))>50) {
+            std::cout << "debug: for bin " << i << ", " << j << " suggestedSpacing is " << suggestedSpacingMap_.GetBinContent(i,j)
+              << " and counter is " << counterSpacing_->GetBinContent(i,j) << std::endl;
           }
-          suggestedSpacingMap.SetBinContent(i,j, suggestedSpacingMap.GetBinContent(i,j) / counterSpacing->GetBinContent(i,j));
-          suggestedSpacingMapAW.SetBinContent(i,j, suggestedSpacingMapAW.GetBinContent(i,j) / counterSpacingAW->GetBinContent(i,j));
+          suggestedSpacingMap_.SetBinContent(i,j, suggestedSpacingMap_.GetBinContent(i,j) / counterSpacing_->GetBinContent(i,j));
+          suggestedSpacingMapAW_.SetBinContent(i,j, suggestedSpacingMapAW_.GetBinContent(i,j) / counterSpacingAW_->GetBinContent(i,j));
         }
       }
     }
   }
 
-  ~ModuleSpacingVisitor() {
-    delete counter;
-    delete counterSpacing;
-    delete counterSpacingAW;
+  ~SpacingCutVisitor() {
+    delete counter_;
+    delete counterSpacing_;
+    delete counterSpacingAW_;
   }
 
 };
 
 
-class IrradiatedPowerMapVisitor {
-  TH2D &irradiatedPowerConsumptionMap, &totalPowerConsumptionMap;
-  TH2D *counter;
+class IrradiatedPowerMapVisitor : public AnalyzerVisitor {
+  TH2D &irradiatedPowerConsumptionMap_, &totalPowerConsumptionMap_;
+  TH2D *counter_;
 public:
-  IrradiatedPowerMapVisitor(TH2D& irradiatedPowerConsumptionMap_, TH2D& totalPowerConsumptionMap_) : irradiatedPowerConsumptionMap(irradiatedPowerConsumptionMap_), totalPowerConsumptionMap(totalPowerConsumptionMap_) {
-    counter = (TH2D*)irradiatedPowerConsumptionMap.Clone();
+  IrradiatedPowerMapVisitor(TH2D& irradiatedPowerConsumptionMap, TH2D& totalPowerConsumptionMap) : irradiatedPowerConsumptionMap_(irradiatedPowerConsumptionMap), totalPowerConsumptionMap_(totalPowerConsumptionMap) {
+    counter_ = (TH2D*)irradiatedPowerConsumptionMap_.Clone();
   }
   void visit(const TypedModule& aModule) {
-    if ((aModule.center().Z()<0) || (aModule.center().Phi()<0) || (aModule.center().Phi()>M_PI/2)) continue;
+    if ((aModule.center().Z()<0) || (aModule.center().Phi()<0) || (aModule.center().Phi()>M_PI/2)) return;
     double myPower = aModule.sensorPowerConsumptionAfterIrradiation();
     double myPowerChip = aModule.chipPowerConsumption();
 
-    VisitorHelpers::drawModuleOnMap(aModule, myPower, irradiatedPowerConsumptionMap, counter);
-    VisitorHelpers::drawModuleOnMap(aModule, myPower+myPowerChip, totalPowerConsumptionMap); // only the first time counter is updated, but in postVisit both maps are averaged bin for bin over the counter value  
+    AnalyzerHelpers::drawModuleOnMap(aModule, myPower, irradiatedPowerConsumptionMap_, *counter_);
+    AnalyzerHelpers::drawModuleOnMap(aModule, myPower+myPowerChip, totalPowerConsumptionMap_); // only the first time counter is updated, but in postVisit both maps are averaged bin for bin over the counter value  
   }
 
   void postVisit() {
-    for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
-      for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
-        if (counter->GetBinContent(i,j)!=0) {
-          irradiatedPowerConsumptionMap.SetBinContent(i,j, irradiatedPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-          totalPowerConsumptionMap.SetBinContent(i,j, totalPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+    for (int i=1; i<=irradiatedPowerConsumptionMap_.GetNbinsX(); ++i) {
+      for (int j=1; j<=irradiatedPowerConsumptionMap_.GetNbinsY(); ++j) {
+        if (counter_->GetBinContent(i,j)!=0) {
+          irradiatedPowerConsumptionMap_.SetBinContent(i,j, irradiatedPowerConsumptionMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
+          totalPowerConsumptionMap_.SetBinContent(i,j, totalPowerConsumptionMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
         }
       }
     }
   }
 
-  ~IrradiatedPowerMapVisitor() { delete counter; }
+  ~IrradiatedPowerMapVisitor() { delete counter_; }
 
 };
 

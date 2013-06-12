@@ -49,6 +49,7 @@ public:
   Property<int, NoDefault> zPlusParity;
   Property<int, NoDefault> numModules;
   Property<double, NoDefault> maxZ;
+  Property<double, Computable> maxR;
   Property<bool, Default> mezzanine;
   Property<double, NoDefault> startZ;
 
@@ -67,7 +68,8 @@ public:
               startZ          ("startZ"          , parsedOnly()),
               ringNode        ("Ring"            , parsedOnly()),
               minAperture([this]() { double min = 999; for (auto& m : modules_) { min = MIN(min, m.aperture()); } return min; }),
-              maxAperture([this]() { double max = 0; for (auto& m : modules_) { max = MAX(max, m.aperture()); } return max; })
+              maxAperture([this]() { double max = 0; for (auto& m : modules_) { max = MAX(max, m.aperture()); } return max; }),
+              maxR([&]() { double max = 0; for (const auto& m : modules_) { max = MAX(max, m.maxR()); } return max; })
   {}
   
   void build(const RodTemplate& rodTemplate);

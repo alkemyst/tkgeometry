@@ -38,32 +38,27 @@ public:
   typedef boost::ptr_vector<Endcap> Endcaps;
   typedef ModuleSetVisitor::Modules Modules;
 
+  ReadonlyProperty<double, Computable> maxR;
+
 private:
   Barrels barrels_;
   Endcaps endcaps_;
 
-
   ModuleSetVisitor moduleSetVisitor_;
-
-  Property<int, NoDefault> numMinBiasEvents;
-  Property<int, NoDefault> rError;
-//  Property<int> zError;
-  Property<double, NoDefault> etaCut;
-  Property<int, NoDefault> ptCost;
-  Property<int, NoDefault> stripCost;
-  Property<double, NoDefault> efficiency;
 
   PropertyNode<string> barrelNode;
   PropertyNode<string> endcapNode;
 public:
+
   Tracker() :
-      numMinBiasEvents("numMinBiasEvents", parsedAndChecked()),
-      etaCut("etaCut", parsedAndChecked()),
-      ptCost("ptCost", parsedAndChecked()),
-      stripCost("stripCost", parsedAndChecked()),
-      efficiency("efficiency", parsedOnly()),
       barrelNode("Barrel", parsedOnly()),
-      endcapNode("Endcap", parsedOnly())
+      endcapNode("Endcap", parsedOnly()),
+      maxR([&]() { 
+             double max = 0; 
+             for (const auto& b : barrels_) max = MAX(max, b.maxR());
+             for (const auto& e : endcaps_) max = MAX(max, e.maxR());
+             return max;
+           })
   {}
 
 
