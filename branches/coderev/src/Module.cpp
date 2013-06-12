@@ -34,6 +34,7 @@ void RectangularModule::build() {
               << XYZVector(-l/2, w/2, 0)
               << XYZVector(-l/2,-w/2, 0)
               << XYZVector( l/2,-w/2, 0);
+    cleanup();
     builtok(true);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
@@ -144,11 +145,12 @@ void SingleSensorModule::build() {
       decorated().store(propertyTree());
       decorated().build();
     }
-    sensor_.store(propertyTree());
-    if (sensorNode.count(1) > 0) sensor_.store(sensorNode.at(1));
-    if (!sensorNode.empty()) sensor_.store(sensorNode.begin()->second);  
-    sensor_.poly() = basePoly();
-    sensor_.build();
+    sensors_.resize(1);
+    sensors_.front().store(propertyTree());
+    if (sensorNode.count(1) > 0) sensors_.front().store(sensorNode.at(1));
+    if (!sensorNode.empty()) sensors_.front().store(sensorNode.begin()->second);  
+    sensors_.front().poly() = basePoly();
+    sensors_.front().build();
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
   cleanup();
@@ -162,6 +164,7 @@ void DualSensorModule::build() {
       decorated().store(propertyTree());
       decorated().build();
     }
+    sensors_.resize(2);
     sensors_[0].store(propertyTree());
     if (sensorNode.count(1) > 0) sensors_[0].store(sensorNode.at(1));
     (sensors_[0].poly() = basePoly()).translate(-normal()*dsDistance()/2);

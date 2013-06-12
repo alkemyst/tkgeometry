@@ -28,6 +28,7 @@ private:
   PropertyNode<int> layerNode;
 public:
   ReadonlyProperty<double, Computable> maxZ;
+  ReadonlyProperty<double, Computable> maxR;
 
   Barrel() : 
       numLayers("numLayers", parsedAndChecked()),
@@ -35,7 +36,8 @@ public:
       outerRadius("outerRadius", parsedAndChecked()),
       sameRods("sameRods", parsedAndChecked(), false),
       layerNode("Layer", parsedOnly()),
-      maxZ(Computable<double>([&]() { double max = 0; for (auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; })) 
+      maxZ([&]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; }),
+      maxR([&]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; })
   {}
 
   void build(); 

@@ -40,6 +40,7 @@ private:
 public:
   ReadonlyProperty<int, UncachedComputable> numModules;
   ReadonlyProperty<double, UncachedComputable> maxZ;
+  ReadonlyProperty<double, Computable> maxR;
   enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
   Property<RadiusMode, Default> radiusMode;
   Property<double, NoDefault> placeRadiusHint;
@@ -56,6 +57,7 @@ public:
             ringNode       ("Ring"           , parsedOnly()),
             numModules     ("numModules"     , parsedOnly(), [this](){ return rods_.front().numModules(); }),
             maxZ           ("maxZ"           , parsedOnly(), [this](){ return rods_.front().maxZ(); }),
+            maxR           ([&]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; }),
             radiusMode     ("radiusMode"     , parsedAndChecked(), RadiusMode::AUTO),
             placeRadiusHint("placeRadiusHint", parsedOnly()),
             minBuildRadius ("minBuildRadius" , parsedOnly()),

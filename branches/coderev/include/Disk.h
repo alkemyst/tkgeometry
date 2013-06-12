@@ -14,7 +14,6 @@
 class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> {
   boost::ptr_vector<Ring> rings_;
 
-  Property<int, NoDefault> numRings;
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
@@ -28,8 +27,11 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> 
   void buildBottomUp(const vector<double>& buildDsDistances);
 
 public:
+  Property<int, NoDefault> numRings;
   Property<double, NoDefault> zError;
   Property<double, NoDefault> buildZ;
+
+  ReadonlyProperty<double, Computable> maxR;
 
   Disk() :
     numRings("numRings", parsedAndChecked()),
@@ -39,6 +41,7 @@ public:
     zError("zError", parsedAndChecked()),
     minRingOverlap("minRingOverlap", parsedOnly(), 1.),
     diskParity("diskParity", parsedOnly(), 1),
+    maxR([&]() { double max = 0; for (const auto& r : rings_) { max = MAX(max, r.maxR()); } return max; }),
     ringNode("Ring", parsedOnly())
   {}
 

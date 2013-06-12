@@ -50,8 +50,8 @@ public:
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
 
-  double minRadius() const { return minRadius_; }
-  double maxRadius() const { return maxRadius_; }
+  double minR() const { return minRadius_; }
+  double maxR() const { return maxRadius_; }
 
   Ring() :
       moduleShape           ("moduleShape"           , parsedAndChecked()),
