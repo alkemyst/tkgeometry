@@ -52,17 +52,54 @@ namespace insur {
    */
   bool Squid::buildTracker() {
     if (tr) delete tr;
+    if (px) delete px;
     startTaskClock("Building tracker and pixel");
-    tr = cp.parseFile(getGeometryFile(), getSettingsFile());
-    if (tr) {
-      if (px) delete px;
-      px = cp.parsePixelsFromFile(getGeometryFile());
-      if (px) px->setZError(tr->getZError());
-      stopTaskClock();
-      return true;
+   // tr = cp.parseFile(getGeometryFile(), getSettingsFile());
+
+    std::ifstream ifs(getGeometryFile());
+    std::stringstream ss;
+    preprocessConfiguration(ifs, ss, getGeometryFile());
+
+    using namespace boost::property_tree;
+    ptree pt;
+    info_parser::read_info(ss, pt);
+
+    class CoordExportVisitor : public ConstGeometryVisitor {
+      std::ofstream barof, endof;
+    public:
+      CoordExportVisitor(std::string trid) : barof(trid + "_barrel_coords.txt"), endof(trid + "_endcap_coords.txt") {}
+      void visit(const BarrelModule& m) override { barof << m.center().Rho() << ", " << m.center().Z() << std::endl; }
+      void visit(const EndcapModule& m) override { endof << m.center().Rho() << ", " << m.center().Z() << std::endl; }
+    };
+
+    try { 
+      int i = 0;
+      auto childRange = getChildRange(pt, "Tracker");
+      std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+        Tracker* t = new Tracker();
+        t->setup();
+        t->myid(kv.second.data());
+        t->store(kv.second);
+        t->build();
+        CoordExportVisitor v(t->myid());
+        t->accept(v);
+        if (i++ == 0) tr = t;
+        else px = t;
+      });
+
+      simParms_ = new SimParms();
+      simParms_->irradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
+      simParms_->store(getChild(pt, "SimParms"));
+      a.simParms(simParms_);
     }
+    catch (PathfulException& e) { 
+      std::cerr << e.path() << " : " << e.what() << std::endl; 
+      stopTaskClock();
+      return false;
+    }
+
     stopTaskClock();
-    return false;
+    return true;
   }
 
  /*
@@ -81,7 +118,7 @@ namespace insur {
    * @param settingsfile The name and - if necessary - path of the module settings configuration file
    * @return True if there was an existing tracker to dress, false otherwise
    */
-  bool Squid::dressTracker() {
+/*  bool Squid::dressTracker() {
     if (tr) {
       startTaskClock("Assigning module types to tracker and pixel"); 
       cp.dressTracker(tr, getSettingsFile());
@@ -95,37 +132,7 @@ namespace insur {
       return false;
     }
   }
-
-  /**
-   * Irradiate a previously created tracker.
-   * @return True if there was an existing tracker to irradiate, false otherwise
-   */
-  bool Squid::irradiateTracker() {
-    if (tr) {
-      startTaskClock("Evaluating modules irradiation");
-      cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
-      stopTaskClock();
-      return true;
-    } else {
-      logERROR(err_no_tracker);
-      return false;
-    }
-  }
-
-
-  /**
-   * Build a geometry of active modules using both geometry constraints and module settings. If there
-   * was an existing tracker object, it is destroyed and replaced by a new one as described in the geometry
-   * and settings configuration files. If there is a pixel detector, it gets the same treatment and may not
-   * exist anymore afterwards, depending on whether the new geometry file describes one or not.
-   * @param geomfile The name and - if necessary - path of the geometry configuration file
-   * @param settingsfile The name and - if necessary - path of the module settings configuration file
-   * @return True if there were no errors during processing, false otherwise
-   */
-  bool Squid::buildTrackerSystem() {
-    if ( buildTracker() ) return dressTracker();
-    else return false;
-  }
+*/
 
   /**
    * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
@@ -306,7 +313,7 @@ namespace insur {
     string trackerName;
     if (htmlDir_ != "") trackerName = htmlDir_;
     else {
-      if (tr) trackerName = tr->getName();
+      if (tr) trackerName = tr->myid();
       else trackerName = default_trackername;
     }
     string layoutDirectory;
@@ -420,8 +427,8 @@ namespace insur {
   bool Squid::reportGeometrySite() {
     if (tr) {
       startTaskClock("Creating geometry report");
-      v.geometrySummary(a, *tr, site);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, site, "pixel");
+      v.geometrySummary(a, *tr, *simParms_, site);
+      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, site, "pixel");
       stopTaskClock();
       return true;
     } else {
@@ -437,7 +444,7 @@ namespace insur {
       a.computeTriggerFrequency(*tr);
       stopTaskClock();
       startTaskClock("Creating bandwidth and rates report");
-      v.bandwidthSummary(a, *tr, site);
+      v.bandwidthSummary(a, *tr, *simParms_, site);
       stopTaskClock();
       return true;
     } else {
@@ -546,7 +553,7 @@ namespace insur {
       v.additionalInfoSite(getGeometryFile(), getSettingsFile(),
                            getMaterialFile(), getPixelMaterialFile(),
                            defaultMaterialFile, defaultPixelMaterialFile,
-                           a, *tr, site);
+                           a, *tr, *simParms_, site);
       stopTaskClock();
       return true;
     }
@@ -613,7 +620,7 @@ namespace insur {
 
   void Squid::simulateTracks(const po::variables_map& varmap, int seed) {
     startTaskClock("Shooting particles");
-    TrackShooter ts;
+/*    TrackShooter ts;
     //std::ofstream ofs((outputfile + "." + any2str(getpid())).c_str());
     //ofs.rdbuf()->pubsetbuf(&(std::vector<char>(32768)[0]), 32768);
     //std::nounitbuf(ofs);
@@ -626,20 +633,7 @@ namespace insur {
       }
     }
 
-    ts.shootTracks(varmap, seed);
-/*
-    if (!cfgfile.empty()) {
-      std::ifstream ifs(cfgfile.c_str());
-      ts.shootTracks(ifs, seed);
-      ifs.close();
-    } else if (!cmdline.empty()) {
-      std::sstream ss(cmdline);
-      ts.shootTracks(ss, seed);
-    } else {
-      ts.shootTracks(numEvents, numTracksEv, seed);
-    }
-*/
-    //ofs.close();
+    ts.shootTracks(varmap, seed);*/
     stopTaskClock();
   }
 }

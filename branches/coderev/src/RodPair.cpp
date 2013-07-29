@@ -74,7 +74,7 @@ template<typename Iterator> vector<double> RodPair::computeZList(Iterator begin,
   vector<double> zList;
 
   double targetZ = maxZ.state() ? maxZ() : std::numeric_limits<double>::max(); // unreachable target in case maxZ not set
-  int targetMods = numModules.state() ? numModules() : std::numeric_limits<int>::max(); // unreachable target in case numModules not set
+  int targetMods = buildNumModules.state() ? buildNumModules() : std::numeric_limits<int>::max(); // unreachable target in case numModules not set
 
   double lengthOffset = direction == BuildDirection::RIGHT ? (*begin)->length() : -(*begin)->length();
 
@@ -133,10 +133,11 @@ template<typename Iterator> pair<vector<double>, vector<double>> RodPair::comput
   }
 }
 
-void RodPair::buildModules(const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction) {
-  for (int i=0, parity = zPlusParity(); i<(int)posList.size(); i++, parity = -parity) {
+void RodPair::buildModules(const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity) {
+  for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
     RectangularModule* rmod = i < rodTemplate.size() ? rodTemplate[i].get() : rodTemplate.rbegin()->get();
-    BarrelModule* mod = new BarrelModule(TypedModule::decorate(moduleType(), new RectangularModule(*rmod)));
+    BarrelModule* mod = new BarrelModule(new RectangularModule(*rmod));
+    mod->setup();
     mod->myid(i+1);
     mod->ring(i+1);
     mod->side(1);
@@ -156,12 +157,10 @@ void RodPair::buildFull(const RodTemplate& rodTemplate) {
 
     // actual module creation
     // CUIDADO log rod balancing effort
-  buildModules(rodTemplate, zListPair.first, BuildDirection::RIGHT);
+  buildModules(rodTemplate, zListPair.first, BuildDirection::RIGHT, zPlusParity());
   double currMaxZ = modules_.size() > 1 ? MAX(modules_.rbegin()->maxZ(), (modules_.rbegin()+1)->maxZ()) : (!modules_.empty() ? modules_.rbegin()->maxZ() : 0.); 
   // CUIDADO this only checks the positive side... the negative side might actually have a higher fabs(maxZ) if the barrel is long enough and there's an inversion
-  numModules(modules_.size());
-
-  buildModules(rodTemplate, zListPair.second, BuildDirection::LEFT);
+  buildModules(rodTemplate, zListPair.second, BuildDirection::LEFT, -zPlusParity());
 
   if (maxZ.state() && currMaxZ > maxZ()) compressToZ(maxZ());
   else maxZ(currMaxZ);
@@ -173,11 +172,10 @@ void RodPair::buildMezzanine(const RodTemplate& rodTemplate) {
   vector<double> zListNeg;
   std::transform(zList.begin(), zList.end(), std::back_inserter(zListNeg), std::negate<double>());
 
-  buildModules(rodTemplate, zList, BuildDirection::LEFT); // CUIDADO mezzanine layer rings in reverse order????
+  buildModules(rodTemplate, zList, BuildDirection::LEFT, zPlusParity()); // CUIDADO mezzanine layer rings in reverse order????
   maxZ(startZ());
-  numModules(modules_.size());
 
-  buildModules(rodTemplate, zListNeg, BuildDirection::RIGHT);
+  buildModules(rodTemplate, zListNeg, BuildDirection::RIGHT, zPlusParity());
 }
 
 

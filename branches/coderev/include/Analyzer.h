@@ -139,6 +139,7 @@ namespace insur {
    */
 
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
+  typedef TriggerProcessorBandwidthVisitor::ModuleConnectionMap ModuleConnectionMap;
 
   class Analyzer {
   public:
@@ -346,6 +347,7 @@ namespace insur {
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;
+
 
     TH1D hitDistribution;
     graphBag myGraphBag;

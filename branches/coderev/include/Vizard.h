@@ -34,11 +34,15 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 #include <TPaletteAxis.h>
+#include <TPolyLine3D.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
-#include <tracker.hh>
-#include <Analyzer.h>
+#include <SimParms.h>
+#include <Tracker.h>
+#include <Analyzers.h>
+#include <TagMaker.h>
+
 #include <InactiveSurfaces.h>
 #include <rootweb.hh>
 #include <vector>
@@ -151,8 +155,8 @@ namespace insur {
     void histogramSummary(Analyzer& a, RootWSite& site);
     void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site, std::string alternativeName = "");
-    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, RootWSite& site, std::string alternativeName = "");
+    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
@@ -161,7 +165,7 @@ namespace insur {
     bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
                             const std::string& matfile, const std::string& pixmatfile,
                             bool defaultMaterial, bool defaultPixelMaterial,
-                            Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+                            Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();
     std::string getSummaryLabelString();
@@ -204,10 +208,10 @@ namespace insur {
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 
-    double getDrawAreaZ(const Tracker& tracker) const { return tracker.getMaxL()*1.1; }
-    double getDrawAreaR(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
-    double getDrawAreaX(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
-    double getDrawAreaY(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
+    double getDrawAreaZ(const Tracker& tracker) const { return tracker.maxZ()*1.1; }
+    double getDrawAreaR(const Tracker& tracker) const { return tracker.maxR()*1.1; }
+    double getDrawAreaX(const Tracker& tracker) const { return tracker.maxR()*1.1; }
+    double getDrawAreaY(const Tracker& tracker) const { return tracker.maxR()*1.1; }
 
     void fillPlotMap(std::string& plotName, 
                      std::map<graphIndex, TGraph*>& myPlotMap,

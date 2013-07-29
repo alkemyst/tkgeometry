@@ -4,31 +4,35 @@
 #include "Polygon3d.h"
 #include "Property.h"
 
-enum class SensorType { Pixel, Strip };
+enum class SensorType { Pixel, Strip, None };
 
 class Sensor : public PropertyObject, public Buildable, public Identifiable<Sensor> {
   Polygon3d<4> poly_;
 public:
-  ReadonlyProperty<int, NoDefault> xElements;
-  ReadonlyProperty<int, NoDefault> yElements;
-  ReadonlyProperty<int, NoDefault> numChannels;
+  ReadonlyProperty<int, AutoDefault> xElements;
+  ReadonlyProperty<int, AutoDefault> yElements;
+  ReadonlyProperty<int, Default> numSegments;
+  ReadonlyProperty<int, Default> numStripsAcross;
   ReadonlyProperty<int, Default> numROCs;
   ReadonlyProperty<double, Default> sensorThickness;
-  ReadonlyProperty<SensorType, NoDefault> type;
+  ReadonlyProperty<double, AutoDefault> pitch;
+  ReadonlyProperty<double, AutoDefault> stripLength;
+  ReadonlyProperty<SensorType, Default> type;
 
   Sensor() : 
-      xElements("xElements", parsedAndChecked()),
-      yElements("yElements", parsedAndChecked()),
-      numChannels("numChannels", parsedAndChecked()),
+      numSegments("numSegments", parsedOnly(), 1),
+      numStripsAcross("numStripsAcross", parsedOnly(), 1),
       numROCs("numROCs", parsedOnly(), 128),
       sensorThickness("sensorThickness", parsedOnly(), 0.1),
-      type("sensorType", parsedAndChecked())
+      type("sensorType", parsedOnly(), SensorType::None)
   {}
 
   Polygon3d<4>& poly() { return poly_; }
+
+  int numChannels() const { return numStripsAcross() * numSegments(); }
+
 
   void build() { check(); cleanup(); }
   
 };
 
-define_enum_strings(SensorType) = { "pixel", "strip" };

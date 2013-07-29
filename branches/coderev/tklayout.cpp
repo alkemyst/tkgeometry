@@ -119,31 +119,29 @@ int main(int argc, char* argv[]) {
   if (!vm.count("tracksim")) {
     // The tracker should pick the types here but in case it does not,
     // we can still write something
-    if (squid.dressTracker()) {
-      if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
+    if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
 
 
-      if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
-      if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
-      if ((vm.count("all") || vm.count("power")) && (!squid.irradiateTracker() || !squid.reportPowerSite()) ) return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("power")) && (!squid.reportPowerSite()) ) return EXIT_FAILURE;
 
-      // If we need to have the material model, then we build it
-      if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
-        if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
-          if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
-            // TODO: the following call should know whether to compute resolution or material (or both)
-            if (!squid.pureAnalyzeMaterialBudget(mattracks, true)) return EXIT_FAILURE;
-            if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
-            if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
-          }
-          if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
-          if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir.empty() ? basename : xmldir, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
+    // If we need to have the material model, then we build it
+    if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
+      if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+        if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
+          // TODO: the following call should know whether to compute resolution or material (or both)
+          if (!squid.pureAnalyzeMaterialBudget(mattracks, true)) return EXIT_FAILURE;
+          if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
+          if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
         }
+        if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
+        if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir.empty() ? basename : xmldir, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
       }
+    }
 
-      if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
-          ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
-    } else if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
+        ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
 
 
     if (!squid.reportGeometrySite()) return EXIT_FAILURE;
@@ -157,7 +155,6 @@ int main(int argc, char* argv[]) {
     //  std::cerr << "                                    --tracksim \"key1 = value1; key2 = value2 ...\"" << std::endl;
     //  return EXIT_FAILURE;
    // }
-    if (!squid.dressTracker()) return EXIT_FAILURE;
     if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
   
 //    if (tracksim.size() == 2) {

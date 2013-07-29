@@ -163,117 +163,120 @@ namespace insur {
      * @param down A reference to a vector listing polygon points by decreasing radius
      */
     void Extractor::analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
-            std::vector<std::pair<double, double> >& down) {
-        bool is_short, previous_short = false;
-        std::pair<double, double> rz;
-        double rmax = 0.0, zmax = 0.0, zmin = 0.0;
-        unsigned int layer, n_of_layers = t.getBarrelLayers()->size();
-        std::vector<Layer*>* bl = t.getBarrelLayers();
-        up.clear();
-        down.clear();
-        for (layer = 0; layer < n_of_layers; layer++) {
-            is_short = (bl->at(layer)->getMinZ() > 0) || (bl->at(layer)->getMaxZ() < 0);
-            if (is_short) {
-                //short layer on z- side
-                if (bl->at(layer)->getMaxZ() < 0) {
-                    //indices 0, 1
-                    if ((layer == 0) || ((layer == 1) && (previous_short))) {
-                        rz.first = bl->at(layer)->getMinRho();
-                        rz.second = bl->at(layer)->getMinZ();
-                        up.push_back(rz);
-                    }
-                    else {
-                        //new barrel reached
-                        if (bl->at(layer)->getMinZ() != zmin) {
-                            //new layer sticks out compared to old layer
-                            if (bl->at(layer)->getMinZ() > zmin) rz.first = bl->at(layer)->getMinRho();
-                            //old layer sticks out compared to new layer
-                            else rz.first = rmax;
-                            rz.second = zmin;
-                            up.push_back(rz);
-                            rz.second = bl->at(layer)->getMinZ();
-                            up.push_back(rz);
-                        }
-                    }
-                    //indices size - 2, size - 1
-                    if ((layer == n_of_layers - 1) || ((layer == n_of_layers - 2) && (previous_short))) {
-                        rz.first = bl->at(layer)->getMaxRho();
-                        rz.second = bl->at(layer)->getMinZ();
-                        up.push_back(rz);
-                    }
-                }
-                //short layer on z+ side
-                else {
-                    //indices 0, 1
-                    if ((layer == 0) || ((layer == 1) && (previous_short))) {
-                        rz.first = bl->at(layer)->getMinRho();
-                        rz.second = bl->at(layer)->getMaxZ();
-                        down.push_back(rz);
-                    }
-                    else {
-                        //new barrel reached
-                        if (bl->at(layer)->getMaxZ() != zmax) {
-                            //new layer sticks out compared to old layer
-                            if (bl->at(layer)->getMaxZ() > zmax) rz.first = bl->at(layer)->getMinRho();
-                            //old layer sticks out compared to new layer
-                            else rz.first = rmax;
-                            rz.second = zmax;
-                            down.push_back(rz);
-                            rz.second = bl->at(layer)->getMaxZ();
-                            down.push_back(rz);
-                        }
-                    }
-                    //indices size - 2, size - 1
-                    if ((layer == n_of_layers - 1) || ((layer == n_of_layers - 2) && (previous_short))) {
-                        rz.first = bl->at(layer)->getMaxRho();
-                        rz.second = bl->at(layer)->getMinZ();
-                        down.push_back(rz);
-                    }
-                }
+                                           std::vector<std::pair<double, double> >& down) {
+      bool is_short, previous_short = false;
+      std::pair<double, double> rz;
+      double rmax = 0.0, zmax = 0.0, zmin = 0.0;
+      up.clear();
+      down.clear();
+
+      LayerAggregator lagg;
+      t.accept(lagg);
+      auto bl = lagg.getBarrelLayers();
+      int n_of_layers = bl->size();
+      for (int layer = 0; layer < n_of_layers; layer++) {
+        is_short = (bl->at(layer)->minZ() > 0) || (bl->at(layer)->maxZ() < 0);
+        if (is_short) {
+          //short layer on z- side
+          if (bl->at(layer)->maxZ() < 0) {
+            //indices 0, 1
+            if ((layer == 0) || ((layer == 1) && (previous_short))) {
+              rz.first = bl->at(layer)->minR();
+              rz.second = bl->at(layer)->minZ();
+              up.push_back(rz);
             }
-            //regular layer across z=0
             else {
-                //index 0
-                if (layer == 0) {
-                    rz.first = bl->at(layer)->getMinRho();
-                    rz.second = bl->at(layer)->getMinZ();
-                    up.push_back(rz);
-                    rz.second = bl->at(layer)->getMaxZ();
-                    down.push_back(rz);
-                }
-                else {
-                    //new barrel reached
-                    if (bl->at(layer)->getMaxZ() != zmax) {
-                        //new layer sticks out compared to old layer
-                        if (bl->at(layer)->getMaxZ() > zmax) rz.first = bl->at(layer)->getMinRho();
-                        //old layer sticks out compared to new layer
-                        else rz.first = rmax;
-                        rz.second = zmin;
-                        up.push_back(rz);
-                        rz.second = zmax;
-                        down.push_back(rz);
-                        rz.second = bl->at(layer)->getMinZ();
-                        up.push_back(rz);
-                        rz.second = bl->at(layer)->getMaxZ();
-                        down.push_back(rz);
-                    }
-                }
-                //index size - 1
-                if (layer == n_of_layers - 1) {
-                    rz.first = bl->at(layer)->getMaxRho();
-                    rz.second = bl->at(layer)->getMinZ();
-                    up.push_back(rz);
-                    rz.second = bl->at(layer)->getMaxZ();
-                    down.push_back(rz);
-                }
+              //new barrel reached
+              if (bl->at(layer)->minZ() != zmin) {
+                //new layer sticks out compared to old layer
+                if (bl->at(layer)->minZ() > zmin) rz.first = bl->at(layer)->minR();
+                //old layer sticks out compared to new layer
+                else rz.first = rmax;
+                rz.second = zmin;
+                up.push_back(rz);
+                rz.second = bl->at(layer)->minZ();
+                up.push_back(rz);
+              }
             }
-            rmax = bl->at(layer)->getMaxRho();
-            if (bl->at(layer)->getMinZ() < 0) zmin = bl->at(layer)->getMinZ();
-            if (bl->at(layer)->getMaxZ() > 0) zmax = bl->at(layer)->getMaxZ();
-            previous_short = is_short;
+            //indices size - 2, size - 1
+            if ((layer == n_of_layers - 1) || ((layer == n_of_layers - 2) && (previous_short))) {
+              rz.first = bl->at(layer)->maxR();
+              rz.second = bl->at(layer)->minZ();
+              up.push_back(rz);
+            }
+          }
+          //short layer on z+ side
+          else {
+            //indices 0, 1
+            if ((layer == 0) || ((layer == 1) && (previous_short))) {
+              rz.first = bl->at(layer)->minR();
+              rz.second = bl->at(layer)->maxZ();
+              down.push_back(rz);
+            }
+            else {
+              //new barrel reached
+              if (bl->at(layer)->maxZ() != zmax) {
+                //new layer sticks out compared to old layer
+                if (bl->at(layer)->maxZ() > zmax) rz.first = bl->at(layer)->minR();
+                //old layer sticks out compared to new layer
+                else rz.first = rmax;
+                rz.second = zmax;
+                down.push_back(rz);
+                rz.second = bl->at(layer)->maxZ();
+                down.push_back(rz);
+              }
+            }
+            //indices size - 2, size - 1
+            if ((layer == n_of_layers - 1) || ((layer == n_of_layers - 2) && (previous_short))) {
+              rz.first = bl->at(layer)->maxR();
+              rz.second = bl->at(layer)->minZ();
+              down.push_back(rz);
+            }
+          }
         }
+        //regular layer across z=0
+        else {
+          //index 0
+          if (layer == 0) {
+            rz.first = bl->at(layer)->minR();
+            rz.second = bl->at(layer)->minZ();
+            up.push_back(rz);
+            rz.second = bl->at(layer)->maxZ();
+            down.push_back(rz);
+          }
+          else {
+            //new barrel reached
+            if (bl->at(layer)->maxZ() != zmax) {
+              //new layer sticks out compared to old layer
+              if (bl->at(layer)->maxZ() > zmax) rz.first = bl->at(layer)->minR();
+              //old layer sticks out compared to new layer
+              else rz.first = rmax;
+              rz.second = zmin;
+              up.push_back(rz);
+              rz.second = zmax;
+              down.push_back(rz);
+              rz.second = bl->at(layer)->minZ();
+              up.push_back(rz);
+              rz.second = bl->at(layer)->maxZ();
+              down.push_back(rz);
+            }
+          }
+          //index size - 1
+          if (layer == n_of_layers - 1) {
+            rz.first = bl->at(layer)->maxR();
+            rz.second = bl->at(layer)->minZ();
+            up.push_back(rz);
+            rz.second = bl->at(layer)->maxZ();
+            down.push_back(rz);
+          }
+        }
+        rmax = bl->at(layer)->maxR();
+        if (bl->at(layer)->minZ() < 0) zmin = bl->at(layer)->minZ();
+        if (bl->at(layer)->maxZ() > 0) zmax = bl->at(layer)->maxZ();
+        previous_short = is_short;
+      }
     }
-    
+
     /**
      *This is one of the smaller analysis functions that provide the core functionality of this class. Its main purpose is that
      * of extracting a series of (r, z) points that will be used later to extend the polycone volume enclosing one of the pixel
@@ -288,73 +291,74 @@ namespace insur {
      * @param down A reference to a vector listing polygon points by decreasing radius
      */
     void Extractor::analyseEndcapContainer(Tracker& t,
-            std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
-        int first, last;
-        std::pair<double, double> rz;
-        double rmin = 0.0, rmax = 0.0, zmax = 0.0;
-        std::vector<Layer*>* el = t.getEndcapLayers();
-        first = 0;
-        last = el->size();
-        while (first < last) {
-            if (el->at(first)->getMaxZ() > 0) break;
-            first++;
+                                           std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
+      int first, last;
+      std::pair<double, double> rz;
+      double rmin = 0.0, rmax = 0.0, zmax = 0.0;
+      LayerAggregator lagg; t.accept(lagg);
+      auto el = lagg.getEndcapLayers();
+      first = 0;
+      last = el->size();
+      while (first < last) {
+        if (el->at(first)->maxZ() > 0) break;
+        first++;
+      }
+      up.clear();
+      down.clear();
+      for (int i = first; i < last; i++) {
+        // special treatment for first disc
+        if (i == first) {
+          rmin = el->at(i)->minR();
+          rmax = el->at(i)->maxR();
+          rz.first = rmax;
+          rz.second = el->at(i)->minZ() - xml_z_pixfwd;
+          up.push_back(rz);
+          rz.first = rmin;
+          down.push_back(rz);
         }
-        up.clear();
-        down.clear();
-        for (int i = first; i < last; i++) {
-            // special treatment for first disc
-            if (i == first) {
-                rmin = el->at(i)->getMinRho();
-                rmax = el->at(i)->getMaxRho();
-                rz.first = rmax;
-                rz.second = el->at(i)->getMinZ() - xml_z_pixfwd;
-                up.push_back(rz);
-                rz.first = rmin;
-                down.push_back(rz);
-            }
-            // disc beyond the first
-            else {
-                // endcap change larger->smaller
-                if (rmax > el->at(i)->getMaxRho()) {
-                    rz.second = zmax - xml_z_pixfwd;
-                    rz.first = rmax;
-                    up.push_back(rz);
-                    rz.first = rmin;
-                    down.push_back(rz);
-                    rmax = el->at(i)->getMaxRho();
-                    rmin = el->at(i)->getMinRho();
-                    rz.first = rmax;
-                    up.push_back(rz);
-                    rz.first = rmin;
-                    down.push_back(rz);
-                }
-                // endcap change smaller->larger
-                if (rmax < el->at(i)->getMaxRho()) {
-                    rz.second = el->at(i)->getMinZ() - xml_z_pixfwd;
-                    rz.first = rmax;
-                    up.push_back(rz);
-                    rz.first = rmin;
-                    down.push_back(rz);
-                    rmax = el->at(i)->getMaxRho();
-                    rmin = el->at(i)->getMinRho();
-                    rz.first = rmax;
-                    up.push_back(rz);
-                    rz.first = rmin;
-                    down.push_back(rz);
-                }
-            }
-            zmax = el->at(i)->getMaxZ();
-            // special treatment for last disc
-            if (i == last - 1) {
-                rz.first = rmax;
-                rz.second = zmax - xml_z_pixfwd;
-                up.push_back(rz);
-                rz.first = rmin;
-                down.push_back(rz);
-            }
+        // disc beyond the first
+        else {
+          // endcap change larger->smaller
+          if (rmax > el->at(i)->maxR()) {
+            rz.second = zmax - xml_z_pixfwd;
+            rz.first = rmax;
+            up.push_back(rz);
+            rz.first = rmin;
+            down.push_back(rz);
+            rmax = el->at(i)->maxR();
+            rmin = el->at(i)->minR();
+            rz.first = rmax;
+            up.push_back(rz);
+            rz.first = rmin;
+            down.push_back(rz);
+          }
+          // endcap change smaller->larger
+          if (rmax < el->at(i)->maxR()) {
+            rz.second = el->at(i)->minZ() - xml_z_pixfwd;
+            rz.first = rmax;
+            up.push_back(rz);
+            rz.first = rmin;
+            down.push_back(rz);
+            rmax = el->at(i)->maxR();
+            rmin = el->at(i)->minR();
+            rz.first = rmax;
+            up.push_back(rz);
+            rz.first = rmin;
+            down.push_back(rz);
+          }
         }
+        zmax = el->at(i)->maxZ();
+        // special treatment for last disc
+        if (i == last - 1) {
+          rz.first = rmax;
+          rz.second = zmax - xml_z_pixfwd;
+          up.push_back(rz);
+          rz.first = rmin;
+          down.push_back(rz);
+        }
+      }
     }
-    
+
     /**
      * This is one of the two main analysis functions that provide the core functionality of this class. It examines the barrel layers
      * and the modules within, extracting a great range of different pieces of information from the geometry layout. These are shapes
@@ -377,51 +381,51 @@ namespace insur {
      * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
      */
     void Extractor::analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
-            std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-            std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
-        int layer;
+                                  std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
+                                  std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+      int layer;
 
-        std::string nspace;
-        if (wt) nspace = xml_newfileident;
-        else nspace = xml_fileident;
+      std::string nspace;
+      if (wt) nspace = xml_newfileident;
+      else nspace = xml_fileident;
 
-        std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
-        std::vector<ModuleCap>::iterator iiter, iguard;
+      std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
+      std::vector<ModuleCap>::iterator iiter, iguard;
 
-        // Container inits
-        ShapeInfo shape;
-        shape.dyy = 0.0;
+      // Container inits
+      ShapeInfo shape;
+      shape.dyy = 0.0;
 
-        LogicalInfo logic;
+      LogicalInfo logic;
 
-        PosInfo pos;
-        pos.copy = 1;
-        pos.trans.dx = 0.0;
-        pos.trans.dy = 0.0;
-        pos.trans.dz = 0.0;
+      PosInfo pos;
+      pos.copy = 1;
+      pos.trans.dx = 0.0;
+      pos.trans.dy = 0.0;
+      pos.trans.dz = 0.0;
 
-        AlgoInfo alg;
+      AlgoInfo alg;
 
-        Rotation rot;
-        rot.phix = 0.0;
-        rot.phiy = 0.0;
-        rot.phiz = 0.0;
-        rot.thetax = 0.0;
-        rot.thetay = 0.0;
-        rot.thetaz = 0.0;
+      Rotation rot;
+      rot.phix = 0.0;
+      rot.phiy = 0.0;
+      rot.phiz = 0.0;
+      rot.thetax = 0.0;
+      rot.thetay = 0.0;
+      rot.thetaz = 0.0;
 
-        SpecParInfo rocdims, lspec, rspec, mspec;
-        // Layer
-        lspec.name = xml_subdet_layer + xml_par_tail;
-        lspec.parameter.first = xml_tkddd_structure;
-        lspec.parameter.second = xml_det_layer;
-        // Rod
-        rspec.name = xml_subdet_rod + xml_par_tail;
-        rspec.parameter.first = xml_tkddd_structure;
-        rspec.parameter.second = xml_det_rod;
-        // Module
-        mspec.name = xml_subdet_tobdet + xml_par_tail;
-        mspec.parameter.first = xml_tkddd_structure;
+      SpecParInfo rocdims, lspec, rspec, mspec;
+      // Layer
+      lspec.name = xml_subdet_layer + xml_par_tail;
+      lspec.parameter.first = xml_tkddd_structure;
+      lspec.parameter.second = xml_det_layer;
+      // Rod
+      rspec.name = xml_subdet_rod + xml_par_tail;
+      rspec.parameter.first = xml_tkddd_structure;
+      rspec.parameter.second = xml_det_rod;
+      // Module
+      mspec.name = xml_subdet_tobdet + xml_par_tail;
+      mspec.parameter.first = xml_tkddd_structure;
         mspec.parameter.second = xml_det_tobdet;
         
         // name goes into trackerStructureTopology
@@ -442,17 +446,27 @@ namespace insur {
         alg.name = xml_tobalgo;
         oguard = bc.end();
 
+        LayerAggregator lagg;
+        tr.accept(lagg);
+
         // barrel caps layer loop
         for (oiter = bc.begin(); oiter != oguard; oiter++) {
-          double rmin = tr.getBarrelLayers()->at(layer - 1)->getMinRho();
-          rmin = rmin - tr.getBarrelLayers()->at(layer - 1)->getMaxModuleThickness() / 2.0;
-          double rmax = tr.getBarrelLayers()->at(layer - 1)->getMaxRho();
-          rmax = rmax + tr.getBarrelLayers()->at(layer - 1)->getMaxModuleThickness() / 2.0;
-          double zmin = tr.getBarrelLayers()->at(layer - 1)->getMinZ();
-          double zmax = tr.getBarrelLayers()->at(layer - 1)->getMaxZ();
+          struct ThicknessVisitor : public ConstGeometryVisitor {
+            double max = 0;
+            void visit(const Module& m) { max = MAX(max, m.thickness()); }
+          };
+          ThicknessVisitor v;
+          lagg.getBarrelLayers()->at(layer-1)->accept(v);
 
-          double deltar = findDeltaR(tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
-                                     tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
+          double rmin = lagg.getBarrelLayers()->at(layer - 1)->minR();
+          rmin = rmin - v.max / 2.0;
+          double rmax = lagg.getBarrelLayers()->at(layer - 1)->maxR();
+          rmax = rmax + v.max / 2.0;
+          double zmin = lagg.getBarrelLayers()->at(layer - 1)->minZ();
+          double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();
+                          // CUIDADO maxR and minR should take into account dsDistance and sensorThickness (check if it's been already fixed in DetectorModule!!)
+          double deltar = rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
+                                                                                                                       //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
 
           double ds, dt = 0.0;
           double rtotal = 0.0, itotal = 0.0;
@@ -484,23 +498,24 @@ namespace insur {
 
             // module caps loop
             for (iiter = oiter->begin(); iiter != iguard; iiter++) {
-              if (rings.find(iiter->getModule().getRing()) == rings.end()) {
+              int modRing = iiter->getModule().uniRef().ring;
+              if (rings.find(modRing) == rings.end()) {
 
                 // This is the Barrel Case
                 std::vector<ModuleCap>::iterator partner;
                 std::ostringstream matname, shapename, specname;
 
                 // module composite material
-                matname << xml_base_actcomp << "L" << layer << "P" << iiter->getModule().getRing();
+                matname << xml_base_actcomp << "L" << layer << "P" << modRing; 
                 c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
                 // module box
-                shapename << iiter->getModule().getRing() << lname.str();
+                shapename << modRing << lname.str();
                 shape.name_tag = xml_barrel_module + shapename.str();
 
-                shape.dx = iiter->getModule().getArea() / iiter->getModule().getHeight() / 2.0;
-                shape.dy = iiter->getModule().getHeight() / 2.0;
-                shape.dz = iiter->getModule().getModuleThickness() / 2.0;
+                shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+                shape.dy = iiter->getModule().length() / 2.0;
+                shape.dz = iiter->getModule().thickness() / 2.0;
                 s.push_back(shape);
 
                 logic.name_tag = shape.name_tag;
@@ -513,14 +528,14 @@ namespace insur {
                 pos.child_tag = logic.shape_tag;
                 pos.rotref = nspace + ":" + xml_barrel_tilt;
 
-                if ((iiter->getModule().getMeanPoint().Rho() > (rmax - deltar / 2.0))
-                    || ((iiter->getModule().getMeanPoint().Rho() < ((rmin + rmax) / 2.0))
-                        && (iiter->getModule().getMeanPoint().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
+                if ((iiter->getModule().center().Rho() > (rmax - deltar / 2.0))
+                    || ((iiter->getModule().center().Rho() < ((rmin + rmax) / 2.0))
+                        && (iiter->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                 else pos.trans.dx = shape.dz - deltar / 2.0;
 
                 if (is_short) {
                   pos.parent_tag = nspace + ":" + rname.str() + xml_plus;
-                  pos.trans.dz = iiter->getModule().getMinZ() - ((zmax + zmin) / 2.0) + shape.dy;
+                  pos.trans.dz = iiter->getModule().minZ() - ((zmax + zmin) / 2.0) + shape.dy;
                   p.push_back(pos);
                   pos.parent_tag = nspace + ":" + rname.str() + xml_minus;
                   pos.trans.dz = -pos.trans.dz;
@@ -529,31 +544,31 @@ namespace insur {
                   pos.copy = 1;
                 } else {
                   pos.parent_tag = nspace + ":" + rname.str();
-                  partner = findPartnerModule(iiter, iguard, iiter->getModule().getRing());
-                  if (iiter->getModule().getZSide() > 0) {  // CUIDADO was getMeanPoint().Z() but didn't work for modules in negative rods with mean point > 0 (balanced rods)
-                    pos.trans.dz = iiter->getModule().getMaxZ() - shape.dy;
+                  partner = findPartnerModule(iiter, iguard, modRing);
+                  if (iiter->getModule().uniRef().side > 0) { 
+                    pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
                     p.push_back(pos);
                     if (partner != iguard) {
-                      if ((partner->getModule().getMeanPoint().Rho() > (rmax - deltar / 2.0))
-                          || ((partner->getModule().getMeanPoint().Rho() < ((rmin + rmax) / 2.0))
-                              && (partner->getModule().getMeanPoint().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
+                      if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
+                          || ((partner->getModule().center().Rho() < ((rmin + rmax) / 2.0))
+                              && (partner->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                       else pos.trans.dx = shape.dz - deltar / 2.0;
-                      pos.trans.dz = partner->getModule().getMaxZ() - shape.dy;
+                      pos.trans.dz = partner->getModule().maxZ() - shape.dy;
                       pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
                       p.push_back(pos);
                       pos.copy = 1;
                     }
                   } else {
-                    pos.trans.dz = iiter->getModule().getMaxZ() - shape.dy;
+                    pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
                     pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
                     p.push_back(pos);
                     pos.copy = 1;
                     if (partner != iguard) {
-                      if ((partner->getModule().getMeanPoint().Rho() > (rmax - deltar / 2.0))
-                          || ((partner->getModule().getMeanPoint().Rho() < ((rmin + rmax) / 2.0))
-                              && (partner->getModule().getMeanPoint().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
+                      if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
+                          || ((partner->getModule().center().Rho() < ((rmin + rmax) / 2.0))
+                              && (partner->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                       else pos.trans.dx = shape.dz - deltar / 2.0;
-                      pos.trans.dz = partner->getModule().getMaxZ() - shape.dy;
+                      pos.trans.dz = partner->getModule().maxZ() - shape.dy;
                       p.push_back(pos);
                     }
                   }
@@ -562,11 +577,11 @@ namespace insur {
 
                 // wafer
                 string xml_base_inout = "";
-                if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+                if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
                 shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
-                shape.dz = iiter->getModule().getModuleType()->getSensorThickness() / 2.0; //CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
-                //if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
+                shape.dz = iiter->getModule().sensorThickness() / 2.0; //CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
+                //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
                 s.push_back(shape);
 
                 pos.parent_tag = logic.shape_tag;
@@ -578,11 +593,11 @@ namespace insur {
 
                 pos.child_tag = logic.shape_tag;
                 pos.trans.dx = 0.0;
-                //pos.trans.dz = shape.dz - iiter->getModule().getModuleThickness() / 2.0;
-                pos.trans.dz = /*shape.dz*/ - iiter->getModule().getStereoDistance() / 2.0;  // CUIDADO EXPERIMENTAL
+                //pos.trans.dz = shape.dz - iiter->getModule().tmoduleThickness() / 2.0;
+                pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
                 p.push_back(pos);
 
-                if (iiter->getModule().getNFaces() == 2) {
+                if (iiter->getModule().numSensors() == 2) {
 
                   xml_base_inout = xml_base_outer;
 
@@ -594,15 +609,15 @@ namespace insur {
                   l.push_back(logic);
 
                   pos.child_tag = logic.shape_tag;
-                  pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().getStereoDistance();  // CUIDADO: was with 2*shape.dz, but why???
+                  pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
                   //pos.copy = 2;
 
-                  if (iiter->getModule().getStereoRotation() != 0) {
+                  if (iiter->getModule().stereoRotation() != 0) {
                     rot.name = type_stereo + xml_barrel_module + shapename.str();
                     rot.thetax = 90.0;
-                    rot.phix = iiter->getModule().getStereoRotation() / M_PI * 180;
+                    rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
                     rot.thetay = 90.0;
-                    rot.phiy = 90.0 + iiter->getModule().getStereoRotation() / M_PI * 180;
+                    rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
                     r.push_back(rot);
                     pos.rotref = nspace + ":" + rot.name;
                   }
@@ -622,7 +637,7 @@ namespace insur {
 
                 // active surface
                 xml_base_inout = "";
-                if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+                if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
                 shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_act;
                 s.push_back(shape);
@@ -641,12 +656,12 @@ namespace insur {
 
                 // topology
                 mspec.partselectors.push_back(logic.name_tag);
-                mspec.moduletypes.push_back(iiter->getModule().getType());
-                specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                mspec.moduletypes.push_back(iiter->getModule().moduleType());
+                specname << xml_roc_x << xml_par_tail << (iiter->getModule().numStripsAcross() / xml_roc_rows);
                 int id = findSpecParIndex(t, specname.str());
                 if (id >= 0) {
                   t.at(id).partselectors.push_back(logic.name_tag);
-                  t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                  t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                 }
                 else {
                   rocdims.partselectors.clear();
@@ -654,20 +669,20 @@ namespace insur {
                   rocdims.name = specname.str();
                   rocdims.parameter.first = xml_roc_x;
                   specname.str("");
-                  specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                  specname << (iiter->getModule().numStripsAcross() / xml_roc_rows);
                   rocdims.parameter.second = specname.str();
                   rocdims.partselectors.push_back(logic.name_tag);
-                  rocdims.moduletypes.push_back(iiter->getModule().getType());
+                  rocdims.moduletypes.push_back(iiter->getModule().moduleType());
                   t.push_back(rocdims);
                 }
                 specname.str("");
 
                 // TODO: model correctly the modules with different segmentation
-                specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
+                specname << xml_roc_y << xml_par_tail << iiter->getModule().maxSegments();
                 id = findSpecParIndex(t, specname.str());
                 if (id >= 0) {
                   t.at(id).partselectors.push_back(logic.name_tag);
-                  t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                  t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                 }
                 else {
                   rocdims.partselectors.clear();
@@ -676,10 +691,10 @@ namespace insur {
                   rocdims.parameter.first = xml_roc_y;
                   specname.str("");
                   // TODO: model correctly the modules with different segmentation
-                  specname << iiter->getModule().getNMaxSegments();
+                  specname << iiter->getModule().maxSegments();
                   rocdims.parameter.second = specname.str();
                   rocdims.partselectors.push_back(logic.name_tag);
-                  rocdims.moduletypes.push_back(iiter->getModule().getType());
+                  rocdims.moduletypes.push_back(iiter->getModule().moduleType());
                   t.push_back(rocdims);
                 }
                 specname.str("");
@@ -690,7 +705,7 @@ namespace insur {
 
 
                 // This is a replica for Pt-modules
-                if (iiter->getModule().getNFaces() == 2) { 
+                if (iiter->getModule().numSensors() == 2) { 
 
                   // active surface
                   xml_base_inout = xml_base_outer;
@@ -709,12 +724,12 @@ namespace insur {
 
                   // topology
                   mspec.partselectors.push_back(logic.name_tag);
-                  mspec.moduletypes.push_back(iiter->getModule().getType());
-                  specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                  mspec.moduletypes.push_back(iiter->getModule().moduleType());
+                  specname << xml_roc_x << xml_par_tail << (iiter->getModule().numStripsAcross() / xml_roc_rows);
                   int id = findSpecParIndex(t, specname.str());
                   if (id >= 0) {
                     t.at(id).partselectors.push_back(logic.name_tag);
-                    t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                    t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                   }
                   else {
                     rocdims.partselectors.clear();
@@ -723,22 +738,22 @@ namespace insur {
                     rocdims.parameter.first = xml_roc_x;
 
                     specname.str("");
-                    specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                    specname << (iiter->getModule().numStripsAcross() / xml_roc_rows);
 
                     rocdims.parameter.second = specname.str();
                     rocdims.partselectors.push_back(logic.name_tag);
-                    rocdims.moduletypes.push_back(iiter->getModule().getType());
+                    rocdims.moduletypes.push_back(iiter->getModule().moduleType());
 
                     t.push_back(rocdims);
                   }
                   specname.str("");
 
                   // TODO: model correctly the modules with different segmentation
-                  specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
+                  specname << xml_roc_y << xml_par_tail << iiter->getModule().maxSegments();
                   id = findSpecParIndex(t, specname.str());
                   if (id >= 0) {
                     t.at(id).partselectors.push_back(logic.name_tag);
-                    t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                    t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                   }
                   else {
                     rocdims.partselectors.clear();
@@ -747,10 +762,10 @@ namespace insur {
                     rocdims.parameter.first = xml_roc_y;
                     specname.str("");
                     // TODO: model correctly the modules with different segmentation
-                    specname << iiter->getModule().getNMaxSegments();
+                    specname << iiter->getModule().maxSegments();
                     rocdims.parameter.second = specname.str();
                     rocdims.partselectors.push_back(logic.name_tag);
-                    rocdims.moduletypes.push_back(iiter->getModule().getType());
+                    rocdims.moduletypes.push_back(iiter->getModule().moduleType());
                     t.push_back(rocdims);
                   }
                   specname.str("");
@@ -761,8 +776,8 @@ namespace insur {
                 rtotal = rtotal + iiter->getRadiationLength();
                 itotal = itotal + iiter->getInteractionLength();
                 count++;
-                rings.insert(iiter->getModule().getRing());
-                dt = iiter->getModule().getModuleThickness();
+                rings.insert(modRing);
+                dt = iiter->getModule().thickness();
               }
             }
             if (count > 0) {
@@ -845,10 +860,10 @@ namespace insur {
                 if (wt && is_short) alg.parent = alg.parent + xml_plus;
                 alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
                 pconverter.str("");
-                pconverter << (tr.getBarrelLayers()->at(layer - 1)->getTilt() + 90) << "*deg";
+                pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
                 alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
                 pconverter.str("");
-                pconverter << tr.getBarrelLayers()->at(layer - 1)->getStartAngle();
+                pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle();
                 alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
                 pconverter.str("");
                 alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
@@ -864,7 +879,7 @@ namespace insur {
                     pconverter.str("");
                 }
                 else alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-                pconverter << static_cast<BarrelLayer*>(tr.getBarrelLayers()->at(layer - 1))->getRods();
+                pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
                 alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
                 alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
                 alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
@@ -971,20 +986,30 @@ namespace insur {
         alg.name = xml_ecalgo;
         oguard = ec.end();
 
+        LayerAggregator lagg;
+        tr.accept(lagg);
+
         // endcap caps layer loop
         for (oiter = ec.begin(); oiter != oguard; oiter++) {
-            if (tr.getEndcapLayers()->at(layer - 1)->getMinZ() > 0) {
+            if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
 
                 ril.index = layer;
                 std::set<int> ridx;
                 std::map<int, RingInfo> rinfo;
 
-                double rmin = tr.getEndcapLayers()->at(layer - 1)->getMinRho();
-                double rmax = tr.getEndcapLayers()->at(layer - 1)->getMaxRho();
-                double zmax = tr.getEndcapLayers()->at(layer - 1)->getMaxZ();
-                zmax = zmax + tr.getEndcapLayers()->at(layer - 1)->getMaxModuleThickness() / 2.0;
-                double zmin = tr.getEndcapLayers()->at(layer - 1)->getMinZ();
-                zmin = zmin - tr.getEndcapLayers()->at(layer - 1)->getMaxModuleThickness() / 2.0;
+                struct ThicknessVisitor : public ConstGeometryVisitor {
+                  double max = 0;
+                  void visit(const Module& m) { max = MAX(max, m.thickness()); }
+                };
+                ThicknessVisitor v;
+                lagg.getEndcapLayers()->at(layer-1)->accept(v);
+
+                double rmin = lagg.getEndcapLayers()->at(layer - 1)->minR();
+                double rmax = lagg.getEndcapLayers()->at(layer - 1)->maxR();
+                double zmax = lagg.getEndcapLayers()->at(layer - 1)->maxZ();
+                zmax = zmax + v.max / 2.0; 
+                double zmin = lagg.getEndcapLayers()->at(layer - 1)->minZ();
+                zmin = zmin - v.max / 2.0;
 
                 std::ostringstream dname, pconverter;
 
@@ -1000,32 +1025,33 @@ namespace insur {
 
                 // endcap module caps loop
                 for (iiter = oiter->begin(); iiter != iguard; iiter++) {
+                    int modRing = iiter->getModule().uniRef().ring;
                     // new ring
-                    if (ridx.find(iiter->getModule().getRing()) == ridx.end()) {
+                    if (ridx.find(modRing) == ridx.end()) {
 
                         // This is the Barrel Case
-                        ridx.insert(iiter->getModule().getRing());
+                        ridx.insert(modRing);
                         std::ostringstream matname, rname, mname, specname;
 
                         // module composite material
-                        matname << xml_base_actcomp << "D" << layer << "R" << iiter->getModule().getRing();
+                        matname << xml_base_actcomp << "D" << layer << "R" << modRing;
                         c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
-                        rname << xml_ring << iiter->getModule().getRing() << dname.str();
-                        mname << xml_endcap_module << iiter->getModule().getRing() << dname.str();
+                        rname << xml_ring << modRing << dname.str();
+                        mname << xml_endcap_module << modRing << dname.str();
 
                         // collect ring info
                         RingInfo rinf;
                         rinf.name = rname.str();
                         rinf.childname = mname.str();
-                        rinf.fw = (iiter->getModule().getMeanPoint().Z() < (zmin + zmax) / 2.0);
-                        rinf.modules = static_cast<EndcapLayer*>(tr.getEndcapLayers()->at(layer - 1))->getModulesOnRing().at(iiter->getModule().getRing() - 1);
-                        rinf.rin = iiter->getModule().getMinRho();
-                        rinf.rout = iiter->getModule().getMaxRho();
-                        rinf.rmid = iiter->getModule().getMeanPoint().Rho();
-                        rinf.mthk = iiter->getModule().getModuleThickness();
-                        rinf.phi = iiter->getModule().getMeanPoint().Phi();
-                        rinfo.insert(std::pair<int, RingInfo>(iiter->getModule().getRing(), rinf));
+                        rinf.fw = (iiter->getModule().center().Z() < (zmin + zmax) / 2.0);
+                        rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing).numModules();
+                        rinf.rin = iiter->getModule().minR();
+                        rinf.rout = iiter->getModule().maxR();
+                        rinf.rmid = iiter->getModule().center().Rho();
+                        rinf.mthk = iiter->getModule().thickness();
+                        rinf.phi = iiter->getModule().center().Phi();
+                        rinfo.insert(std::pair<int, RingInfo>(modRing, rinf));
 
                         // module trapezoid
 
@@ -1033,11 +1059,11 @@ namespace insur {
                         //shape.dy = iiter->getModule().getHeight() / 2.0;
                         //shape.dyy = iiter->getModule().getHeight() / 2.0;
                         //shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-                        shape.dx = iiter->getModule().getHeight() / 2.0;
-                        shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-                        shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
-                        //shape.dz = iiter->getModule().getModuleThickness() / 2.0;
-                        shape.dz = iiter->getModule().getModuleThickness() / 2.0;
+                        shape.dx = iiter->getModule().length() / 2.0;
+                        shape.dy = iiter->getModule().minWidth() / 2.0;
+                        shape.dyy = iiter->getModule().maxWidth() / 2.0;
+                        //shape.dz = iiter->getModule().moduleThickness() / 2.0;
+                        shape.dz = iiter->getModule().thickness() / 2.0;
                         s.push_back(shape);
 
                         logic.name_tag = shape.name_tag;
@@ -1049,17 +1075,17 @@ namespace insur {
 
                         // wafer
                         string xml_base_inout = "";
-                        if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+                        if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
-                        shape.dx = iiter->getModule().getHeight() / 2.0;
-                        shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-                        shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
+                        shape.dx = iiter->getModule().length() / 2.0;
+                        shape.dy = iiter->getModule().minWidth() / 2.0;
+                        shape.dyy = iiter->getModule().maxWidth() / 2.0;
 
                         pos.parent_tag = logic.shape_tag;
 
                         shape.name_tag = mname.str() + xml_base_inout+ xml_base_waf;
-                        shape.dz = iiter->getModule().getModuleType()->getSensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
-                        //if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
+                        shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
+                        //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
                         s.push_back(shape);
 
                         logic.name_tag = shape.name_tag;
@@ -1069,10 +1095,10 @@ namespace insur {
 
                         pos.child_tag = logic.shape_tag;
 
-                        if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().getStereoDistance() / 2.0; // CUIDADO WAS getModule().getModuleThickness()
-                        else pos.trans.dz = iiter->getModule().getStereoDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
+                        if (iiter->getModule().maxZ() > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
+                        else pos.trans.dz = iiter->getModule().dsDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
                         p.push_back(pos);
-                        if (iiter->getModule().getNFaces() == 2) {
+                        if (iiter->getModule().numSensors() == 2) {
 
                             xml_base_inout = xml_base_outer;
 
@@ -1087,15 +1113,15 @@ namespace insur {
 
                             pos.child_tag = logic.shape_tag;
 
-                            if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().getStereoDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
-                            else pos.trans.dz = /* pos.trans.dz - 2 * shape.dz -*/ - iiter->getModule().getStereoDistance() / 2.0;
+                            if (iiter->getModule().maxZ() > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().dsDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
+                            else pos.trans.dz = /* pos.trans.dz - 2 * shape.dz -*/ - iiter->getModule().dsDistance() / 2.0;
                             //pos.copy = 2;
-                            if (iiter->getModule().getStereoRotation() != 0) {
+                            if (iiter->getModule().stereoRotation() != 0) {
                                 rot.name = type_stereo + xml_endcap_module + mname.str();
                                 rot.thetax = 90.0;
-                                rot.phix = iiter->getModule().getStereoRotation() / M_PI * 180;
+                                rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
                                 rot.thetay = 90.0;
-                                rot.phiy = 90.0 + iiter->getModule().getStereoRotation() / M_PI * 180;
+                                rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
                                 r.push_back(rot);
                                 pos.rotref = nspace + ":" + rot.name;
                             }
@@ -1116,7 +1142,7 @@ namespace insur {
 
                         // active surface
                         xml_base_inout = "";
-                        if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+                        if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
                         //pos.parent_tag = logic.shape_tag;
                         pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
@@ -1135,12 +1161,12 @@ namespace insur {
 
                         // topology
                         mspec.partselectors.push_back(logic.name_tag);
-                        mspec.moduletypes.push_back(iiter->getModule().getType());
-                        specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                        mspec.moduletypes.push_back(iiter->getModule().moduleType());
+                        specname << xml_roc_x << xml_par_tail << (iiter->getModule().numStripsAcross() / xml_roc_rows);
                         int id = findSpecParIndex(t, specname.str());
                         if (id >= 0) {
                           t.at(id).partselectors.push_back(logic.name_tag);
-                          t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                          t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                         }
                         else {
                             rocdims.partselectors.clear();
@@ -1148,20 +1174,20 @@ namespace insur {
                             rocdims.name = specname.str();
                             rocdims.parameter.first = xml_roc_x;
                             specname.str("");
-                            specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                            specname << (iiter->getModule().numStripsAcross() / xml_roc_rows);
                             rocdims.parameter.second = specname.str();
                             rocdims.partselectors.push_back(logic.name_tag);
-                            rocdims.moduletypes.push_back(iiter->getModule().getType());
+                            rocdims.moduletypes.push_back(iiter->getModule().moduleType());
                             t.push_back(rocdims);
                         }
                         specname.str("");
 
 			                  // TODO: model correctly the modules with different segmentation
-                        specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
+                        specname << xml_roc_y << xml_par_tail << iiter->getModule().maxSegments();
                         id = findSpecParIndex(t, specname.str());
                         if (id >= 0) {
                           t.at(id).partselectors.push_back(logic.name_tag);
-                          t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                          t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                         }
                         else {
                             rocdims.partselectors.clear();
@@ -1170,10 +1196,10 @@ namespace insur {
                             rocdims.parameter.first = xml_roc_y;
                             specname.str("");
 			                      // TODO: model correctly the modules with different segmentation
-                            specname << iiter->getModule().getNMaxSegments();
+                            specname << iiter->getModule().maxSegments();
                             rocdims.parameter.second = specname.str();
                             rocdims.partselectors.push_back(logic.name_tag);
-                            rocdims.moduletypes.push_back(iiter->getModule().getType());
+                            rocdims.moduletypes.push_back(iiter->getModule().moduleType());
                             t.push_back(rocdims);
                         }
                         specname.str("");
@@ -1181,7 +1207,7 @@ namespace insur {
 
 
                         // This is just a replica for Pt-modules
-                        if (iiter->getModule().getNFaces() == 2) {
+                        if (iiter->getModule().numSensors() == 2) {
 
                           // active surface
                           xml_base_inout = xml_base_outer;
@@ -1203,12 +1229,12 @@ namespace insur {
   
                           // topology
                           mspec.partselectors.push_back(logic.name_tag);
-                          mspec.moduletypes.push_back(iiter->getModule().getType());
-                          specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                          mspec.moduletypes.push_back(iiter->getModule().moduleType());
+                          specname << xml_roc_x << xml_par_tail << (iiter->getModule().numStripsAcross() / xml_roc_rows);
                           int id = findSpecParIndex(t, specname.str());
                           if (id >= 0) {
                             t.at(id).partselectors.push_back(logic.name_tag);
-                            t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                            t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                           }
                           else {
                               rocdims.partselectors.clear();
@@ -1216,20 +1242,20 @@ namespace insur {
                               rocdims.name = specname.str();
                               rocdims.parameter.first = xml_roc_x;
                               specname.str("");
-                              specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                              specname << (iiter->getModule().numStripsAcross() / xml_roc_rows);
                               rocdims.parameter.second = specname.str();
                               rocdims.partselectors.push_back(logic.name_tag);
-                              rocdims.moduletypes.push_back(iiter->getModule().getType());
+                              rocdims.moduletypes.push_back(iiter->getModule().moduleType());
                               t.push_back(rocdims);
                           }
                           specname.str("");
   
   			                  // TODO: model correctly the modules with different segmentation
-                          specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
+                          specname << xml_roc_y << xml_par_tail << iiter->getModule().maxSegments();
                           id = findSpecParIndex(t, specname.str());
                           if (id >= 0) {
                             t.at(id).partselectors.push_back(logic.name_tag);
-                            t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                            t.at(id).moduletypes.push_back(iiter->getModule().moduleType());
                           }
                           else {
                               rocdims.partselectors.clear();
@@ -1238,10 +1264,10 @@ namespace insur {
                               rocdims.parameter.first = xml_roc_y;
                               specname.str("");
   			                      // TODO: model correctly the modules with different segmentation
-                              specname << iiter->getModule().getNMaxSegments();
+                              specname << iiter->getModule().maxSegments();
                               rocdims.parameter.second = specname.str();
                               rocdims.partselectors.push_back(logic.name_tag);
-                              rocdims.moduletypes.push_back(iiter->getModule().getType());
+                              rocdims.moduletypes.push_back(iiter->getModule().moduleType());
                               t.push_back(rocdims);
                           }
                           specname.str("");
@@ -1265,8 +1291,8 @@ namespace insur {
                 shape.dx = 0.0;
                 shape.dy = 0.0;
                 shape.dyy = 0.0;
-                shape.dz = findDeltaZ(tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(),
-                        tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
+                shape.dz = (zmax - zmin) / 2.0; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
+                        //lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
 
                 std::set<int>::const_iterator siter, sguard = ridx.end();
                 for (siter = ridx.begin(); siter != sguard; siter++) {
@@ -1609,13 +1635,13 @@ namespace insur {
         std::vector<ModuleCap>::iterator res = i;
         if (i != g) {
             bool plus = false;
-            if (!find_first) plus = i->getModule().getZSide() > 0; //i->getModule().getMeanPoint().Z() > 0;
+            if (!find_first) plus = i->getModule().uniRef().side > 0; //i->getModule().center().Z() > 0;
             while (res != g) {
-                if (res->getModule().getRing() == ponrod) {
+                if (res->getModule().uniRef().ring == ponrod) {
                     if (find_first) break;
                     else {
-                        if((plus && res->getModule().getZSide() < 0 /*(res->getModule().getMeanPoint().Z() < 0)*/)
-                                || (!plus && res->getModule().getZSide() > 0 /*(res->getModule().getMeanPoint().Z() > 0)*/)) break;
+                        if((plus && res->getModule().uniRef().side < 0 /*(res->getModule().center().Z() < 0)*/)
+                                || (!plus && res->getModule().uniRef().side > 0 /*(res->getModule().center().Z() > 0)*/)) break;
                     }
                 }
                 res++;
@@ -1639,25 +1665,25 @@ namespace insur {
         mod1 = stop;
         mod2 = stop;
         for (iter = start; iter != stop; iter++) {
-            if ((*iter)->getMeanPoint().Rho() > middle) {
+            if ((*iter)->center().Rho() > middle) {
                 mod1 = iter;
                 break;
             }
         }
         for (iter = mod1; iter != stop; iter++) {
-            if ((*iter)->getMeanPoint().Rho() > middle) {
-                if ((*iter)->getMeanPoint().Rho() < (*mod1)->getMeanPoint().Rho()) {
+            if ((*iter)->center().Rho() > middle) {
+                if ((*iter)->center().Rho() < (*mod1)->center().Rho()) {
                     mod2 = iter;
                     break;
                 }
-                else if (!((*iter)->getMeanPoint().Rho() == (*mod1)->getMeanPoint().Rho())) {
+                else if (!((*iter)->center().Rho() == (*mod1)->center().Rho())) {
                     mod2 = mod1;
                     mod1 = iter;
                     break;
                 }
             }
         }
-        dr = (*mod1)->getMinRho() - (*mod2)->getMinRho() + (*mod1)->getModuleThickness();
+        dr = (*mod1)->minR() - (*mod2)->minR() + (*mod1)->thickness();
         return dr;
     }
 
@@ -1677,25 +1703,25 @@ namespace insur {
         mod1 = stop;
         mod2 = stop;
         for (iter = start; iter != stop; iter++) {
-            if ((*iter)->getMinZ() > middle) {
+            if ((*iter)->minZ() > middle) {
                 mod1 = iter;
                 break;
             }
         }
         for (iter = mod1; iter != stop; iter++) {
-            if ((*iter)->getMinZ() > middle) {
-                if ((*iter)->getMinZ() < (*mod1)->getMinZ()) {
+            if ((*iter)->minZ() > middle) {
+                if ((*iter)->minZ() < (*mod1)->minZ()) {
                     mod2 = iter;
                     break;
                 }
-                else if (!((*iter)->getMinZ() == (*mod1)->getMinZ())) {
+                else if (!((*iter)->minZ() == (*mod1)->minZ())) {
                     mod2 = mod1;
                     mod1 = iter;
                     break;
                 }
             }
         }
-        dz = (*mod1)->getMaxZ() - (*mod2)->getMinZ();
+        dz = (*mod1)->maxZ() - (*mod2)->minZ();
         return dz;
     }
     
@@ -1781,7 +1807,7 @@ namespace insur {
      * @return The calculated overall density in <i>g/cm3</i>
      */
     double Extractor::compositeDensity(ModuleCap& mc, bool nosensors) {
-        double d = mc.getSurface() * mc.getModule().getModuleThickness();
+        double d = mc.getSurface() * mc.getModule().thickness();
         if (nosensors) {
             double m = 0.0;
             for (std::map<std::string, double>::const_iterator it = mc.getLocalMasses().begin(); it != mc.getLocalMasses().end(); ++it) {

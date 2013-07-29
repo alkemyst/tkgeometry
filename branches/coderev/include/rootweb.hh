@@ -1,6 +1,8 @@
 #ifndef _ROOTWEB_HH_
 #define _ROOTWEB_HH_
 
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
@@ -128,7 +130,7 @@ private:
   RootWImageSize makeSizeCode(int sw, int sh, int lw, int lh);
   vector<string> fileTypeV_;
 
-  static const double thumb_compression_ = 2.;
+  static constexpr double thumb_compression_ = 2.;
   string allowedExtensions_; // Will be initialized in the constructor
   void setDefaultExtensions();
 
