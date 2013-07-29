@@ -8,6 +8,8 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
+#include <TCanvas.h>
+
 #include "global_funcs.h"
 #include "Property.h"
 #include "Barrel.h"
@@ -18,13 +20,13 @@ using std::set;
 
 
 class Tracker : public PropertyObject, public Buildable, public Identifiable<Tracker> {
-  class ModuleSetVisitor : public GenericGeometryVisitor {
+  class ModuleSetVisitor : public GeometryVisitor {
   public:
     typedef set<Module*> Modules;
   private:
     Modules modules_;
   public:
-    void visit(Module& m) { modules_.insert(&m); }
+    void visit(Module& m) override { modules_.insert(&m); }
     Modules& modules() { return modules_; }
     const Modules& modules() const { return modules_; }
     Modules::iterator begin() { return modules_.begin(); }
@@ -39,6 +41,7 @@ public:
   typedef ModuleSetVisitor::Modules Modules;
 
   ReadonlyProperty<double, Computable> maxR;
+  ReadonlyProperty<double, Computable> maxZ;
 
 private:
   Barrels barrels_;
@@ -48,19 +51,32 @@ private:
 
   PropertyNode<string> barrelNode;
   PropertyNode<string> endcapNode;
+
+
+  Tracker(const Tracker&) = default;
 public:
 
   Tracker() :
       barrelNode("Barrel", parsedOnly()),
-      endcapNode("Endcap", parsedOnly()),
-      maxR([&]() { 
-             double max = 0; 
-             for (const auto& b : barrels_) max = MAX(max, b.maxR());
-             for (const auto& e : endcaps_) max = MAX(max, e.maxR());
-             return max;
-           })
+      endcapNode("Endcap", parsedOnly())
   {}
 
+  void setup() {
+      maxR.setup([this]() { 
+        double max = 0; 
+        for (const auto& b : barrels_) max = MAX(max, b.maxR());
+        for (const auto& e : endcaps_) max = MAX(max, e.maxR());
+        return max;
+      });
+      maxZ.setup([this]() {
+        double max = 0;
+        for (const auto& b : barrels_) max = MAX(max, b.maxZ());
+        for (const auto& e : endcaps_) max = MAX(max, e.maxZ());
+        return max;
+     });
+     for (auto& b : barrels_) b.setup();
+     for (auto& e : endcaps_) e.setup(); 
+  }
 
   void build();
 
@@ -68,12 +84,26 @@ public:
   const Endcaps& endcaps() const { return endcaps_; }
 
   const Modules& modules() const { return moduleSetVisitor_.modules(); }
+  Modules& modules() { return moduleSetVisitor_.modules(); }
 
-  void accept(GenericGeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& b : barrels_) { b.accept(v); }
     for (auto& e : endcaps_) { e.accept(v); }
   }
+  void accept(ConstGeometryVisitor& v) const {
+    v.visit(*this); 
+    for (const auto& b : barrels_) { b.accept(v); }
+    for (const auto& e : endcaps_) { e.accept(v); }
+  }
+
+  std::pair<double, double> computeMinMaxEta() const; // pair.first = minEta, pair.second = maxEta (reversed with respect to the previous tkLayout geometry model)
+
+  void createGeometry(bool) {}
+  TCanvas* getGeomLite()   { return NULL; }
+  TCanvas* getGeomLiteXY() { return NULL; }
+  TCanvas* getGeomLiteYZ() { return NULL; }
+  TCanvas* getGeomLiteEC() { return NULL; }
 };
 
 

@@ -14,24 +14,24 @@
 #define	_SQUID_H
 
 #include <string>
-#include <tracker.hh>
-#include <configparser.hh>
 #include <MatParser.h>
 #include <InactiveSurfaces.h>
 #include <MaterialBudget.h>
 #include <Usher.h>
 #include <MatCalc.h>
-#include <Analyzer.h>
+#include <Analyzers.h>
 #include <Vizard.h>
 #include <tk2CMSSW.h>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/info_parser.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <rootweb.hh>
 #include <mainConfigHandler.h>
 #include <messageLogger.h>
 #include <StopWatch.h>
-#include <TrackShooter.h>
+//#include <TrackShooter.h>
 
 #include <Tracker.h>
 
@@ -74,9 +74,9 @@ namespace insur {
     Squid();
     virtual ~Squid();
     bool buildTracker();
-    bool dressTracker();
-    bool buildTrackerSystem();
-    bool irradiateTracker();
+    //bool dressTracker();
+    //bool buildTrackerSystem();
+    //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
     bool createMaterialBudget(bool verbose = false);
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
@@ -105,12 +105,13 @@ namespace insur {
   private:
     //std::string g;
     Tracker* tr;
+    SimParms* simParms_;
     InactiveSurfaces* is;
     MaterialBudget* mb;
     Tracker* px;
     InactiveSurfaces* pi;
     MaterialBudget* pm;
-    configParser cp;
+    //configParser cp;
     MatParser mp;
     Usher u;
     MatCalc tkMaterialCalc;

@@ -33,7 +33,6 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<Ring> 
   void buildTopDown();
 
   Property<ModuleShape, NoDefault> moduleShape;
-  Property<string, AutoDefault> moduleType;
   Property<double, Default> moduleOverlapPhi;
   Property<bool, Default> requireOddModsPerSlice;
   Property<int, Default> phiSegments;
@@ -49,9 +48,11 @@ public:
   Property<BuildDirection, NoDefault> buildDirection;
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
+  Property<double, Computable> minZ, maxZ;
 
   double minR() const { return minRadius_; }
   double maxR() const { return maxRadius_; }
+  int numModules() const { return modules_.size(); }
 
   Ring() :
       moduleShape           ("moduleShape"           , parsedAndChecked()),
@@ -62,15 +63,25 @@ public:
       alignEdge             ("alignEdge"             , parsedOnly(), true),
       smallDelta            ("smallDelta"            , parsedAndChecked())
   {}
+
+  void setup() {
+    minZ.setup([this]() { double min = 99999; for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
+    maxZ.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; });
+    for (auto& m : modules_) m.setup();
+  }
   
   void build();
   void check() override;
 
   void translateZ(double z);
 
-  void accept(GenericGeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& m : modules_) { m.accept(v); }
+  }
+  void accept(ConstGeometryVisitor& v) const { 
+    v.visit(*this); 
+    for (const auto& m : modules_) { m.accept(v); }
   }
 };
 

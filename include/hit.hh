@@ -7,7 +7,8 @@
 #ifndef _HIT_HH_
 #define _HIT_HH_
 
-#include "module.hh"
+#include "Module.h"
+#include "PtErrorAdapter.h"
 #include <MaterialProperties.h>
 #include <cmath>
 #include <vector>

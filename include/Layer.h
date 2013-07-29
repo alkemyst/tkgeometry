@@ -19,7 +19,6 @@ using std::unique_ptr;
 
 
 class Layer : public PropertyObject, public Buildable, public Identifiable<Layer> {
-//  friend class RodPair;
 public:
   typedef boost::ptr_vector<RodPair> Container;
 private:
@@ -38,9 +37,10 @@ private:
   double placeRadius_;
   int numRods_;
 public:
-  ReadonlyProperty<int, UncachedComputable> numModules;
-  ReadonlyProperty<double, UncachedComputable> maxZ;
-  ReadonlyProperty<double, Computable> maxR;
+  ReadonlyProperty<int, AutoDefault> buildNumModules;
+  ReadonlyProperty<double, UncachedComputable> maxZ, minZ;
+  ReadonlyProperty<double, Computable> maxR, minR;
+
   enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
   Property<RadiusMode, Default> radiusMode;
   Property<double, NoDefault> placeRadiusHint;
@@ -55,9 +55,8 @@ public:
             rodOverlapPhi  ("rodOverlapPhi"  , parsedAndChecked(), 1.),
             phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
             ringNode       ("Ring"           , parsedOnly()),
-            numModules     ("numModules"     , parsedOnly(), [this](){ return rods_.front().numModules(); }),
-            maxZ           ("maxZ"           , parsedOnly(), [this](){ return rods_.front().maxZ(); }),
-            maxR           ([&]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; }),
+            buildNumModules("numModules"     , parsedOnly()),
+            maxZ           ("maxZ"           , parsedOnly()),
             radiusMode     ("radiusMode"     , parsedAndChecked(), RadiusMode::AUTO),
             placeRadiusHint("placeRadiusHint", parsedOnly()),
             minBuildRadius ("minBuildRadius" , parsedOnly()),
@@ -65,15 +64,34 @@ public:
             sameParityRods ("sameParityRods" , parsedAndChecked(), false)
   {}
 
+  void setup() {
+    maxZ.setup([this]() { return rods_.front().maxZ(); });
+    minZ.setup([this]() { return rods_.front().minZ(); });
+    maxR.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; });
+    minR.setup([this]() { double min = 99999; for (const auto& r : rods_) { min = MIN(min, r.minR()); } return min; });
+    for (auto& r : rods_) r.setup();
+  }
+
+  double placeRadius() const { return placeRadius_; }
+  int numRods() const { return rods_.size(); }
+  int numModulesPerRod() const { return rods_.front().numModules(); };
+  int totalModules() const { return numModulesPerRod()*numRods(); };
+  
+  double tilt() const { return 0.0; }
+  double startAngle() const { return 0.0; }
 
   void check() override;
   void build();
 
   const Container& rods() const { return rods_; }
 
-  void accept(GenericGeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& r : rods_) { r.accept(v); }
+  }
+  void accept(ConstGeometryVisitor& v) const { 
+    v.visit(*this); 
+    for (const auto& r : rods_) { r.accept(v); }
   }
 };
 

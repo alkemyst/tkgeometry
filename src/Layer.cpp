@@ -6,8 +6,8 @@
 void Layer::check() {
   PropertyObject::check();
 
-  if (numModules.state() && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-  else if (!numModules.state() && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+  if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+  else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
 
 }
 
@@ -89,9 +89,10 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
 
 
 RodTemplate Layer::makeRodTemplate() {
-  RodTemplate rodTemplate(numModules.state() ? numModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
+  RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   for (int i = 0; i < rodTemplate.size(); i++) {
     rodTemplate[i] = std::move(unique_ptr<RectangularModule>(new RectangularModule()));
+    rodTemplate[i]->setup();
     rodTemplate[i]->store(propertyTree());
     if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
     rodTemplate[i]->build();
@@ -118,10 +119,11 @@ void Layer::build() {
     float rodPhiRotation = 2*M_PI/numRods_;
 
     RodPair* first = new RodPair();
+    first->setup();
     first->myid(1);
     first->minBuildRadius(minBuildRadius()-bigDelta());
     first->maxBuildRadius(maxBuildRadius()+bigDelta());
-    if (numModules.state()) first->numModules(numModules());
+    if (buildNumModules() > 0) first->buildNumModules(buildNumModules());
     else if (maxZ.state()) first->maxZ(maxZ());
     first->smallDelta(smallDelta());
     first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
@@ -130,6 +132,7 @@ void Layer::build() {
 
     std::cout << ">>> Copying rod " << first->fullid() << " <<<" << std::endl;
     RodPair* second = new RodPair(*first);
+    second->setup();
     second->myid(2);
     if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
 
@@ -144,8 +147,9 @@ void Layer::build() {
 
     for (int i = 2; i < numRods_; i++) {
       RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
-      rod->rotateZ(rodPhiRotation*i);
+      rod->setup();
       rod->myid(i+1);
+      rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
       rods_.push_back(rod);
     }
 

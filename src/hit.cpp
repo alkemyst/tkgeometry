@@ -4,7 +4,7 @@
  */
 
 #include "hit.hh"
-#include "module.hh"
+//#include "module.hh"
 #include <global_constants.h>
 #include <vector>
 #include <algorithm>
@@ -110,13 +110,10 @@ Hit::Hit(double myDistance, Module* myModule) {
 void Hit::setHitModule(Module* myModule) {
     if (myModule) {
         hitModule_ = myModule;
-        int subDetectorType = myModule->getSubdetectorType();
-        if (subDetectorType==Module::Barrel) {
+        if (myModule->is<BarrelModule>()) {
             orientation_ = Horizontal;
-        } else if (subDetectorType==Module::Endcap) {
-            orientation_ = Vertical;
         } else {
-            cerr << "ERROR: a generic module was assigned to a hit. This should not happen!" << endl;
+            orientation_ = Vertical;
         }
     }
 }
@@ -153,8 +150,8 @@ double Hit::getResolutionRphi() {
     return -1;
   } else {
     if (hitModule_) {
-      if (isTrigger_) return hitModule_->getResolutionRphiTrigger();
-      else return hitModule_->getResolutionRphi();
+      if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
+      else return hitModule_->resolutionRPhi();
     } else {
       return myResolutionRphi_;
     }
@@ -176,8 +173,8 @@ double Hit::getResolutionY() {
     return -1;
   } else {
     if (hitModule_) {
-      if (isTrigger_) return hitModule_->getResolutionYTrigger();
-      else return hitModule_->getResolutionY();
+      if (isTrigger_) return hitModule_->resolutionYTrigger();
+      else return hitModule_->resolutionY();
     } else {
       return myResolutionY_;
     }
@@ -195,12 +192,10 @@ bool Hit::isSquareEndcap() {
   //std::cout << "Hit::isSquareEndcap() "; //debug
   if (hitModule_) {
     //std::cout << " hitModule_!= NULL "; //debug
-    if (hitModule_->getSubdetectorType()==Module::Endcap) {
+    if (hitModule_->isAll<EndcapModule, RectangularModule>()) {
       //std::cout << " getSubdetectorType()==Endcap "; //debug
-      if (hitModule_->getShape()==Module::Rectangular) {
        //std::cout << " getShape()==Rectangular "; //debug
        result = true;
-      }
     }
   }
   //std::cout << std::endl; // debug
@@ -217,11 +212,10 @@ double Hit::getD() {
   //std::cout << "Hit::getD() "; //debug
   if (hitModule_) {
     //std::cout << " hitModule_!= NULL "; //debug
-    EndcapModule* myECModule = NULL;
-    myECModule = dynamic_cast<EndcapModule*>(hitModule_);
+    EndcapModule* myECModule = hitModule_->as<EndcapModule>();
     if (myECModule) {
       //std::cout << " myECModule!= NULL "; //debug
-      result = (myECModule->getWidthLo() + myECModule->getWidthHi()) / 2. / 2.;
+      result = (myECModule->minWidth() + myECModule->maxWidth()) / 2. / 2.;
       //std::cout << " result = " << result; //debug
     }
   }
@@ -980,7 +974,7 @@ void Track::keepTriggerOnly() {
 	Module* myModule = (*it)->getHitModule();
 	if (myModule) {
 	  // if (debugRemoval) std::cerr << "module ";
-	  if (myModule->getReadoutType() != Module::Pt) {
+	  if (myModule->sensorLayout() != PT) {
 	    // if (debugRemoval) std::cerr << "non-pt: removed";
 	    (*it)->setObjectKind(Hit::Inactive);
 	  } else {
@@ -1067,7 +1061,7 @@ double Track::expectedTriggerPoints(const double& triggerMomentum) const {
       // Let's find the corresponding module
       Module* myModule = myHit->getHitModule();
       if (myModule) {
-	result += myModule->getTriggerProbability(triggerMomentum);
+	result += PtErrorAdapter(*myModule).getTriggerProbability(triggerMomentum);
       } else {
 	// Whoops: problem here: an active hit is not linked to any module
 	std::cerr << "ERROR: this SHOULD NOT happen. in expectedTriggerPoints() an active hit does not correspond to any module!" << std::endl;

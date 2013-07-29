@@ -16,7 +16,7 @@
 #include <cmath>
 #include <list>
 #include <utility>
-#include <tracker.hh>
+#include <Tracker.h>
 #include <configparser.hh>
 #include <InactiveSurfaces.h>
 #include <InactiveRing.h>
@@ -80,9 +80,9 @@ namespace insur {
             std::vector<std::pair<double, double> > layers_io_radius, endcaps_io_radius, barrels_length_offset, discs_length_offset;
         private:
             bool post_analysis;
-            std::vector<int> analyzeBarrels(std::vector<Layer*>& barrel_layers, std::vector<std::pair<double, double> >& radius_list_io,
+            std::vector<int> analyzeBarrels(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
                     std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short);
-            std::vector<int> analyzeEndcaps(std::vector<Layer*>& endcap_layers, std::vector<std::pair<double, double> >& radius_list_io,
+            std::vector<int> analyzeEndcaps(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
                     std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index);
             bool analyzePolarity();
         };

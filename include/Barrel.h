@@ -35,18 +35,26 @@ public:
       innerRadius("innerRadius", parsedAndChecked()),
       outerRadius("outerRadius", parsedAndChecked()),
       sameRods("sameRods", parsedAndChecked(), false),
-      layerNode("Layer", parsedOnly()),
-      maxZ([&]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; }),
-      maxR([&]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; })
+      layerNode("Layer", parsedOnly())
   {}
+
+  void setup() {
+    maxZ.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; });
+    maxR.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
+    for (auto& l : layers_) l.setup();
+  }
 
   void build(); 
 
   const Container& layers() const { return layers_; }
 
-  void accept(GenericGeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& l : layers_) { l.accept(v); }
+  }
+  void accept(ConstGeometryVisitor& v) const { 
+    v.visit(*this); 
+    for (const auto& l : layers_) { l.accept(v); }
   }
 };
 

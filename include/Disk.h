@@ -12,7 +12,10 @@
 #include "Ring.h"
 
 class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> {
-  boost::ptr_vector<Ring> rings_;
+public:
+  typedef boost::ptr_vector<Ring> Container;
+private:
+  Container rings_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -26,12 +29,14 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> 
   void buildTopDown(const vector<double>& buildDsDistances);
   void buildBottomUp(const vector<double>& buildDsDistances);
 
+  double averageZ_ = 0;
 public:
   Property<int, NoDefault> numRings;
   Property<double, NoDefault> zError;
   Property<double, NoDefault> buildZ;
 
-  ReadonlyProperty<double, Computable> maxR;
+  ReadonlyProperty<double, Computable> minZ, maxZ, minR, maxR;
+  ReadonlyProperty<int, Computable> totalModules;
 
   Disk() :
     numRings("numRings", parsedAndChecked()),
@@ -41,17 +46,33 @@ public:
     zError("zError", parsedAndChecked()),
     minRingOverlap("minRingOverlap", parsedOnly(), 1.),
     diskParity("diskParity", parsedOnly(), 1),
-    maxR([&]() { double max = 0; for (const auto& r : rings_) { max = MAX(max, r.maxR()); } return max; }),
     ringNode("Ring", parsedOnly())
   {}
+
+  void setup() {
+    minZ.setup([this]() { double min = 99999; for (const auto& r : rings_) { min = MIN(min, r.minZ()); } return min; });
+    maxZ.setup([this]() { double max = 0; for (const auto& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
+    minR.setup([this]() { double min = 99999; for (const auto& r : rings_) { min = MIN(min, r.minR()); } return min; });
+    maxR.setup([this]() { double max = 0; for (const auto& r : rings_) { max = MAX(max, r.maxR()); } return max; });
+    totalModules.setup([this]() { int cnt = 0; for (const auto& r : rings_) { cnt += r.numModules(); } return cnt; });
+    for (auto& r : rings_) r.setup();
+  }
 
   void check() override;
   void build(const vector<double>& buildDsDistances);
   void translateZ(double z);
 
-  void accept(GenericGeometryVisitor& v) { 
+  double averageZ() const { return averageZ_; }
+
+  const Container& rings() const { return rings_; }
+
+  void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& r : rings_) { r.accept(v); }
+  }
+  void accept(ConstGeometryVisitor& v) const { 
+    v.visit(*this); 
+    for (const auto& r : rings_) { r.accept(v); }
   }
 };
 
