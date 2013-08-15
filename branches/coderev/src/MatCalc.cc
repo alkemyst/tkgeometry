@@ -648,7 +648,7 @@ namespace insur {
       double length, surface;
       // main loop over barrel service volumes
       for(unsigned int i = 0; i < barrelservices.size(); i++) {
-        try {
+//        try {
           // collect information about feeder and neighbour volumes
           ftype = barrelservices.at(i).getFeederType();
           feeder = barrelservices.at(i).getFeederIndex();
@@ -682,15 +682,15 @@ namespace insur {
           barrelservices.at(i).calculateTotalMass();
           barrelservices.at(i).calculateRadiationLength(mt);
           barrelservices.at(i).calculateInteractionLength(mt);
-        }
-        catch(std::runtime_error& re) {
-          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-          return false;
-        }
-        catch(std::exception& e) {
-          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-          return false;
-        }
+//        }
+//        catch(std::runtime_error& re) {
+//          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+//          return false;
+//        }
+//        catch(std::exception& e) {
+//          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+//          return false;
+//        }
       }
       return true;
     }
@@ -713,7 +713,7 @@ namespace insur {
       double length, surface;
       // main loop over endcap service volumes
       for (unsigned int i = 0; i < endcapservices.size(); i++) {
-        try {
+        //try {
           // collect information about feeder and neighbour volumes
           ftype = endcapservices.at(i).getFeederType();
           feeder = endcapservices.at(i).getFeederIndex();
@@ -747,15 +747,15 @@ namespace insur {
           endcapservices.at(i).calculateTotalMass();
           endcapservices.at(i).calculateRadiationLength(mt);
           endcapservices.at(i).calculateInteractionLength(mt);
-        }
-        catch(std::runtime_error& re) {
-          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-          return false;
-        }
-        catch(std::exception& e) {
-          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-          return false;
-        }
+       // }
+       // catch(std::runtime_error& re) {
+       //   std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+       //   return false;
+       // }
+       // catch(std::exception& e) {
+       //   std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+       //   return false;
+       // }
       }
       return true;
     }

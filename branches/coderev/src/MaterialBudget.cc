@@ -10,10 +10,12 @@ namespace insur {
    * creating a module cap object for each active module found in the tracker.
    */
   MaterialBudget::MaterialBudget(Tracker& tr, InactiveSurfaces& is) {
+    tracker = &tr;
+    inactive = &is;
 
     class CapsVisitor : public GeometryVisitor {
       typedef std::vector<std::vector<ModuleCap>> Caps;
-      Caps capsbarrelmods_, capsendmods_;
+      Caps &capsbarrelmods_, &capsendmods_;
     public:
       CapsVisitor(Caps& capsbarrelmods, Caps& capsendmods) : capsbarrelmods_(capsbarrelmods), capsendmods_(capsendmods) {}
       void visit(Layer&) { capsbarrelmods_.push_back(std::vector<ModuleCap>()); }

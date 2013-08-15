@@ -17,11 +17,11 @@ namespace insur {
      * @param printstatus A flag that turns the command line summary at the end of processing on or off
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus) {
+    InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, const std::list<Support*>& supports, bool printstatus) {
         TrackerIntRep tintrep;
         is.setUp(tintrep.analyze(tracker));
-        if (is.isUp()) is = arrangeUp(tintrep, is, outer_radius, geomfile);
-        else is = arrangeDown(tintrep, is, outer_radius, geomfile);
+        if (is.isUp()) is = arrangeUp(tintrep, is, outer_radius, supports);
+        else is = arrangeDown(tintrep, is, outer_radius, supports);
         is = mirror(tintrep, is);
         if (printstatus) print(tintrep, is, false);
         return is;
@@ -42,7 +42,7 @@ namespace insur {
         startTaskClock("Arranging Pixel configuration");
         is.setUp(pintrep.analyze(pixels));
         is = servicesUp(pintrep, is, inner_radius, true);
-        is = supportsAll(pintrep, is, inner_radius, "", true);
+        is = supportsAll(pintrep, is, inner_radius, std::list<Support*>(), true);
         stopTaskClock();
         is = mirror(pintrep, is);
         if (printstatus) print(pintrep, is, false);
@@ -59,10 +59,10 @@ namespace insur {
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
+    InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports) {
         startTaskClock("Arranging UP configuration");
         is = servicesUp(tracker, is, r_outer, false);
-        is = supportsAll(tracker, is, r_outer, geomfile, false);
+        is = supportsAll(tracker, is, r_outer, supports, false);
         stopTaskClock();
         return is;
     }
@@ -76,10 +76,10 @@ namespace insur {
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
+    InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports) {
         startTaskClock("Arranging DOWN configuration");
         is = servicesDown(tracker, is, r_outer, false);
-        is = supportsAll(tracker, is, r_outer, geomfile, false);
+        is = supportsAll(tracker, is, r_outer, supports, false);
         stopTaskClock();
         return is;
     }
@@ -448,7 +448,7 @@ namespace insur {
      * @param track_all A flag indicating whether all volumes should be considered as being inside the tracking volume; true if yes, false otherwise
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile, bool track_all) {
+    InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports, bool track_all) {
         // outer tube
         is = addSupportTube(is, 2 * max_length, 0.0 - max_length, r_outer, volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::o_sup);
@@ -462,7 +462,7 @@ namespace insur {
         // endcaps
         is = supportsEndcaps(tracker, is, track_all);
         // rings from config file
-        if (!geomfile.empty()) is = supportsUserDefined(tracker, is, geomfile);
+        is = supportsUserDefined(tracker, is, supports);
         return is;
     }
     
@@ -672,29 +672,25 @@ namespace insur {
      * @param geomfile The name of the tracker's geometry configuration file for the user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
+    InactiveSurfaces& Usher::supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, const std::list<Support*>& extras) {
         std::pair<int, int> aux, stst;
         std::pair<int, double> tmp;
         double z;
         // extract list of support positions
-        configParser persian;
-        std::list<std::pair<int, double> >* extras = NULL;
-        std::list<std::pair<int, double> >::iterator iter;
-        extras = persian.parseSupportsFromFile(geomfile);
         // do nothing if parser returns a null pointer
-        if (extras) {
+        if (extras.size()) {
             // find relevant barrel range taking into account cut layers
             aux = findBarrelSupportParams(tracker, is.isUp());
             // support positions loop
-            for (iter = extras->begin(); iter != extras->end(); iter++) {
+            for (auto iter = extras.begin(); iter != extras.end(); iter++) {
                 // skip support definition if position is outside tracker volume
-                if (iter->second < max_length) {
-                    z = iter->second - volume_width / 2.0;
+                if ((*iter)->midZ() < max_length) {
+                    z = (*iter)->midZ() - volume_width / 2.0;
                     // support definition applies across all layers
-                    if (iter->first == 0) {
+                    if ((*iter)->index() == 0) {
                         for (int i = 0; i < aux.second; i++) {
                             tmp.first = i + 1;
-                            tmp.second = iter->second;
+                            tmp.second = (*iter)->midZ();
                             stst = findSupportStartStop(tracker, tmp, aux, z, is.isUp());
                             is = addBarrelSupportsUserDefined(is, tracker, stst.first, stst.second, z);
                         }
@@ -702,14 +698,13 @@ namespace insur {
                     // support is only relevant for barrel iter->first - 1
                     else {
                         // skip support definition if it applies to a barrel outside the relevant range
-                        if (iter->first <= aux.second) {
-                            stst = findSupportStartStop(tracker, *iter, aux, z, is.isUp());
+                        if ((*iter)->index() <= aux.second) {
+                            stst = findSupportStartStop(tracker, (*iter)->toPair(), aux, z, is.isUp());
                             is = addBarrelSupportsUserDefined(is, tracker, stst.first, stst.second, z);
                         }
                     }
                 }
             }
-            delete extras;
         }
         return is;
     }
@@ -1435,14 +1430,14 @@ namespace insur {
 
           void visit(const Layer& l) {
             if (l.maxZ() > 0.) { // skip Z- mezzanine layers
+              real_index_.push_back(index);
+              radius_list_io_.push_back(std::make_pair(l.minR(), l.maxR()));
               if (prevZ == l.maxZ()) layer_counters_.back()++;
               else {
                 prevZ = l.maxZ();
                 double len = l.maxZ() - l.minZ();
                 layer_counters_.push_back(1);
-                radius_list_io_.push_back(std::make_pair(l.minR(), l.maxR()));
                 length_offset_list_.push_back(std::make_pair(len, l.maxZ()));
-                real_index_.push_back(index);
                 if (l.minZ() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, l.minZ()));
               }
             }
@@ -1487,14 +1482,16 @@ namespace insur {
               real_index_(real_index) {}
 
           void visit(const Disk& d) {
-            double len = d.maxZ() - d.minZ();
-            length_offset_list_.push_back(std::make_pair(len, d.minZ()));
-            real_index_.push_back(index);
-            if (prevR == d.maxR()) layer_counters_.back()++;
-            else {
-              prevR = d.maxR();
-              layer_counters_.push_back(1);
-              radius_list_io_.push_back(std::make_pair(d.minR(), d.maxR()));
+            if (d.maxZ() > 0.) {
+              double len = d.maxZ() - d.minZ();
+              length_offset_list_.push_back(std::make_pair(len, d.minZ()));
+              real_index_.push_back(index);
+              if (prevR == d.maxR()) layer_counters_.back()++;
+              else {
+                prevR = d.maxR();
+                layer_counters_.push_back(1);
+                radius_list_io_.push_back(std::make_pair(d.minR(), d.maxR()));
+              }
             }
             index++;
           }

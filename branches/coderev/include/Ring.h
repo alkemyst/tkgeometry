@@ -16,7 +16,7 @@ using std::string;
 
 #define MAX_WEDGE_CALC_LOOPS 100
 
-class Ring : public PropertyObject, public Buildable, public Identifiable<Ring> {
+class Ring : public PropertyObject, public Buildable, public Identifiable<int> {
 
   boost::ptr_vector<EndcapModule> modules_;
 
@@ -74,6 +74,7 @@ public:
   void check() override;
 
   void translateZ(double z);
+  void mirrorZ();
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 

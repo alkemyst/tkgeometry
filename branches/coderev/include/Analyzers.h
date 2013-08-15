@@ -220,7 +220,7 @@ namespace insur {
     const std::vector<double>& getTriggerCuts() { return triggerCuts; }
     const std::vector<std::string>& getCutNames() { return cutNames; }
 
-    void simParms(const SimParms* sp) { simParms_ = sp; }
+    void simParms(SimParms* sp) { simParms_ = sp; }
     const SimParms& simParms() const { return *simParms_; }
   protected:
     /**
@@ -390,7 +390,7 @@ namespace insur {
 
     static int bsCounter;
     
-    const SimParms* simParms_;
+    SimParms* simParms_;
   };
 }
 #endif  /* _ANALYZER_H */

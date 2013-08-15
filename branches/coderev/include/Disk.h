@@ -11,7 +11,7 @@
 #include "Property.h"
 #include "Ring.h"
 
-class Disk : public PropertyObject, public Buildable, public Identifiable<Disk> {
+class Disk : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
   typedef boost::ptr_vector<Ring> Container;
 private:
@@ -34,6 +34,7 @@ public:
   Property<int, NoDefault> numRings;
   Property<double, NoDefault> zError;
   Property<double, NoDefault> buildZ;
+  Property<double, NoDefault> placeZ;
 
   ReadonlyProperty<double, Computable> minZ, maxZ, minR, maxR;
   ReadonlyProperty<int, Computable> totalModules;
@@ -46,6 +47,8 @@ public:
     zError("zError", parsedAndChecked()),
     minRingOverlap("minRingOverlap", parsedOnly(), 1.),
     diskParity("diskParity", parsedOnly(), 1),
+    buildZ("buildZ", parsedOnly()),
+    placeZ("placeZ", parsedOnly()),
     ringNode("Ring", parsedOnly())
   {}
 
@@ -61,6 +64,7 @@ public:
   void check() override;
   void build(const vector<double>& buildDsDistances);
   void translateZ(double z);
+  void mirrorZ();
 
   double averageZ() const { return averageZ_; }
 

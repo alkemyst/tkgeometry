@@ -1254,7 +1254,7 @@ double EndcapModule::getStripOccupancyPerEvent() {
   double factor=fabs(cos(theta))*2; // 2 is a magic adjustment factor
   computeMaxDphiDeta();
 
-  return myOccupancyEndcap*dphideta_/factor / (90/1e3) * ((getWidthLo() + getWidthHi()/2.) / nStripAcross_ );
+  return myOccupancyEndcap*dphideta_/factor / (90/1e3) * ((getWidthLo() + getWidthHi())/2. / nStripAcross_ );
 }
 
 double EndcapModule::getHitOccupancyPerEvent() {

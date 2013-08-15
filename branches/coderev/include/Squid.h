@@ -34,6 +34,7 @@
 //#include <TrackShooter.h>
 
 #include <Tracker.h>
+#include <Support.h>
 
 namespace po = boost::program_options;
 /**
@@ -109,6 +110,7 @@ namespace insur {
     InactiveSurfaces* is;
     MaterialBudget* mb;
     Tracker* px;
+    std::list<Support*> supports_;
     InactiveSurfaces* pi;
     MaterialBudget* pm;
     //configParser cp;

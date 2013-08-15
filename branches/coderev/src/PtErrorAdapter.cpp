@@ -12,8 +12,8 @@ const double PtErrorAdapter::ptFitParamsHigh[] = { 4.66514e+01, -2.88910e+00, -3
 
 void PtErrorAdapter::setPterrorParameters() {
   myPtError.setDistance( mod_.dsDistance() );
-  myPtError.setPitch((mod_.minPitch()+mod_.maxPitch())/2.);
-  myPtError.setStripLength( mod_.length() / (double)(mod_.minSegments()) );
+  myPtError.setPitch(mod_.outerSensor().pitch());
+  myPtError.setStripLength( mod_.outerSensor().stripLength() );
   XYZVector center = mod_.center();
   myPtError.setZ(fabs(center.Z()));
   myPtError.setR(center.Rho());
@@ -122,7 +122,7 @@ double PtErrorAdapter::stripsToP(double strips) const {
   double x;
   double effective_d = mod_.effectiveDsDistance();
 
-  x = strips * mod_.sensors().back().pitch();
+  x = strips * mod_.outerSensor().pitch();
   p = A * sqrt( pow(effective_d/x,2) + 1 );
   return p;
 }
@@ -130,7 +130,7 @@ double PtErrorAdapter::stripsToP(double strips) const {
 double PtErrorAdapter::pToStrips(double p) const {
   double A = 0.3 * insur::magnetic_field * mod_.center().Rho() / 1000. / 2.; // GeV
   double a = pow(p/A,2);
-  double strips = mod_.effectiveDsDistance() / sqrt(a-1) / mod_.sensors().back().pitch();
+  double strips = mod_.effectiveDsDistance() / sqrt(a-1) / mod_.outerSensor().pitch();
 
   return strips;
 } 

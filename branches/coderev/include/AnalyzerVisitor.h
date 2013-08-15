@@ -12,6 +12,11 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 
+#include "Math/Point2D.h"
+#include "TRandom3.h"
+#include "Math/Functor.h"
+#include "Math/BrentMinimizer1D.h"
+
 #include "Tracker.h"
 #include "Barrel.h"
 #include "Endcap.h"
@@ -22,6 +27,7 @@
 #include "Module.h"
 #include "SimParms.h"
 #include "PtErrorAdapter.h"
+#include "messageLogger.h"
 
 #include "Visitor.h"
 
@@ -32,129 +38,24 @@ using std::string;
 using std::map;
 using std::vector;
 using std::pair;
-/*
-class AnalyzerVisitor : public GenericGeometryVisitor {
-  struct GeometryPath {
-    string tracker, subdet;
-    int modref[3];
-  };
-public:
-  struct BarrelPath {
-    string &tracker, &barrel;
-    int &layer, &ring, &rod;
-    BarrelPath(GeometryPath& gp) : tracker(gp.tracker), barrel(gp.subdet), layer(gp.modref[0]), ring(gp.modref[1]), rod(gp.modref[2]) {}
-  };
-  struct EndcapPath {
-    string &tracker, &endcap;
-    int &disk, &ring, &blade;
-    EndcapPath(GeometryPath& gp) : tracker(gp.tracker), endcap(gp.subdet), disk(gp.modref[0]), ring(gp.modref[1]), blade(gp.modref[2]) {}
-  };
-  struct SummaryPath {
-    string &tracker, &table;
-    int &row, &col;
-    SummaryPath(GeometryPath& gp) : tracker(gp.tracker), table(gp.subdet), row(gp.modref[0]), col(gp.modref[1]) {}
-  };
-
-private:
-  GeometryPath geometryPath_;
-  union {
-    BarrelPath barrelPath_;
-    EndcapPath endcapPath_;
-   // struct UniformPath { IdentifiableType tracker, cnt, z, rho, phi;          } uniformPath_;
-    SummaryPath summaryPath_; // provided for backwards compatibility for summary tables (the phi position is ignored, barrel and endcap have z and rho coords swapped)
-  } convertedPath_;
-
-  //enum ModuleTraits { BARREL = 1, ENDCAP = 2, SINGLE = 4, DUAL = 8, PT = 8, STEREO = 12, RECTANGULAR = 32, WEDGE = 33 };
-  //int moduleTraits_;
-
-protected:
-  AnalyzerVisitor() : convertedPath_{BarrelPath(geometryPath_)} {}
-  const BarrelPath& barrelPath() const { return convertedPath_.barrelPath_; }
-  const EndcapPath& endcapPath() const { return convertedPath_.endcapPath_; }
-  const SummaryPath& summaryPath() const { return convertedPath_.summaryPath_; }
-
-  virtual void doVisit(const Tracker&) {}
-  virtual void doVisit(const Barrel&) {}
-  virtual void doVisit(const Layer&) {}
-  virtual void doVisit(const RodPair&) {}
-  virtual void doVisit(const Endcap&) {}
-  virtual void doVisit(const Disk&) {}
-  virtual void doVisit(const Ring&) {}
-
-  virtual void doVisit(const DetectorModule&) {}
-  virtual void doVisit(const BarrelModule&) {}
-  virtual void doVisit(const EndcapModule&) {}
-
-  virtual void doVisit(const GeometricModule&) {}
-  virtual void doVisit(const RectangularModule&) {}
-  virtual void doVisit(const WedgeModule&) {}
-
-  virtual void doVisit(const SimParms&) {}
-public:
-  void visit(const Tracker& t) override { 
-    convertedPath_.summaryPath_.tracker = t.myid(); 
-    doVisit(t); 
-  }
-  void visit(const Barrel& b) override  { 
-    convertedPath_.barrelPath_.barrel   = b.myid(); 
-    doVisit(b); 
-  }
-  void visit(const Layer& l) override   { 
-    convertedPath_.barrelPath_.layer = str2any<int>(l.myid()); 
-    doVisit(l); 
-  }
-  void visit(const RodPair& r) override { 
-    convertedPath_.barrelPath_.rod   = str2any<int>(r.myid()); 
-    doVisit(r); 
-  } 
-  void visit(const Endcap& e) override  { 
-    convertedPath_.endcapPath_.endcap= str2any<int>(e.myid()); 
-    doVisit(e); 
-  }
-  void visit(const Disk& d) override    { 
-    convertedPath_.endcapPath_.disk  = str2any<int>(d.myid()); 
-    doVisit(d); 
-  }
-  void visit(const Ring& r) override    { 
-    convertedPath_.endcapPath_.ring  = str2any<int>(r.myid()); 
-    doVisit(r); 
-  }
-  void visit(const BarrelModule& bm) override { 
-    convertedPath_.barrelPath_.ring = str2any<int>(bm.myid()); 
-   // moduleTraits_ = BARREL;  
- //   doVisit((DetectorModule&)bm); 
-    doVisit(bm); 
-  }
-  void visit(const EndcapModule& em) override { 
-    convertedPath_.endcapPath_.blade= str2any<int>(em.myid()); 
-   // moduleTraits_ = ENDCAP; 
-//    doVisit((DetectorModule&)em); 
-    doVisit(em);
-  }
-  void visit(const RectangularModule& rm) override { 
-  //  moduleTraits_ |= RECTANGULAR;
-//    doVisit((GeometricModule&)rm); 
-    doVisit(rm); 
-  }
-  void visit(const WedgeModule& wm) override       { 
-  //  moduleTraits_ |= WEDGE;
-//    doVisit((GeometricModule&)wm); 
-    doVisit(wm); 
-  }
-
-  void visit(const GeometricModule& m) override { doVisit(m); }
-  void visit(const DetectorModule& m) override { doVisit(m); }
-
-  void visit(const SimParms& sp) override { doVisit(sp); }
-
-};
-*/
 
 
 namespace AnalyzerHelpers {
+  struct Point { double x, y; };
+  struct Circle { double x0, y0, r; };
+  std::pair<Circle, Circle> findCirclesTwoPoints(const Point& p1, const Point& p2, double r);
+  bool isPointInCircle(const Point& p, const Circle& c);
+  bool areClockwise(const Point& p1, const Point& p2);
+
+  double calculatePetalAreaMC(const Tracker& tracker, const SimParms& simParms, double crossoverR);
+  double calculatePetalAreaModules(const Tracker& tracker, const SimParms& simParms, double crossoverR);
+  double calculatePetalCrossover(const Tracker& tracker, const SimParms& simParms);
+
+  bool isModuleInPetal(const DetectorModule& module, double petalPhi, double curvatureR, double crossoverR);
+  bool isModuleInCircleSector(const DetectorModule& module, double startPhi, double endPhi);
 
   bool isModuleInEtaSector(const SimParms& simParms, const Tracker& tracker, const DetectorModule& module, int etaSector); 
-  bool isModuleInPhiSector(const SimParms& simParms, const DetectorModule& module, int phiSector);
+  bool isModuleInPhiSector(const SimParms& simParms, const DetectorModule& module, double crossoverR, int phiSector);
 
 }
 
@@ -189,6 +90,7 @@ public:
 private:
   ModuleConnectionMap& moduleConnections_;
   int numProcEta, numProcPhi;
+  double crossoverR_;
 
   double inboundBandwidthTotal = 0.;
   int processorConnectionsTotal = 0;
@@ -216,6 +118,8 @@ public:
     moduleConnectionsDistribution_.Reset();
     moduleConnectionsDistribution_.SetNameTitle("ModuleConnDist", "Number of connections to trigger processors;Connections;Modules");
     moduleConnectionsDistribution_.SetBins(11, -.5, 10.5);
+
+
   }
 
   void visit(const SimParms& sp) {
@@ -224,7 +128,10 @@ public:
     numProcPhi = sp.numTriggerTowersPhi();
   }
 
-  void visit(const Tracker& t) { tracker_ = &t; }
+  void visit(const Tracker& t) { 
+    tracker_ = &t; 
+    crossoverR_ = AnalyzerHelpers::calculatePetalCrossover(*tracker_, *simParms_);
+  }
 
   void visit(const DetectorModule& m) {
     TableRef p = m.tableRef();
@@ -235,7 +142,7 @@ public:
       if (AnalyzerHelpers::isModuleInEtaSector(*simParms_, *tracker_, m, i)) {
         etaConnections++;
         for (int j=0; j < numProcPhi; j++) {
-          if (AnalyzerHelpers::isModuleInPhiSector(*simParms_, m, j)) {
+          if (AnalyzerHelpers::isModuleInPhiSector(*simParms_, m, crossoverR_, j)) {
             totalConnections++;
 
             processorConnections_[std::make_pair(j,i)] += 1;
@@ -271,7 +178,7 @@ public:
 
 typedef std::map<const DetectorModule*, double> ModulePowerConsumptions;
 
-class IrradiationPowerVisitor : public ConstGeometryVisitor {
+class IrradiationPowerVisitor : public GeometryVisitor {
   double numInvFemtobarns;
   double operatingTemp;
   double chargeDepletionVoltage;
@@ -289,7 +196,7 @@ public:
     irradiatedPowerConsumptionSummaries_.clear();   
   }
 
-  void visit(const SimParms& sp) {
+  void visit(SimParms& sp) {
     numInvFemtobarns = sp.timeIntegratedLumi();
     operatingTemp    = sp.operatingTemp();
     chargeDepletionVoltage = sp.chargeDepletionVoltage();
@@ -298,17 +205,17 @@ public:
     irradiationMap_  = &sp.irradiationMap();
   }
 
-  void visit(const Barrel& b) {
+  void visit(Barrel& b) {
     irradiatedPowerConsumptionSummaries_[b.myid()].setHeader("layer", "ring");
     irradiatedPowerConsumptionSummaries_[b.myid()].setPrecision(3);        
   }
 
-  void visit(const Endcap& e) {
+  void visit(Endcap& e) {
     irradiatedPowerConsumptionSummaries_[e.myid()].setHeader("layer", "ring");
     irradiatedPowerConsumptionSummaries_[e.myid()].setPrecision(3);        
   }
 
-  void visit(const DetectorModule& m) {
+  void visit(DetectorModule& m) {
     XYZVector center = m.center();
     if (center.Z() < 0) return;
     double volume = 0.;
@@ -329,7 +236,8 @@ public:
     double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
     //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
 
-    modulePowerConsumptions_[&m] = irradiatedPowerConsumption; // CUIDADO CHECK WHERE IT IS NEEDED
+//    modulePowerConsumptions_[&m] = irradiatedPowerConsumption; // CUIDADO CHECK WHERE IT IS NEEDED
+    m.irradiationPower(irradiatedPowerConsumption);
 
     TableRef tref = m.tableRef();
     irradiatedPowerConsumptionSummaries_[tref.table].setCell(tref.row, tref.col, irradiatedPowerConsumption);
@@ -770,7 +678,8 @@ class TriggerFrequencyVisitor : public ConstGeometryVisitor {
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
 
   std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts_;
-  std::map<std::string, std::map<std::pair<int,int>, double> >  triggerFrequencyAverageTrue_, triggerFrequencyInterestingParticleTrue_, triggerFrequencyAverageFake_, triggerDataBandwidths_, triggerFrequenciesPerEvent_; // trigger frequency by module in Z and R, averaged over Phi
+  std::map<std::string, std::map<std::pair<int,int>, double> >  triggerFrequencyAverageTrue_, triggerFrequencyInterestingParticleTrue_, triggerFrequencyAverageFake_, triggerDataBandwidths_; // trigger frequency by module in Z and R, averaged over Phi
+  std::map<std::string, std::map<std::pair<int,int>, double> >& triggerFrequenciesPerEvent_;
   StubRateHistos totalStubRateHistos_, trueStubRateHistos_;
 
   MultiSummaryTable &triggerFrequencyTrueSummaries_, &triggerFrequencyFakeSummaries_, &triggerFrequencyInterestingSummaries_, &triggerRateSummaries_, &triggerEfficiencySummaries_,&triggerPuritySummaries_, &triggerDataBandwidthSummaries_;
@@ -801,14 +710,16 @@ public:
                           MultiSummaryTable& triggerRateSummaries, 
                           MultiSummaryTable& triggerEfficiencySummaries,
                           MultiSummaryTable& triggerPuritySummaries,
-                          MultiSummaryTable& triggerDataBandwidthSummaries) :
+                          MultiSummaryTable& triggerDataBandwidthSummaries,
+                          std::map<std::string, std::map<std::pair<int,int>, double>>& triggerFrequenciesPerEvent) :
     triggerFrequencyTrueSummaries_(triggerFrequencyTrueSummaries),
     triggerFrequencyFakeSummaries_(triggerFrequencyFakeSummaries),
     triggerFrequencyInterestingSummaries_(triggerFrequencyInterestingSummaries),
     triggerRateSummaries_(triggerRateSummaries),
     triggerEfficiencySummaries_(triggerEfficiencySummaries),
     triggerPuritySummaries_(triggerPuritySummaries),
-    triggerDataBandwidthSummaries_(triggerDataBandwidthSummaries)
+    triggerDataBandwidthSummaries_(triggerDataBandwidthSummaries),
+    triggerFrequenciesPerEvent_(triggerFrequenciesPerEvent)
   {
     triggerFrequencyTrueSummaries_.clear();
     triggerFrequencyFakeSummaries_.clear();
@@ -838,7 +749,7 @@ public:
   void visit(const DetectorModule& module) {
 
     XYZVector center = module.center();
-    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module.dsDistance()==0.0)) return;
+    if ((center.Z()<0) || module.posRef().phi > 2/*(center.Phi()<0) || (center.Phi()>M_PI/2)*/ || (module.dsDistance()==0.0)) return;
 
     TH1D* currentTotalHisto;
     TH1D* currentTrueHisto;
@@ -1045,7 +956,7 @@ public:
   }
   void visit(const DetectorModule& aModule) {
     if ((aModule.center().Z()<0) || (aModule.center().Phi()<0) || (aModule.center().Phi()>M_PI/2)) return;
-    double myPower = modulePowerConsumptions_[&aModule];
+    double myPower = aModule.irradiationPower(); //modulePowerConsumptions_[&aModule];
     double myPowerChip = aModule.modulePowerChip();
 
     AnalyzerHelpers::drawModuleOnMap(aModule, myPower, irradiatedPowerConsumptionMap_, *counter_);

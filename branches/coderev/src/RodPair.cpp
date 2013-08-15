@@ -81,7 +81,7 @@ template<typename Iterator> vector<double> RodPair::computeZList(Iterator begin,
   double newZ = startZ; // + lengthOffset/2;
 
   int parity = smallParity;
-  RectangularModule* lastm = begin->get();
+  BarrelModule* lastm = begin->get();
 
   int n = 0;
 
@@ -135,17 +135,15 @@ template<typename Iterator> pair<vector<double>, vector<double>> RodPair::comput
 
 void RodPair::buildModules(const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity) {
   for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
-    RectangularModule* rmod = i < rodTemplate.size() ? rodTemplate[i].get() : rodTemplate.rbegin()->get();
-    BarrelModule* mod = new BarrelModule(new RectangularModule(*rmod));
+    BarrelModule* mod = new BarrelModule(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
     mod->setup();
     mod->myid(i+1);
-    mod->ring(i+1);
-    mod->side(1);
-    mod->store(propertyTree());
-    if (ringNode.count(i+1) > 0) mod->store(ringNode.at(i+1)); 
-    mod->build();
+    mod->side(1);  // CUIDADO side not correctly set for negative rods
+    //mod->store(propertyTree());
+    //if (ringNode.count(i+1) > 0) mod->store(ringNode.at(i+1)); 
+    //mod->build();
     mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
-    mod->translateZ(posList[i] + (direction == BuildDirection::RIGHT ? rmod->length()/2 : -rmod->length()/2));
+    mod->translateZ(posList[i] + (direction == BuildDirection::RIGHT ? mod->length()/2 : -mod->length()/2));
    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
     modules_.push_back(mod);
   }
@@ -181,11 +179,11 @@ void RodPair::buildMezzanine(const RodTemplate& rodTemplate) {
 
 void RodPair::build(const RodTemplate& rodTemplate) {
   try {
-    std::cout << ">>> Building " << fullid() << " <<<" << std::endl;
+    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
     check();
     if (!mezzanine()) buildFull(rodTemplate);
     else buildMezzanine(rodTemplate);
-  } catch (PathfulException& pe) { pe.pushPath(fullid()); throw; }
+  } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
   cleanup();
   builtok(true);
