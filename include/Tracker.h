@@ -19,7 +19,7 @@
 using std::set;
 
 
-class Tracker : public PropertyObject, public Buildable, public Identifiable<Tracker> {
+class Tracker : public PropertyObject, public Buildable, public Identifiable<string> {
   class ModuleSetVisitor : public GeometryVisitor {
   public:
     typedef set<Module*> Modules;
@@ -40,7 +40,7 @@ public:
   typedef boost::ptr_vector<Endcap> Endcaps;
   typedef ModuleSetVisitor::Modules Modules;
 
-  ReadonlyProperty<double, Computable> maxR;
+  ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
 
 private:
@@ -67,6 +67,12 @@ public:
         for (const auto& b : barrels_) max = MAX(max, b.maxR());
         for (const auto& e : endcaps_) max = MAX(max, e.maxR());
         return max;
+      });
+      minR.setup([this]() {
+        double min = 999999; 
+        for (const auto& b : barrels_) min = MIN(min, b.minR());
+        for (const auto& e : endcaps_) min = MIN(min, e.minR());
+        return min;
       });
       maxZ.setup([this]() {
         double max = 0;

@@ -110,7 +110,7 @@ Hit::Hit(double myDistance, Module* myModule) {
 void Hit::setHitModule(Module* myModule) {
     if (myModule) {
         hitModule_ = myModule;
-        if (myModule->is<BarrelModule>()) {
+        if (myModule->subdet() == BARREL) {
             orientation_ = Horizontal;
         } else {
             orientation_ = Vertical;
@@ -192,7 +192,7 @@ bool Hit::isSquareEndcap() {
   //std::cout << "Hit::isSquareEndcap() "; //debug
   if (hitModule_) {
     //std::cout << " hitModule_!= NULL "; //debug
-    if (hitModule_->isAll<EndcapModule, RectangularModule>()) {
+    if (hitModule_->subdet() == ENDCAP && hitModule_->shape() == RECTANGULAR) {
       //std::cout << " getSubdetectorType()==Endcap "; //debug
        //std::cout << " getShape()==Rectangular "; //debug
        result = true;

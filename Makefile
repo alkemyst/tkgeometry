@@ -333,7 +333,7 @@ tunePtParam: $(BINDIR)/tunePtParam
 
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
-	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o \
+	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
   $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/configparser.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
@@ -343,7 +343,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o
 	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
-	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o \
+	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/configparser.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \

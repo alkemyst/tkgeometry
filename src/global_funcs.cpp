@@ -39,3 +39,14 @@ std::string trim(std::string str) {
   return ltrim(rtrim(str));
 }
 
+std::string lctrim(std::string str, const std::string& chars) {
+  return str.erase(0, str.find_first_not_of(chars));
+}
+
+std::string rctrim(std::string str, const std::string& chars) {
+  return str.erase(str.find_last_not_of(chars)+1);
+}
+
+std::string ctrim(std::string str, const std::string& chars) {
+  return lctrim(rctrim(str, chars), chars);
+}

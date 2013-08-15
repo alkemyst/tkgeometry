@@ -18,7 +18,7 @@ using std::pair;
 using std::unique_ptr;
 
 
-class Layer : public PropertyObject, public Buildable, public Identifiable<Layer> {
+class Layer : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
   typedef boost::ptr_vector<RodPair> Container;
 private:
@@ -29,6 +29,7 @@ private:
   RodTemplate makeRodTemplate();
 
   Property<double, NoDefault> smallDelta, bigDelta;
+  Property<int, Default> bigParity;
   Property<double, Default> rodOverlapPhi;
   Property<int, Default> phiSegments;
 
@@ -52,6 +53,7 @@ public:
   Layer() :
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
+            bigParity      ("bigParity"      , parsedOnly(), -1),
             rodOverlapPhi  ("rodOverlapPhi"  , parsedAndChecked(), 1.),
             phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
             ringNode       ("Ring"           , parsedOnly()),
@@ -84,6 +86,8 @@ public:
   void build();
 
   const Container& rods() const { return rods_; }
+
+  void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); } 
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 

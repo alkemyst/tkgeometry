@@ -72,8 +72,30 @@ namespace insur {
       void visit(const EndcapModule& m) override { endof << m.center().Rho() << ", " << m.center().Z() << std::endl; }
     };
 
+    class ModuleDataVisitor : public ConstGeometryVisitor {
+      std::ofstream of;
+      const char sep = '\t';
+    public:
+      ModuleDataVisitor(std::string ofname) : of(ofname + "_mods.txt") {
+         of << "cntName" << sep << "refZ" << sep << "refRho" << sep << "refPhi" << sep
+            << "centerZ" << sep << "centerRho" << sep /*<< "centerPhi" << sep*/
+            << "dsDist" << sep << "thickn" << sep 
+            << "minW" << sep << "maxW" << sep << "len" << sep
+            << "resolRPhi" << sep << "resolY" << sep
+            << "nStripA" << sep << "nSegmI" << sep << "nSegmO" << std::endl;
+      }
+      void visit(const DetectorModule& m) override {
+        if (m.minZ() < 0. || m.posRef().phi != 1) return;
+        of << m.cntName() << sep << (int)m.posRef().z << sep << (int)m.posRef().rho << sep << (int)m.posRef().phi << sep
+           << m.center().Z() << sep << m.center().Rho() << sep /*<< m.center().Phi() << sep*/
+           << m.dsDistance() << sep << m.thickness() << sep 
+           << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep
+           << m.resolutionRPhi() << sep << m.resolutionY() << sep 
+           << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
+      }
+    };
+
     try { 
-      int i = 0;
       auto childRange = getChildRange(pt, "Tracker");
       std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
         Tracker* t = new Tracker();
@@ -82,15 +104,28 @@ namespace insur {
         t->store(kv.second);
         t->build();
         CoordExportVisitor v(t->myid());
+        ModuleDataVisitor v1(t->myid());
         t->accept(v);
-        if (i++ == 0) tr = t;
-        else px = t;
+        t->accept(v1);
+        if (t->myid() == "Pixels") px = t;
+        else tr = t;
       });
 
       simParms_ = new SimParms();
       simParms_->irradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
       simParms_->store(getChild(pt, "SimParms"));
+      simParms_->build();
       a.simParms(simParms_);
+      pixelAnalyzer.simParms(simParms_);
+
+      childRange = getChildRange(pt, "Support");
+      std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+        Support* s = new Support();
+        s->myid(kv.second.get_value(0));
+        s->store(kv.second);
+        s->build();
+        supports_.push_back(s);
+      });
     }
     catch (PathfulException& e) { 
       std::cerr << e.path() << " : " << e.what() << std::endl; 
@@ -149,7 +184,7 @@ namespace insur {
       if (tr) {
         if (is) delete is;
         is = new InactiveSurfaces();
-        u.arrange(*tr, *is, getGeometryFile(), verbose);
+        u.arrange(*tr, *is, supports_, verbose);
         if (px) {
           if (pi) delete pi;
           pi = new InactiveSurfaces();

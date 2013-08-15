@@ -42,8 +42,8 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
   // CUIDADO fix placeRadiusHint!!!!!
   double maxDsDistance = (*std::max_element(rodTemplate.begin(), 
                                             rodTemplate.end(), 
-                                            [](const unique_ptr<RectangularModule>& m1, const unique_ptr<RectangularModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
-  float moduleWidth = (*rodTemplate.rbegin())->width();
+                                            [](const unique_ptr<BarrelModule>& m1, const unique_ptr<BarrelModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
+  float moduleWidth = (*rodTemplate.rbegin())->minWidth();
   float f = moduleWidth/2 - rodOverlapPhi()/2;
   float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
   float tentativeModsPerSegment = 2*M_PI/(gamma * phiSegments());
@@ -91,7 +91,7 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
 RodTemplate Layer::makeRodTemplate() {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   for (int i = 0; i < rodTemplate.size(); i++) {
-    rodTemplate[i] = std::move(unique_ptr<RectangularModule>(new RectangularModule()));
+    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(new BarrelModule(new RectangularModule())));
     rodTemplate[i]->setup();
     rodTemplate[i]->store(propertyTree());
     if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
@@ -103,7 +103,7 @@ RodTemplate Layer::makeRodTemplate() {
 
 void Layer::build() {
   try { 
-    std::cout << ">>> Building " << fullid() << " <<<" << std::endl;
+    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
     check();
 
     RodTemplate rodTemplate = makeRodTemplate();
@@ -126,21 +126,21 @@ void Layer::build() {
     if (buildNumModules() > 0) first->buildNumModules(buildNumModules());
     else if (maxZ.state()) first->maxZ(maxZ());
     first->smallDelta(smallDelta());
-    first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
+    //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
     first->store(propertyTree());
     first->build(rodTemplate);
 
-    std::cout << ">>> Copying rod " << first->fullid() << " <<<" << std::endl;
+    std::cout << ">>> Copying rod " << fullid(*first) << " <<<" << std::endl;
     RodPair* second = new RodPair(*first);
     second->setup();
     second->myid(2);
     if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
 
-    first->translateR(placeRadius_ + bigDelta());
+    first->translateR(placeRadius_ + (bigParity() > 0 ? bigDelta() : -bigDelta()));
     //first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
     rods_.push_back(first);
 
-    second->translateR(placeRadius_ - bigDelta());
+    second->translateR(placeRadius_ + (bigParity() > 0 ? -bigDelta() : bigDelta()));
     //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
     second->rotateZ(rodPhiRotation);
     rods_.push_back(second);
@@ -154,7 +154,7 @@ void Layer::build() {
     }
 
   } catch (PathfulException& pe) { 
-    pe.pushPath(fullid()); 
+    pe.pushPath(fullid(*this)); 
     throw; 
   }
 

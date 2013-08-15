@@ -12,7 +12,7 @@
 #include "Disk.h"
 
 
-class Endcap : public PropertyObject, public Buildable, public Identifiable<Endcap> {
+class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string> {
   boost::ptr_vector<Disk> disks_;
 
   enum class MinZType { ABSOLUTE, BARRELGAP };
@@ -26,7 +26,7 @@ public:
   Property<double, NoDefault> barrelMaxZ;
   Property<double, NoDefault> minZ;
   Property<double, NoDefault> maxZ;
-  ReadonlyProperty<double, Computable> maxR;
+  ReadonlyProperty<double, Computable> maxR, minR;
 
   Endcap() :
       barrelGap("barrelGap", parsedOnly()),
@@ -38,6 +38,7 @@ public:
 
   void setup() {
     maxR.setup([&]() { double max = 0; for (const auto& d : disks_) { max = MAX(max, d.maxR()); } return max; });
+    minR.setup([&]() { double min = 0; for (const auto& d : disks_) { min = MIN(min, d.minR()); } return min; });
     for (auto& d : disks_) d.setup();
   }
 

@@ -1646,8 +1646,8 @@ namespace insur {
 
       // Pitches
       aPitchPair.str("");
-      loPitch=int((*tagMapIt).second->minPitch()*1e3);
-      hiPitch=int((*tagMapIt).second->maxPitch()*1e3);
+      loPitch=int((*tagMapIt).second->outerSensor().minPitch()*1e3);
+      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch()*1e3);
       addOccupancyElement((loPitch+hiPitch)/2);
 
       if (loPitch==hiPitch) {

@@ -19,9 +19,9 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;
 
-typedef vector<unique_ptr<RectangularModule>> RodTemplate;
+typedef vector<unique_ptr<BarrelModule>> RodTemplate;
 
-class RodPair : public PropertyObject, public Buildable, public Identifiable<RodPair> {
+class RodPair : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
   typedef boost::ptr_vector<BarrelModule> Container;
 private:
@@ -61,7 +61,7 @@ public:
   RodPair() :
               minModuleOverlap("minModuleOverlap", parsedAndChecked() , 1.),
               zError          ("zError"          , parsedAndChecked()),
-              zPlusParity     ("zPlusParity"     , parsedAndChecked()),
+              zPlusParity     ("smallParity"     , parsedAndChecked()),
               mezzanine       ("mezzanine"       , parsedOnly(), false),
               startZ          ("startZ"          , parsedOnly()),
               ringNode        ("Ring"            , parsedOnly())

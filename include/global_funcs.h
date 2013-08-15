@@ -97,6 +97,9 @@ template<class T> std::string join(const std::vector<T>& vec, const std::string&
 std::string ltrim(std::string str);
 std::string rtrim(std::string str);
 std::string trim(std::string str);
+std::string lctrim(std::string str, const std::string& chars);
+std::string rctrim(std::string str, const std::string& chars);
+std::string ctrim(std::string str, const std::string& chars);
 
 
 template<typename ArgType> int signum(const ArgType& x) {
