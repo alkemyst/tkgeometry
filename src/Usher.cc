@@ -1350,7 +1350,7 @@ namespace insur {
         n_of_layers = analyzeBarrels(tracker, layers_io_radius, barrels_length_offset, real_index_layer, short_layers);
         n_of_discs = analyzeEndcaps(tracker, endcaps_io_radius, discs_length_offset, real_index_disc);
         post_analysis = true;
-        up = analyzePolarity();
+        up = tracker.servicesForcedUp() || analyzePolarity();
         return up;
     }
     

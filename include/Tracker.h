@@ -43,6 +43,7 @@ public:
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
   ReadonlyProperty<double, Default> etaCut;
+  ReadonlyProperty<bool, Default> servicesForcedUp;
 
 private:
   Barrels barrels_;
@@ -60,7 +61,8 @@ public:
   Tracker() :
       barrelNode("Barrel", parsedOnly()),
       endcapNode("Endcap", parsedOnly()),
-      etaCut("etaCut", parsedOnly(), 7.)
+      etaCut("etaCut", parsedOnly(), 7.),
+      servicesForcedUp("servicesForcedUp", parsedOnly(), true)
   {}
 
   void setup() {
