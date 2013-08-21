@@ -65,6 +65,7 @@ public:
   void build(const vector<double>& buildDsDistances);
   void translateZ(double z);
   void mirrorZ();
+  void cutAtEta(double eta);
 
   double averageZ() const { return averageZ_; }
 

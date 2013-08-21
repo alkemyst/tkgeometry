@@ -85,6 +85,7 @@ public:
   void rotateZ(double angle);
 
   void compressToZ(double z);
+  void cutAtEta(double eta);
 
   const Container& modules() const { return modules_; }
   

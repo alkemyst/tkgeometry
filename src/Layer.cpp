@@ -11,6 +11,10 @@ void Layer::check() {
 
 }
 
+void Layer::cutAtEta(double eta) { 
+  for (auto& r : rods_) r.cutAtEta(eta); 
+  rods_.erase_if([](const RodPair& r) { return r.numModules() == 0; }); // get rid of rods which have been completely pruned
+}
 
 double Layer::calculatePlaceRadius(int numRods,
                                    double bigDelta,

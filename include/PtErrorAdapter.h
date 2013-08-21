@@ -21,7 +21,7 @@ class PtErrorAdapter {
 
    void setPterrorParameters();
 public:
-   PtErrorAdapter(const DetectorModule& m) : mod_(m) {}
+   PtErrorAdapter(const DetectorModule& m) : mod_(m) { setPterrorParameters(); }
    double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow = 0);
    double getTriggerFrequencyTruePerEventAbove(const double& myCut);
    double getParticleFrequencyPerEventAbove(const double& myCut);
