@@ -22,7 +22,7 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   
   vector<double> findMaxDsDistances();
 public:
-  ReadonlyProperty<int, NoDefault> numDisks;
+  Property<int, NoDefault> numDisks;
   Property<double, NoDefault> barrelMaxZ;
   Property<double, NoDefault> minZ;
   Property<double, NoDefault> maxZ;
@@ -43,6 +43,7 @@ public:
   }
 
   void build();
+  void cutAtEta(double eta);
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 

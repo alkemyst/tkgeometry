@@ -15,30 +15,22 @@ void RodPair::compressToZ(double z) {
   double maxZ = fabs(maxBarrelModule.maxZ());
   double minZ = fabs(minBarrelModule.minZ());
 
-  //   std::cout << "The layer's highest z+ is " << maxZ << std::endl; //debug
-  //   std::cout << "The layer's highest z- is " << minZ << std::endl; //debug
-
-  // Measure the Delta of the farthest module
   double Deltap =  fabs(z) - maxZ;
   double Deltam = -fabs(z) + minZ;
 
-  // std::cerr << "Delta-: " << Deltam << std::endl; // debug
-  // std::cerr << "Delta+: " << Deltap << std::endl; // debug
-
-  // delta is the ratio between Delta and the module's position
   double deltam=0;
   double deltap=0;
   XYZVector modShift;
   deltam=Deltam/((minBarrelModule.center()).Z());
   deltap=Deltap/((maxBarrelModule.center()).Z());
-    // std::cerr << "delta-: " << deltam << std::endl; // debug
-    // std::cerr << "delta+: " << deltap << std::endl; // debug
   for (auto& m : modules_) {
     double myMeanZ = m.center().Z();
     m.translateZ(myMeanZ > 0 ? deltap*myMeanZ : deltam*myMeanZ);
   }
 
 }
+
+void RodPair::cutAtEta(double eta) { modules_.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; }); }
 
 double RodPair::computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDirection direction, int parity) {
   double d = smallDelta();

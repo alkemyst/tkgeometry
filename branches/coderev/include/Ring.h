@@ -75,6 +75,7 @@ public:
 
   void translateZ(double z);
   void mirrorZ();
+  void cutAtEta(double eta);
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 

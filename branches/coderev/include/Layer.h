@@ -87,6 +87,7 @@ public:
 
   const Container& rods() const { return rods_; }
 
+  void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); } 
 
   void accept(GeometryVisitor& v) { 

@@ -42,6 +42,7 @@ public:
 
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
+  ReadonlyProperty<double, Default> etaCut;
 
 private:
   Barrels barrels_;
@@ -58,7 +59,8 @@ public:
 
   Tracker() :
       barrelNode("Barrel", parsedOnly()),
-      endcapNode("Endcap", parsedOnly())
+      endcapNode("Endcap", parsedOnly()),
+      etaCut("etaCut", parsedOnly(), 7.)
   {}
 
   void setup() {

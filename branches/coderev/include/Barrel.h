@@ -48,6 +48,7 @@ public:
   }
 
   void build(); 
+  void cutAtEta(double eta);
 
   const Container& layers() const { return layers_; }
 
