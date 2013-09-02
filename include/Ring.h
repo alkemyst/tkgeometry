@@ -37,7 +37,9 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int> {
   Property<bool, Default> requireOddModsPerSlice;
   Property<int, Default> phiSegments;
   Property<int, Default> additionalModules;
-  Property<bool, Default> alignEdge;
+  Property<bool, Default> alignEdges;
+  Property<double, Default> ringGap;
+  Property<int, Default> smallParity;
 
   double minRadius_, maxRadius_;
 
@@ -60,7 +62,9 @@ public:
       requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
       phiSegments           ("phiSegments"           , parsedOnly(), 4),
       additionalModules     ("additionalModules"     , parsedOnly(), 0),
-      alignEdge             ("alignEdge"             , parsedOnly(), true),
+      alignEdges            ("alignEdges"            , parsedOnly(), true),
+      ringGap               ("ringGap"               , parsedOnly(), 0.),
+      smallParity           ("smallParity"           , parsedOnly(), 1),
       smallDelta            ("smallDelta"            , parsedAndChecked())
   {}
 
