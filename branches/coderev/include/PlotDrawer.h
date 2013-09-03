@@ -15,6 +15,7 @@
 #include <TLine.h>
 #include <TCanvas.h>
 
+#include <Palette.h>
 #include <Module.h>
 
 
@@ -94,7 +95,11 @@ struct TotalIrradiatedPower {
 
 
 struct Type {
-  double operator()(const Module& m) { return 1; }
+  std::set<std::string> colorSet_;
+  double operator()(const Module& m) { 
+    std::pair<std::set<std::string>::iterator, bool> it = colorSet_.insert(m.moduleType());
+    return Palette::color(std::distance(colorSet_.begin(), it.first)+1);
+  }
 };
 
 
