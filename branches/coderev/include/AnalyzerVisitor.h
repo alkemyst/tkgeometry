@@ -364,7 +364,7 @@ public:
                                     ModuleOptimalSpacings& moduleOptimalSpacings,
                                     const std::vector<double>& triggerMomenta) :
     optimalSpacingDistribution_(optimalSpacingDistribution), 
-    optimalSpacingDistributionAW_(optimalSpacingDistributionAW_), 
+    optimalSpacingDistributionAW_(optimalSpacingDistributionAW), 
     myProfileBag_(myProfileBag), 
     triggerRangeLowLimit_(triggerRangeLowLimit), 
     triggerRangeHighLimit_(triggerRangeHighLimit),
@@ -397,9 +397,13 @@ public:
 
   }
 
+  void visit(const DetectorModule& m) {
+    if (m.sensorLayout() && m.dsDistance() > 0.) foundSpacing_.insert(m.dsDistance());
+  }
+
   void visit(const BarrelModule& aModule) {
 
-    std::string myName = any2str(aModule.cntName()) + "_" + any2str(aModule.layer());
+    std::string myName = aModule.cntName() + "_" + any2str(aModule.layer());
 
     std::vector<const DetectorModule*>& theseBarrelModules = selectedModules_[myName];
 
@@ -469,7 +473,7 @@ public:
 
 
 
-    string myBaseName = any2str(aModule.ring()) + "_D" + any2str(aModule.disk());
+    string myBaseName = any2str(aModule.cntName()) + "_D" + any2str(aModule.disk());
 
     if ((aModule.dsDistance()<=0) || (aModule.triggerWindow()==0)) return;
 
