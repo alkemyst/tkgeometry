@@ -26,7 +26,6 @@ std::vector<std::string> split(const std::string& str, const std::string& seps, 
 }
 
 
-
 std::string ltrim(std::string str) {
   return str.erase(0, str.find_first_not_of(" \t\n"));
 }
