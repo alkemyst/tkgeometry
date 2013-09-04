@@ -305,8 +305,6 @@ namespace insur {
     StubRateHistos totalStubRateHistos_;
     StubRateHistos trueStubRateHistos_;
 
-    ModulePowerConsumptions modulePowerConsumptions;
-
     TGraph powerDensity;
     TProfile totalEtaProfile;
     std::vector<TProfile> typeEtaProfile;

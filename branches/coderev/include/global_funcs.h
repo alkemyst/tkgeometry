@@ -84,6 +84,12 @@ template<typename T> T str2any(const std::string& from) {
 
 
 std::vector<std::string> split(const std::string& str, const std::string& seps = " \t\n", bool keepEmpty = false);
+template<class T> std::vector<T> split(const std::string& str, const std::string& seps = " \t\n", bool keepEmpty = false) {
+  auto vs = split(str, seps, keepEmpty);
+  std::vector<T> vt(vs.size());
+  std::transform(vs.begin(), vs.end(), vt.begin(), [](std::string s) { return str2any<T>(s); });
+  return vt;
+}
 
 template<class T, class I> std::string join(I begin, I end, const std::string& sep) {
   std::stringstream ss;

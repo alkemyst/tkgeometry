@@ -176,8 +176,6 @@ public:
 };
 
 
-typedef std::map<const DetectorModule*, double> ModulePowerConsumptions;
-
 class IrradiationPowerVisitor : public GeometryVisitor {
   double numInvFemtobarns;
   double operatingTemp;
@@ -186,11 +184,10 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double referenceTemp;
   const IrradiationMap* irradiationMap_;
   MultiSummaryTable& irradiatedPowerConsumptionSummaries_;
-  ModulePowerConsumptions& modulePowerConsumptions_;
 public:
-  IrradiationPowerVisitor(MultiSummaryTable& irradiatedPowerConsumptionSummaries, ModulePowerConsumptions& modulePowerConsumptions) : 
-      irradiatedPowerConsumptionSummaries_(irradiatedPowerConsumptionSummaries),
-      modulePowerConsumptions_(modulePowerConsumptions) {}
+  IrradiationPowerVisitor(MultiSummaryTable& irradiatedPowerConsumptionSummaries) : 
+      irradiatedPowerConsumptionSummaries_(irradiatedPowerConsumptionSummaries)
+      {}
 
   void preVisit() {
     irradiatedPowerConsumptionSummaries_.clear();   
@@ -949,19 +946,17 @@ public:
 class IrradiatedPowerMapVisitor : public ConstGeometryVisitor {
   TH2D &irradiatedPowerConsumptionMap_, &totalPowerConsumptionMap_;
   TH2D *counter_;
-  ModulePowerConsumptions& modulePowerConsumptions_;
 public:
-  IrradiatedPowerMapVisitor(TH2D& irradiatedPowerConsumptionMap, TH2D& totalPowerConsumptionMap, ModulePowerConsumptions& modulePowerConsumptions) : 
+  IrradiatedPowerMapVisitor(TH2D& irradiatedPowerConsumptionMap, TH2D& totalPowerConsumptionMap) : 
       irradiatedPowerConsumptionMap_(irradiatedPowerConsumptionMap), 
-      totalPowerConsumptionMap_(totalPowerConsumptionMap),
-      modulePowerConsumptions_(modulePowerConsumptions)
+      totalPowerConsumptionMap_(totalPowerConsumptionMap)
   {
     counter_ = (TH2D*)irradiatedPowerConsumptionMap_.Clone();
   }
   void visit(const DetectorModule& aModule) {
     if ((aModule.center().Z()<0) || (aModule.center().Phi()<0) || (aModule.center().Phi()>M_PI/2)) return;
     double myPower = aModule.irradiationPower(); //modulePowerConsumptions_[&aModule];
-    double myPowerChip = aModule.modulePowerChip();
+    double myPowerChip = aModule.powerModuleChip();
 
     AnalyzerHelpers::drawModuleOnMap(aModule, myPower, irradiatedPowerConsumptionMap_, *counter_);
     AnalyzerHelpers::drawModuleOnMap(aModule, myPower+myPowerChip, totalPowerConsumptionMap_); // only the first time counter is updated, but in postVisit both maps are averaged bin for bin over the counter value  

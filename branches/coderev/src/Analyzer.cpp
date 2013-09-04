@@ -708,7 +708,7 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 
 
 void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
-  IrradiationPowerVisitor v(irradiatedPowerConsumptionSummaries_, modulePowerConsumptions); 
+  IrradiationPowerVisitor v(irradiatedPowerConsumptionSummaries_); 
   simParms_->accept(v);
   tracker.accept(v);
 }
@@ -1798,7 +1798,7 @@ void Analyzer::fillPowerMap(Tracker& tracker) {
     }
   }
 
-  IrradiatedPowerMapVisitor v(irradiatedPowerConsumptionMap, totalPowerConsumptionMap, modulePowerConsumptions);
+  IrradiatedPowerMapVisitor v(irradiatedPowerConsumptionMap, totalPowerConsumptionMap);
   simParms_->accept(v);
   tracker.accept(v);
   v.postVisit();
