@@ -86,13 +86,6 @@ struct Method {
 };
 
 
-struct TotalIrradiatedPower {
-  double operator()(const Module& m) { 
-    double chipPower = m.totalPower(); // CUIDADO this doesn't work as of now
-    return chipPower;
-  }
-};
-
 
 struct Type {
   std::set<std::string> colorSet_;
