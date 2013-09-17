@@ -965,9 +965,11 @@ public:
   void postVisit() {
     for (int i=1; i<=irradiatedPowerConsumptionMap_.GetNbinsX(); ++i) {
       for (int j=1; j<=irradiatedPowerConsumptionMap_.GetNbinsY(); ++j) {
-        if (counter_->GetBinContent(i,j)!=0) {
-          irradiatedPowerConsumptionMap_.SetBinContent(i,j, irradiatedPowerConsumptionMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
-          totalPowerConsumptionMap_.SetBinContent(i,j, totalPowerConsumptionMap_.GetBinContent(i,j) / counter_->GetBinContent(i,j));
+        if (counter_->GetBinContent(i,j) != 0.) {
+          double cnt = counter_->GetBinContent(i,j);
+          double val = irradiatedPowerConsumptionMap_.GetBinContent(i,j);
+          irradiatedPowerConsumptionMap_.SetBinContent(i,j, irradiatedPowerConsumptionMap_.GetBinContent(i,j) / (double)counter_->GetBinContent(i,j));
+          totalPowerConsumptionMap_.SetBinContent(i,j, totalPowerConsumptionMap_.GetBinContent(i,j) / (double)counter_->GetBinContent(i,j));
         }
       }
     }

@@ -2069,7 +2069,7 @@ namespace insur {
       typesTable.setContent(0,iType, it->first);
       typesTable.setContent(1,iType,1e3*it->second->powerStripChip(),2);
       typesTable.setContent(2,iType,1e3*it->second->powerStripOptical(),2);
-      typesTable.setContent(3,iType,1e3*it->second->totalPowerStrip(), 2);
+      typesTable.setContent(3,iType,1e3*it->second->totalPowerStrips(), 2);
       typesTable.setContent(4,iType,1e3*it->second->powerModuleChip(),2);
       typesTable.setContent(5,iType,1e3*it->second->powerModuleOptical(),2);
       typesTable.setContent(6,iType,1e3*it->second->totalPowerModule(), 2);
@@ -2345,9 +2345,20 @@ namespace insur {
     // mapBag myMapBag = a.getMapBag();
     //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
     // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
+    //
+    //
+    
+    struct IrradiationPower {
+      double operator()(const Module& m) { return m.irradiationPower(); }
+    };
 
-    PlotDrawer<YZ, TotalIrradiatedPower, Average> yzPowerDrawer(0, 0); // CUIDADO fix this: one should be total power, the other sensor only
-    PlotDrawer<YZ, TotalIrradiatedPower, Average> yzTotalPowerDrawer(0, 0);
+    struct TotalIrradiationPower {
+      double operator()(const Module& m) { return m.irradiationPower() + m.totalPower()/1000; }
+    };
+
+
+    PlotDrawer<YZ, IrradiationPower, Average> yzPowerDrawer(0, 0); // CUIDADO fix this: one should be total power, the other sensor only
+    PlotDrawer<YZ, TotalIrradiationPower, Average> yzTotalPowerDrawer(0, 0);
 
     yzPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());
     yzTotalPowerDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
