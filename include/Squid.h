@@ -19,7 +19,7 @@
 #include <MaterialBudget.h>
 #include <Usher.h>
 #include <MatCalc.h>
-#include <Analyzers.h>
+#include <Analyzer.h>
 #include <Vizard.h>
 #include <tk2CMSSW.h>
 #include <boost/filesystem/exception.hpp>

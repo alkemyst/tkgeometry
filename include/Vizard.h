@@ -40,7 +40,7 @@
 // Custom objects
 #include <SimParms.h>
 #include <Tracker.h>
-#include <Analyzers.h>
+#include <Analyzer.h>
 #include <TagMaker.h>
 
 #include <InactiveSurfaces.h>

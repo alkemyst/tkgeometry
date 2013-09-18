@@ -4,7 +4,7 @@
  */
 #include <TH1D.h>
 #include <TH2D.h>
-#include <Analyzers.h>
+#include <Analyzer.h>
 #include <TProfile.h>
 #include <TLegend.h>
 #include <Palette.h>
@@ -670,47 +670,50 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 void Analyzer::analyzePower(Tracker& tracker) {
   computeIrradiatedPowerConsumption(tracker);
   preparePowerHistograms();
-  fillPowerMap(tracker);
+  //fillPowerMap(tracker);
 }
 
 
 
 
 void Analyzer::computeTriggerFrequency(Tracker& tracker) {
-  TriggerFrequencyVisitor v(triggerFrequencyTrueSummaries_, 
-                            triggerFrequencyFakeSummaries_, 
-                            triggerFrequencyInterestingSummaries_, 
-                            triggerRateSummaries_, 
-                            triggerEfficiencySummaries_, 
-                            triggerPuritySummaries_, 
-                            triggerDataBandwidthSummaries_,
-                            triggerFrequenciesPerEvent_);
+  TriggerFrequencyVisitor v; 
   simParms_->accept(v);
   tracker.accept(v);
+
+  triggerFrequencyFakeSummaries_ = v.triggerFrequencyFakeSummaries;
+  triggerFrequencyInterestingSummaries_ = v.triggerFrequencyInterestingSummaries;
+  triggerRateSummaries_ = v.triggerRateSummaries; 
+  triggerEfficiencySummaries_ = v.triggerEfficiencySummaries; 
+  triggerPuritySummaries_ = v.triggerPuritySummaries; 
+  triggerDataBandwidthSummaries_ = v.triggerDataBandwidthSummaries;
+  triggerFrequenciesPerEvent_ = v.triggerFrequenciesPerEvent;
 }
 
 
   
     
 void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
-  TriggerProcessorBandwidthVisitor v(processorConnectionSummary_, 
-                                     processorInboundBandwidthSummary_, 
-                                     processorInboundStubPerEventSummary_, 
-                                     triggerDataBandwidths_, 
-                                     triggerFrequenciesPerEvent_, 
-                                     moduleConnectionsDistribution, 
-                                     moduleConnections_);
+  TriggerProcessorBandwidthVisitor v(triggerDataBandwidths_, triggerFrequenciesPerEvent_);
   v.preVisit();
   simParms_->accept(v);
   tracker.accept(v);
   v.postVisit();
+
+  processorConnectionSummary_ = v.processorConnectionSummary; 
+  processorInboundBandwidthSummary_ = v.processorInboundBandwidthSummary; 
+  processorInboundStubPerEventSummary_ = v.processorInboundStubPerEventSummary; 
+  moduleConnectionsDistribution = v.moduleConnectionsDistribution; 
+  moduleConnections_ = v.moduleConnections;
 }
 
 
 void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
-  IrradiationPowerVisitor v(irradiatedPowerConsumptionSummaries_); 
+  IrradiationPowerVisitor v;
   simParms_->accept(v);
   tracker.accept(v);
+
+  irradiatedPowerConsumptionSummaries_ = v.irradiatedPowerConsumptionSummaries;
 }
 
 
@@ -1786,7 +1789,7 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
   scv.postVisit();
 }
 
-
+/*
 void Analyzer::fillPowerMap(Tracker& tracker) {
   TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
   TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
@@ -1804,7 +1807,7 @@ void Analyzer::fillPowerMap(Tracker& tracker) {
   v.postVisit();
 
 }
-
+*/
 void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
   int mapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
   int mapBinsX = int( (max_length) * 1.1 / 10.); // every cm

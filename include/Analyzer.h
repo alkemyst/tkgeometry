@@ -10,8 +10,8 @@
  * @brief This class takes care of analysing the material budget
  */
 
-#ifndef _ANALYZER_H
-#define _ANALYZER_H
+#ifndef ANALYZER_H
+#define ANALYZER_H
 
 #define MY_RANDOM_SEED 0xcaffe
 
@@ -21,18 +21,27 @@
 #include <set>
 #include <algorithm>
 #include <hit.hh>
-#include <module.hh>
+//#include <module.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
 #include <MaterialBudget.h>
+#include <TCanvas.h>
 #include <TProfile.h>
 #include <TGraph.h>
 #include <TMultiGraph.h>
 #include <TGraphErrors.h>
+#include <Math/Vector3D.h>
+
 #include <global_funcs.h>
 
 #include "TRandom3.h"
+#include "Module.h"
+#include "SimParms.h"
+#include "AnalyzerVisitor.h"
+#include "Bag.h"
+#include "SummaryTable.h"
+#include "TagMaker.h"
 
 namespace insur {
 
@@ -46,87 +55,6 @@ namespace insur {
    */
   bool compareIntPairFirst(std::pair<int, int> p, std::pair<int, int> q);
   bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q);
-
-  /**
-   * @class graphBag
-   * @brief A bag of graphs sorted by variable, scope and track's pt
-   */
-  class graphBag {
-  public:
-    static const double Triggerable;
-    static const int RhoGraph;
-    static const int PhiGraph;
-    static const int DGraph;
-    static const int CtgthetaGraph;
-    static const int Z0Graph;
-    static const int PGraph;
-    static const int TriggeredGraph;
-    static const int IdealGraph;
-    static const int RealGraph;
-    static const int TriggerGraph;
-    static const int StandardGraph;
-    std::map<double, TGraph>& getGraphs(const int& attribute);
-    int clearTriggerGraphs();
-    int clearStandardGraphs();
-    static int buildAttribute(bool ideal, bool isTrigger);
-    //static std::pair<double, double> splitMomenta(double momentum);
-    //static double joinMomenta(double momentum1, double momentum2);
-  private:
-    std::map<int, std::map<double, TGraph> > graphMap_;
-    int clearGraphs(const int& attributeMask);
-  };
-
-  /**
-   * @class mapBag
-   * @brief A bag of graphs sorted by variable, scope and track's pt
-   */
-  class mapBag {
-  public:
-    static const int efficiencyMap;
-    static const int thresholdMap;
-    static const int thicknessMap;
-    static const int windowMap;
-    static const int suggestedSpacingMap;
-    static const int suggestedSpacingMapAW;
-    static const int nominalCutMap;
-    static const int irradiatedPowerConsumptionMap;
-    static const int totalPowerConsumptionMap;
-    static const int moduleConnectionEtaMap;
-    static const int moduleConnectionPhiMap;
-    static const int moduleConnectionEndcapPhiMap;
-    static const double dummyMomentum;
-    std::map<double, TH2D>& getMaps(const int& attribute);
-    int clearMaps(const int& attributeMask);
-  private:
-    std::map<int, std::map<double, TH2D> > mapMap_;
-  };
-
-  /**
-   * @class profileBag
-   * @brief A bag of TProfiles sorted by a double variable and scope
-   */
-  class profileBag {
-  public:
-    static const double Triggerable;
-    static const int TriggeredProfile;
-    static const int TriggerProfile;
-    static const int TriggeredFractionProfile;
-    static const std::string TriggerProfileName;
-    static const std::string TriggerProfileNameWindow;
-    static const std::string TurnOnCurveName;
-    std::map<double, TProfile>& getProfiles(const int& attribute);
-    int clearTriggerProfiles();
-    int clearTriggerNamedProfiles();
-    std::map<double, TProfile>& getNamedProfiles(const std::string& name);
-    std::vector<std::string> getProfileNames(const std::string& name);
-  private:
-    int clearProfiles(const int& attributeMask);
-    int clearNamedProfiles(const std::string& name);
-    std::map<int, std::map<double, TProfile> > profileMap_;
-    std::map<std::string, std::map<double, TProfile> > namedProfileMap_;
-  };     
-
-
   /**
    * @class Analyzer
    * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
@@ -139,7 +67,10 @@ namespace insur {
    */
 
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
+  typedef std::vector<Module*> ModuleVector;
+  typedef std::vector<Layer*> LayerVector;
   typedef TriggerProcessorBandwidthVisitor::ModuleConnectionMap ModuleConnectionMap;
+
 
   class Analyzer {
   public:
@@ -235,6 +166,7 @@ namespace insur {
     TH1D& getBandwidthDistribution() { return bandwidthDistribution; };
     TH1D& getBandwidthDistributionSparsified() { return bandwidthDistributionSparsified; }
     TH1I& getModuleConnectionsDistribution() { return moduleConnectionsDistribution; }
+    const ModuleConnectionMap& getModuleConnectionMap() const { return moduleConnections_; }
     int getGeometryTracksUsed() {return geometryTracksUsed; }
     int getMaterialTracksUsed() {return materialTracksUsed; }
     // Hadrons
@@ -288,6 +220,8 @@ namespace insur {
     const std::vector<double>& getTriggerCuts() { return triggerCuts; }
     const std::vector<std::string>& getCutNames() { return cutNames; }
 
+    void simParms(SimParms* sp) { simParms_ = sp; }
+    const SimParms& simParms() const { return *simParms_; }
   protected:
     /**
      * @struct Cell
@@ -348,6 +282,7 @@ namespace insur {
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;
 
+    ModuleConnectionMap moduleConnections_;
 
     TH1D hitDistribution;
     graphBag myGraphBag;
@@ -355,6 +290,7 @@ namespace insur {
     profileBag myProfileBag;
     std::map<int, TGraphErrors> spacingTuningGraphs; // TODO: find a way to communicate the limits, not their plots!
     std::map<int, TGraphErrors> spacingTuningGraphsBad; // TODO: find a way to communicate the limits, not their plots!
+    ModuleOptimalSpacings moduleOptimalSpacings;
     TH1D spacingTuningFrame;
     std::map<std::string, double> triggerRangeLowLimit;
     std::map<std::string, double> triggerRangeHighLimit;
@@ -368,7 +304,6 @@ namespace insur {
 
     StubRateHistos totalStubRateHistos_;
     StubRateHistos trueStubRateHistos_;
-
 
     TGraph powerDensity;
     TProfile totalEtaProfile;
@@ -404,7 +339,7 @@ namespace insur {
     void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);
     void fillTriggerPerformanceMaps(Tracker& tracker);
-    void fillPowerMap(Tracker& tracker);
+    //void fillPowerMap(Tracker& tracker);
     void clearMaterialBudgetHistograms();
     void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
     void preparePowerHistograms();
@@ -425,7 +360,7 @@ namespace insur {
     int findCellIndexEta(double eta);
     int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
     std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-    ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
+    ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
     void resetTypeCounter(std::map<std::string, int> &modTypes);
     double diffclock(clock_t clock1, clock_t clock2);
     Color_t colorPicker(std::string);
@@ -436,7 +371,7 @@ namespace insur {
     void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
     void prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
-    static const double maximum_n_planes = 13;
+    static constexpr double maximum_n_planes = 13.;
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
@@ -452,6 +387,8 @@ namespace insur {
     std::vector<double> triggerCuts;
 
     static int bsCounter;
+    
+    SimParms* simParms_;
   };
 }
 #endif  /* _ANALYZER_H */
