@@ -131,6 +131,11 @@ $(LIBDIR)/SummaryTable.o: $(SRCDIR)/SummaryTable.cpp $(INCDIR)/SummaryTable.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/SummaryTable.o $(SRCDIR)/SummaryTable.cpp 
 	@echo "Built target SummaryTable.o"
 
+$(LIBDIR)/AnalyzerVisitors/%.o: $(SRCDIR)/AnalyzerVisitors/%.cpp $(INCDIR)/AnalyzerVisitors/%.h
+	@echo "Building target $@..."
+	$(COMP) $(ROOTFLAGS) -c -o $@ $< 
+	@echo "Built target $@"
+
 $(LIBDIR)/AnalyzerVisitor.o: $(SRCDIR)/AnalyzerVisitor.cpp $(INCDIR)/AnalyzerVisitor.h
 	@echo "Building target AnalyzerVisitor.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/AnalyzerVisitor.o $(SRCDIR)/AnalyzerVisitor.cpp 
@@ -268,7 +273,7 @@ $(LIBDIR)/tk2CMSSW.o: $(SRCDIR)/tk2CMSSW.cc $(INCDIR)/tk2CMSSW.h
 naly: $(LIBDIR)/Analyzer.o
 	@echo "Built target 'naly'."
 
-$(LIBDIR)/Analyzer.o: $(SRCDIR)/Analyzer.cpp $(INCDIR)/Analyzers.h
+$(LIBDIR)/Analyzer.o: $(SRCDIR)/Analyzer.cpp $(INCDIR)/Analyzer.h
 	@echo "Building target Analyzer.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Analyzer.o $(SRCDIR)/Analyzer.cpp
 	@echo "Built target Analyzer.o"
@@ -334,6 +339,7 @@ tunePtParam: $(BINDIR)/tunePtParam
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
 	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
+	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
   $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/configparser.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
@@ -344,6 +350,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.
 	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
 	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
+	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/configparser.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
