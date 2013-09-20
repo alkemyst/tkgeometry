@@ -5,7 +5,25 @@ void RodPair::clearComputables() {
   maxAperture.clear(); 
 }
 
-void RodPair::compressToZ(double z) {
+void RodPair::translate(const XYZVector& translation) {
+  for (auto& m : modules_) { m.translate(translation); }
+  clearComputables();
+}
+
+void RodPair::translateR(double radius) {
+  for (auto& m : modules_) { m.translateR(radius); }
+  clearComputables();
+}
+
+void RodPair::rotateZ(double angle) {
+  for (auto& m : modules_) { m.rotateZ(angle); }
+  clearComputables();
+}
+
+void RodPair::cutAtEta(double eta) { modules_.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; }); }
+
+
+void StraightRodPair::compressToZ(double z) {
 
   if (modules_.empty()) return;
 
@@ -30,9 +48,8 @@ void RodPair::compressToZ(double z) {
 
 }
 
-void RodPair::cutAtEta(double eta) { modules_.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; }); }
 
-double RodPair::computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDirection direction, int parity) {
+double StraightRodPair::computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDirection direction, int parity) {
   double d = smallDelta();
   double dz = zError();
   double ov = minModuleOverlap();
@@ -61,7 +78,7 @@ double RodPair::computeNextZ(double newDsDistance, double lastDsDistance, double
 
 
 
-template<typename Iterator> vector<double> RodPair::computeZList(Iterator begin, Iterator end, double startZ, BuildDirection direction, int smallParity, bool looseStartZ) {
+template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterator begin, Iterator end, double startZ, BuildDirection direction, int smallParity, bool looseStartZ) {
 
   vector<double> zList;
 
@@ -108,7 +125,7 @@ template<typename Iterator> vector<double> RodPair::computeZList(Iterator begin,
 }
 
 
-template<typename Iterator> pair<vector<double>, vector<double>> RodPair::computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter) {
+template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair::computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter) {
 
   bool looseStartZ = false;
   vector<double> zPlusList = computeZList(begin, end, startZ, BuildDirection::RIGHT, zPlusParity(), looseStartZ);
@@ -125,7 +142,7 @@ template<typename Iterator> pair<vector<double>, vector<double>> RodPair::comput
   }
 }
 
-void RodPair::buildModules(const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity) {
+void StraightRodPair::buildModules(const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity) {
   for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
     BarrelModule* mod = new BarrelModule(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
     mod->setup();
@@ -141,7 +158,7 @@ void RodPair::buildModules(const RodTemplate& rodTemplate, const vector<double>&
   }
 }
 
-void RodPair::buildFull(const RodTemplate& rodTemplate) {
+void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
 
   auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), 0., 0);
 
@@ -156,7 +173,7 @@ void RodPair::buildFull(const RodTemplate& rodTemplate) {
   else maxZ(currMaxZ);
 }
 
-void RodPair::buildMezzanine(const RodTemplate& rodTemplate) {
+void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate) {
   // compute Z list (only once since the second mezzanine has just inverted signs for z) 
   vector<double> zList = computeZList(rodTemplate.rbegin(), rodTemplate.rend(), startZ(), BuildDirection::LEFT, zPlusParity(), false);
   vector<double> zListNeg;
@@ -169,7 +186,7 @@ void RodPair::buildMezzanine(const RodTemplate& rodTemplate) {
 }
 
 
-void RodPair::build(const RodTemplate& rodTemplate) {
+void StraightRodPair::build(const RodTemplate& rodTemplate) {
   try {
     std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
     check();
@@ -181,20 +198,35 @@ void RodPair::build(const RodTemplate& rodTemplate) {
   builtok(true);
 }
 
-void RodPair::translate(const XYZVector& translation) {
-  for (auto& m : modules_) { m.translate(translation); }
-  clearComputables();
+void TiltedRodPair::buildModules(const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDirection direction) {
+  auto it = tmspecs.begin();
+  int i = 1;
+  int side = direction == BuildDirection::RIGHT ? 1 : -1;
+  for (auto& m : rodTemplate) {
+    if (it->valid()) {
+      BarrelModule* mod = new BarrelModule(*m);
+      mod->setup();
+      mod->myid(i);
+      mod->side(side);
+      mod->rotateX(-side * it->gamma);
+      mod->translateR(it->r);
+      mod->translateZ(side * it->z);
+      modules_.push_back(mod);
+      i++;
+    }
+    ++it;
+  }
 }
 
-void RodPair::translateR(double radius) {
-  for (auto& m : modules_) { m.translateR(radius); }
-  clearComputables();
+
+void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs) {
+  try {
+    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    check();
+    buildModules(rodTemplate, tmspecs, BuildDirection::RIGHT);
+    buildModules(rodTemplate, tmspecs, BuildDirection::LEFT);
+
+  } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+  cleanup();
+  builtok(true);
 }
-
-void RodPair::rotateZ(double angle) {
-  for (auto& m : modules_) { m.rotateZ(angle); }
-  clearComputables();
-}
-
-
-

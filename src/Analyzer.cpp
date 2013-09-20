@@ -317,19 +317,19 @@ void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spaci
 }
 
 void Analyzer::createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta) {
-  TriggerDistanceTuningPlotsVisitor v(optimalSpacingDistribution,
-                                      optimalSpacingDistributionAW, 
-                                      myProfileBag, 
-                                      triggerRangeLowLimit, 
-                                      triggerRangeHighLimit, 
-                                      spacingTuningFrame,
-                                      spacingTuningGraphs,
-                                      spacingTuningGraphsBad,
-                                      moduleOptimalSpacings,
+  TriggerDistanceTuningPlotsVisitor v(myProfileBag, 
                                       triggerMomenta);
   simParms_->accept(v);
   tracker.accept(v);
   v.postVisit();
+  optimalSpacingDistribution = v.optimalSpacingDistribution;
+  optimalSpacingDistributionAW = v.optimalSpacingDistributionAW; 
+  triggerRangeLowLimit = v.triggerRangeLowLimit; 
+  triggerRangeHighLimit = v.triggerRangeHighLimit; 
+  spacingTuningFrame = v.spacingTuningFrame;
+  spacingTuningGraphs = v.spacingTuningGraphs;
+  spacingTuningGraphsBad = v.spacingTuningGraphsBad;
+  moduleOptimalSpacings = v.moduleOptimalSpacings;
 }
 
 
