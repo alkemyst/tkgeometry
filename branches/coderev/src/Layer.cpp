@@ -105,66 +105,113 @@ RodTemplate Layer::makeRodTemplate() {
 }
 
 
+void Layer::buildStraight() {
+
+  RodTemplate rodTemplate = makeRodTemplate();
+
+  std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
+  placeRadius_ = optimalLayerParms.first; 
+  numRods_ = optimalLayerParms.second;
+  if (!minBuildRadius.state() || !maxBuildRadius.state()) {
+    minBuildRadius(placeRadius_);
+    maxBuildRadius(placeRadius_);
+  }
+
+  float rodPhiRotation = 2*M_PI/numRods_;
+
+  StraightRodPair* first = new StraightRodPair();
+  first->setup();
+  first->myid(1);
+  first->minBuildRadius(minBuildRadius()-bigDelta());
+  first->maxBuildRadius(maxBuildRadius()+bigDelta());
+  if (buildNumModules() > 0) first->buildNumModules(buildNumModules());
+  else if (maxZ.state()) first->maxZ(maxZ());
+  first->smallDelta(smallDelta());
+  //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
+  first->store(propertyTree());
+  first->build(rodTemplate);
+
+  std::cout << ">>> Copying rod " << fullid(*first) << " <<<" << std::endl;
+  StraightRodPair* second = new StraightRodPair(*first);
+  second->setup();
+  second->myid(2);
+  if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
+
+  first->translateR(placeRadius_ + (bigParity() > 0 ? bigDelta() : -bigDelta()));
+  //first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
+  rods_.push_back(first);
+
+  second->translateR(placeRadius_ + (bigParity() > 0 ? -bigDelta() : bigDelta()));
+  //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
+  second->rotateZ(rodPhiRotation);
+  rods_.push_back(second);
+
+  for (int i = 2; i < numRods_; i++) {
+    RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
+    rod->setup();
+    rod->myid(i+1);
+    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+    rods_.push_back(rod);
+  }
+}
+
+void Layer::buildTilted() {
+  std::ifstream ifs(tiltedLayerSpecFile());
+  string line;
+  vector<TiltedModuleSpecs> tmspecs1, tmspecs2;
+  while(getline(ifs, line).good()) {
+    auto tokens = split<double>(line, ",");
+    if (tokens.size() < 7) continue;
+    tmspecs1.push_back({ tokens[0], tokens[1], tokens[2] });
+    tmspecs2.push_back({ tokens[3], tokens[4], tokens[5] });
+    numRods_ = tokens[6]; // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
+  }
+  ifs.close();
+
+  buildNumModules(tmspecs1.size());
+
+  RodTemplate rodTemplate = makeRodTemplate();
+
+  float rodPhiRotation = 2*M_PI/numRods_;
+
+  TiltedRodPair* first = new TiltedRodPair();
+  first->setup();
+  first->myid(1);
+  first->store(propertyTree());
+  first->build(rodTemplate, tmspecs1);
+  rods_.push_back(first);
+
+  TiltedRodPair* second = new TiltedRodPair();
+  second->setup();
+  second->myid(2);
+  second->store(propertyTree());
+  second->build(rodTemplate, tmspecs2);
+  second->rotateZ(rodPhiRotation);
+  rods_.push_back(second);
+
+  for (int i = 2; i < numRods_; i++) {
+    RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
+    rod->setup();
+    rod->myid(i+1);
+    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+    rods_.push_back(rod);
+  }
+}
+
 void Layer::build() {
   try { 
     std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
     check();
 
-    RodTemplate rodTemplate = makeRodTemplate();
-
-    std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
-    placeRadius_ = optimalLayerParms.first; 
-    numRods_ = optimalLayerParms.second;
-    if (!minBuildRadius.state() || !maxBuildRadius.state()) {
-      minBuildRadius(placeRadius_);
-      maxBuildRadius(placeRadius_);
-    }
-
-    float rodPhiRotation = 2*M_PI/numRods_;
-
-    RodPair* first = new RodPair();
-    first->setup();
-    first->myid(1);
-    first->minBuildRadius(minBuildRadius()-bigDelta());
-    first->maxBuildRadius(maxBuildRadius()+bigDelta());
-    if (buildNumModules() > 0) first->buildNumModules(buildNumModules());
-    else if (maxZ.state()) first->maxZ(maxZ());
-    first->smallDelta(smallDelta());
-    //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
-    first->store(propertyTree());
-    first->build(rodTemplate);
-
-    std::cout << ">>> Copying rod " << fullid(*first) << " <<<" << std::endl;
-    RodPair* second = new RodPair(*first);
-    second->setup();
-    second->myid(2);
-    if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
-
-    first->translateR(placeRadius_ + (bigParity() > 0 ? bigDelta() : -bigDelta()));
-    //first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
-    rods_.push_back(first);
-
-    second->translateR(placeRadius_ + (bigParity() > 0 ? -bigDelta() : bigDelta()));
-    //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
-    second->rotateZ(rodPhiRotation);
-    rods_.push_back(second);
-
-    for (int i = 2; i < numRods_; i++) {
-      RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
-      rod->setup();
-      rod->myid(i+1);
-      rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
-      rods_.push_back(rod);
-    }
-
+    if (tiltedLayerSpecFile().empty()) buildStraight();
+    else buildTilted();
+    
+    cleanup();
+    builtok(true);
   } catch (PathfulException& pe) { 
     pe.pushPath(fullid(*this)); 
     throw; 
   }
-
-  cleanup();
-  builtok(true);
 }
-
 
 define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };

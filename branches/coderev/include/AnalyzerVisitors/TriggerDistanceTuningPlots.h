@@ -28,18 +28,11 @@ class TriggerDistanceTuningPlotsVisitor : public ConstGeometryVisitor {
   const unsigned int nWindows_ = 5;
 
   profileBag& myProfileBag_;
-  TH1D &optimalSpacingDistribution_, &optimalSpacingDistributionAW_;
   std::map<std::string, bool> preparedProfiles_;
   std::map<std::string, bool> preparedTurnOn_;
 
-  std::map<std::string, double>& triggerRangeLowLimit_;
-  std::map<std::string, double>& triggerRangeHighLimit_;
   
-  TH1D& spacingTuningFrame_;
-  std::map<int, TGraphErrors>& spacingTuningGraphs_; // TODO: find a way to communicate the limits, not their plots!
-  std::map<int, TGraphErrors>& spacingTuningGraphsBad_; // TODO: find a way to communicate the limits, not their plots!
 
-  ModuleOptimalSpacings& moduleOptimalSpacings_;
 
   double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward) {  
     // TODO: add a linear interpolation here
@@ -72,25 +65,17 @@ class TriggerDistanceTuningPlotsVisitor : public ConstGeometryVisitor {
  
 
 public:
-  TriggerDistanceTuningPlotsVisitor(TH1D& optimalSpacingDistribution,
-                                    TH1D& optimalSpacingDistributionAW, 
-                                    profileBag& myProfileBag, 
-                                    std::map<string, double>& triggerRangeLowLimit,
-                                    std::map<string, double>& triggerRangeHighLimit, 
-                                    TH1D& spacingTuningFrame,
-                                    std::map<int, TGraphErrors>& spacingTuningGraphs,
-                                    std::map<int, TGraphErrors>& spacingTuningGraphsBad,
-                                    ModuleOptimalSpacings& moduleOptimalSpacings,
+  TH1D optimalSpacingDistribution, optimalSpacingDistributionAW;
+  TH1D spacingTuningFrame;
+  ModuleOptimalSpacings moduleOptimalSpacings;
+  std::map<std::string, double> triggerRangeLowLimit;
+  std::map<std::string, double> triggerRangeHighLimit;
+  std::map<int, TGraphErrors> spacingTuningGraphs; // TODO: find a way to communicate the limits, not their plots!
+  std::map<int, TGraphErrors> spacingTuningGraphsBad; // TODO: find a way to communicate the limits, not their plots!
+
+  TriggerDistanceTuningPlotsVisitor(profileBag& myProfileBag,
                                     const std::vector<double>& triggerMomenta) :
-    optimalSpacingDistribution_(optimalSpacingDistribution), 
-    optimalSpacingDistributionAW_(optimalSpacingDistributionAW), 
-    myProfileBag_(myProfileBag), 
-    triggerRangeLowLimit_(triggerRangeLowLimit), 
-    triggerRangeHighLimit_(triggerRangeHighLimit),
-    spacingTuningFrame_(spacingTuningFrame),
-    spacingTuningGraphs_(spacingTuningGraphs),
-    spacingTuningGraphsBad_(spacingTuningGraphsBad),
-    moduleOptimalSpacings_(moduleOptimalSpacings),
+    myProfileBag_(myProfileBag),
     triggerMomenta_(triggerMomenta) 
   {
 
@@ -98,19 +83,19 @@ public:
 
     // TODO: clear only the relevant ones?
     myProfileBag_.clearTriggerNamedProfiles();
-    optimalSpacingDistribution_.SetName("optimalSpacing");
-    optimalSpacingDistribution_.SetTitle("Optimal spacing [default window]");
-    optimalSpacingDistribution_.SetXTitle("Spacing [mm]");
-    optimalSpacingDistribution_.SetYTitle("# modules");
-    optimalSpacingDistribution_.SetBins(100, 0.5, 6);
-    optimalSpacingDistribution_.Reset();
+    optimalSpacingDistribution.SetName("optimalSpacing");
+    optimalSpacingDistribution.SetTitle("Optimal spacing [default window]");
+    optimalSpacingDistribution.SetXTitle("Spacing [mm]");
+    optimalSpacingDistribution.SetYTitle("# modules");
+    optimalSpacingDistribution.SetBins(100, 0.5, 6);
+    optimalSpacingDistribution.Reset();
 
-    optimalSpacingDistributionAW_.SetName("optimalSpacingAW");
-    optimalSpacingDistributionAW_.SetTitle("Optimal spacing [actual window]");
-    optimalSpacingDistributionAW_.SetXTitle("Spacing [mm]");
-    optimalSpacingDistributionAW_.SetYTitle("# modules");
-    optimalSpacingDistributionAW_.SetBins(100, 0.5, 6);
-    optimalSpacingDistributionAW_.Reset();
+    optimalSpacingDistributionAW.SetName("optimalSpacingAW");
+    optimalSpacingDistributionAW.SetTitle("Optimal spacing [actual window]");
+    optimalSpacingDistributionAW.SetXTitle("Spacing [mm]");
+    optimalSpacingDistributionAW.SetYTitle("# modules");
+    optimalSpacingDistributionAW.SetBins(100, 0.5, 6);
+    optimalSpacingDistributionAW.Reset();
 
 
 
@@ -281,8 +266,8 @@ public:
       std::map<double, TProfile>& tuningProfiles = myProfileBag_.getNamedProfiles(*itName);
       TProfile& lowTuningProfile = tuningProfiles[spacingTuningMomenta.first];
       TProfile& highTuningProfile = tuningProfiles[spacingTuningMomenta.second];
-      triggerRangeLowLimit_[*itName] = findXThreshold(lowTuningProfile, 1, true);
-      triggerRangeHighLimit_[*itName] = findXThreshold(highTuningProfile, 90, false);
+      triggerRangeLowLimit[*itName] = findXThreshold(lowTuningProfile, 1, true);
+      triggerRangeHighLimit[*itName] = findXThreshold(highTuningProfile, 90, false);
     }
 
 
@@ -295,11 +280,11 @@ public:
     TProfile tempProfileHigh("tempProfileHigh", "", 100, 0.5, 6); // TODO: these numbers should go into some kind of const
 
     // TODO: IMPORTANT!!!!!! clear the spacing tuning graphs and frame here
-    spacingTuningFrame_.SetBins(selectedModules_.size(), 0, selectedModules_.size());
-    spacingTuningFrame_.SetYTitle("Optimal distance range [mm]");
-    spacingTuningFrame_.SetMinimum(0);
-    spacingTuningFrame_.SetMaximum(6);
-    TAxis* xAxis = spacingTuningFrame_.GetXaxis();
+    spacingTuningFrame.SetBins(selectedModules_.size(), 0, selectedModules_.size());
+    spacingTuningFrame.SetYTitle("Optimal distance range [mm]");
+    spacingTuningFrame.SetMinimum(0);
+    spacingTuningFrame.SetMaximum(6);
+    TAxis* xAxis = spacingTuningFrame.GetXaxis();
 
     int iType=0;
     std::map<double, bool> availableThinkness;
@@ -334,8 +319,8 @@ public:
             if (myValue>1) minDistBelow = dist;
           }
           if (minDistBelow>=0) {
-            if (windowSize==5) optimalSpacingDistribution_.Fill(minDistBelow);
-            if (windowSize==aModule->triggerWindow()) optimalSpacingDistributionAW_.Fill(minDistBelow);
+            if (windowSize==5) optimalSpacingDistribution.Fill(minDistBelow);
+            if (windowSize==aModule->triggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
           }
 
           /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) { // debug
@@ -360,7 +345,7 @@ public:
           }
           /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
             std::cout << " - approx to " << minDistBelow << " for a window of " << windowSize << std::endl;*/
-          moduleOptimalSpacings_[aModule][windowSize] = minDistBelow;
+          moduleOptimalSpacings[aModule][windowSize] = minDistBelow;
         }
         // Find the "high" and "low" points
         double lowEdge = findXThreshold(tempProfileLow, 1, true);
@@ -370,11 +355,11 @@ public:
         centerX = iType+(double(iWindow)+0.5)/(double(nWindows_));
         sizeX = 1./ (double(nWindows_)) * 0.8; // 80% of available space, so that they will not touch
         if (lowEdge<highEdge) {
-          spacingTuningGraphs_[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
-          spacingTuningGraphs_[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+          spacingTuningGraphs[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+          spacingTuningGraphs[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
         } else {
-          spacingTuningGraphsBad_[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
-          spacingTuningGraphsBad_[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+          spacingTuningGraphsBad[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+          spacingTuningGraphsBad[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
         }
         tempProfileLow.Reset();
         tempProfileHigh.Reset();
@@ -383,7 +368,7 @@ public:
     }
 
     // TODO: properly reset this!
-    TGraphErrors& antani = spacingTuningGraphs_[-1];
+    TGraphErrors& antani = spacingTuningGraphs[-1];
     int iPoints=0;
     for (std::map<double, bool>::iterator it = availableThinkness.begin(); it!= availableThinkness.end(); ++it) {
       iPoints++;

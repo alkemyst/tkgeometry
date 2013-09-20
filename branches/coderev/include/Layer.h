@@ -37,8 +37,11 @@ private:
 
   double placeRadius_;
   int numRods_;
+
+  void buildStraight();
+  void buildTilted();
 public:
-  ReadonlyProperty<int, AutoDefault> buildNumModules;
+  Property<int, AutoDefault> buildNumModules;
   ReadonlyProperty<double, UncachedComputable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
 
@@ -49,6 +52,8 @@ public:
   Property<double, NoDefault> minBuildRadius;
   Property<double, NoDefault> maxBuildRadius;
   Property<bool, Default> sameParityRods;
+
+  Property<string, AutoDefault> tiltedLayerSpecFile;
 
   Layer() :
             smallDelta     ("smallDelta"     , parsedAndChecked()),
@@ -63,7 +68,8 @@ public:
             placeRadiusHint("placeRadiusHint", parsedOnly()),
             minBuildRadius ("minBuildRadius" , parsedOnly()),
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
-            sameParityRods ("sameParityRods" , parsedAndChecked(), false)
+            sameParityRods ("sameParityRods" , parsedAndChecked(), false),
+            tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
   {}
 
   void setup() {

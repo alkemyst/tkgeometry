@@ -133,6 +133,7 @@ $(LIBDIR)/SummaryTable.o: $(SRCDIR)/SummaryTable.cpp $(INCDIR)/SummaryTable.h
 
 $(LIBDIR)/AnalyzerVisitors/%.o: $(SRCDIR)/AnalyzerVisitors/%.cpp $(INCDIR)/AnalyzerVisitors/%.h
 	@echo "Building target $@..."
+	mkdir -p $(LIBDIR)/AnalyzerVisitors
 	$(COMP) $(ROOTFLAGS) -c -o $@ $< 
 	@echo "Built target $@"
 
@@ -377,7 +378,7 @@ $(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o
 
 #CLEANUP
 cleanall:
-	@rm -f $(LIBDIR)/*
+	@rm -rf $(LIBDIR)/*
 
 clean: cleanall
 
