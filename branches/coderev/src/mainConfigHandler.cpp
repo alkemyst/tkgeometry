@@ -244,6 +244,8 @@ bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
 }
 
 string mainConfigHandler::getConfigFileName() {  
+  char* specialConfigFile = getenv(CONFIGURATIONFILENAMEDEFINITION);
+  if (specialConfigFile) return string(specialConfigFile);
   string homeDirectory = string(getenv(HOMEDIRECTORY));
   return homeDirectory+"/"+CONFIGURATIONFILENAME;
 }

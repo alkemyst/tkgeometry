@@ -67,12 +67,23 @@ namespace insur {
     //etaMaxMaterial = 3.1;
     etaMaxGeometry = 2.6;
 
+   // trackingCuts.push_back(0.01);
+   // triggerCuts.push_back(0.01);
+   // addCut("C", 0.8, 0.6);
+   // addCut("I", 1.6, 1.2);
+   // addCut("F", 2.4, 2.1);
+   // addCut("VF", 3.0, 3.0);
+
     trackingCuts.push_back(0.01);
     triggerCuts.push_back(0.01);
-    addCut("C", 0.8, 0.6);
-    addCut("I", 1.6, 1.2);
-    addCut("F", 2.4, 2.1);
-    //addCut("VF", 4.0, 4.0);
+    double detaTrack = 0.8;
+    //double detaTrig = 0.8; // This used to be 0.7
+    addCut("C", detaTrack, detaTrack);
+    addCut("I", detaTrack*2, detaTrack*2);
+    addCut("F", detaTrack*3, 2.1);
+    addCut("VF",detaTrack*4, 2.25);
+    addCut("VF",detaTrack*5, 2.4);
+    
   }
 
   // public
@@ -1002,6 +1013,8 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   // set the track direction vector
   dir.SetCoordinates(1, theta, phi);
   direction = dir;
+  static std::ofstream ofs(!isPixel ? "mathits.txt" : "mathits_px.txt");
+  ofs << "TRACK: eta=" << eta << " theta=" << theta << " phi=" << phi << std::endl;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     // only consider modules that have type BarrelModule or EndcapModule
@@ -1015,6 +1028,9 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           r = distance * sin(theta);
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
+
+          Module& m = iter->getModule();
+          ofs << "  Mod: " << m.center().Z() << "," << m.center().Rho() << "," << m.center().Phi() << " d: " << distance << " RI: " << tmp.radiation << "," << tmp.interaction << std::endl;
           // 2D material maps
           fillMapRT(r, theta, tmp);
           // radiation and interaction length scaling for barrels

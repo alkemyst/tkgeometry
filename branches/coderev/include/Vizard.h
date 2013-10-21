@@ -34,6 +34,7 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 #include <TPaletteAxis.h>
+#include <TProfile.h>
 #include <TPolyLine3D.h>
 // Program constants
 #include <global_constants.h>
@@ -77,6 +78,7 @@ namespace insur {
 
   // gStyle stuff
   static const int style_grid = 3;
+  static const int materialRebin = 2;
 
   // Colors for plot background and such
   static const int color_plot_background = kWhite;
@@ -98,6 +100,8 @@ namespace insur {
   static const int pitchPrecision = 0;
   static const int stripLengthPrecision = 1;
   static const int millionChannelPrecision = 2;
+  static const int totalPowerPrecision = 2;
+  static const int modulePowerPrecision = 0;
   static const int powerPrecision = 1;
   static const int costPrecision  = 1;
   static const int powerPerUnitPrecision = 2;
@@ -205,6 +209,7 @@ namespace insur {
     void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
     bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer);
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 
@@ -231,6 +236,8 @@ namespace insur {
     void addOccupancyElement(std::string element);
     void addOccupancyEOL();
 
+    TProfile* newProfile(TH1D* nn);
+    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
     // int getNiceColor(unsigned int plotIndex);
   };
 
