@@ -105,9 +105,9 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-        CoordExportVisitor v(t->myid());
+        //CoordExportVisitor v(t->myid());
         ModuleDataVisitor v1(t->myid());
-        t->accept(v);
+        //t->accept(v);
         t->accept(v1);
         if (t->myid() == "Pixels") px = t;
         else tr = t;
