@@ -49,7 +49,9 @@ public:
                     triggerRateSummaries, 
                     triggerEfficiencySummaries,
                     triggerPuritySummaries, 
-                    triggerDataBandwidthSummaries;
+                    triggerDataBandwidthSummaries,
+                    stripOccupancySummaries,
+                    hitOccupancySummaries;
 
   void visit(const SimParms& sp) {
     bunchSpacingNs_ = sp.bunchSpacingNs();
@@ -133,6 +135,9 @@ public:
     triggerEfficiencySummaries[table].setCell(row, col, curAvgTrue/curAvgInteresting);                
     triggerPuritySummaries[table].setCell(row, col, curAvgTrue/(curAvgTrue+curAvgFake));                
     triggerDataBandwidthSummaries[table].setCell(row, col, triggerDataBandwidth);
+
+    stripOccupancySummaries[table].setCell(row, col, module.stripOccupancyPerEvent()*nMB_*100);
+    hitOccupancySummaries[table].setCell(row, col, module.hitOccupancyPerEvent()*nMB_*100);
 
   }
 

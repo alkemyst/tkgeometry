@@ -30,6 +30,7 @@ const int mapBag::moduleConnectionEndcapPhiMap = 0x800;
 const double profileBag::Triggerable    = 0.;
 const int profileBag::TriggeredProfile  = 0x0000007;
 const int profileBag::TriggeredFractionProfile  = 0x0000008;
+const int profileBag::TriggerPurityProfile = 0x0000010;
 const int profileBag::TriggerProfile    = 0x0000040;
 
 // These strings should be different from one another

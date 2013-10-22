@@ -49,7 +49,7 @@ namespace insur {
   /**
    * The constructor sets a number of internal constants.
    */
-  Analyzer::Analyzer() { 
+  Analyzer::Analyzer() {
     // Not strictly necessary, but it's useful to keep
     // the color the same for the most used module types
     lastPickedColor = 1;
@@ -67,13 +67,6 @@ namespace insur {
     //etaMaxMaterial = 3.1;
     etaMaxGeometry = 2.6;
 
-   // trackingCuts.push_back(0.01);
-   // triggerCuts.push_back(0.01);
-   // addCut("C", 0.8, 0.6);
-   // addCut("I", 1.6, 1.2);
-   // addCut("F", 2.4, 2.1);
-   // addCut("VF", 3.0, 3.0);
-
     trackingCuts.push_back(0.01);
     triggerCuts.push_back(0.01);
     double detaTrack = 0.8;
@@ -83,7 +76,6 @@ namespace insur {
     addCut("F", detaTrack*3, 2.1);
     addCut("VF",detaTrack*4, 2.25);
     addCut("VF",detaTrack*5, 2.4);
-    
   }
 
   // public
@@ -355,6 +347,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMom
   //std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
   std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
   std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
+  std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
 
   TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
 
@@ -367,16 +360,37 @@ void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMom
     eta = - log(tan(myTrack.getTheta() / 2));
     int nHits = myTrack.nActiveHits(false, false);
     totalProfile.Fill(eta, nHits);
+    std::vector<Module*> hitModules = myTrack.getHitModules();
 
     for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
         itMomentum!=triggerMomenta.end(); ++itMomentum) {
       TProfile& myProfile = trigProfiles[(*itMomentum)];
       TProfile& myFractionProfile = trigFractionProfiles[(*itMomentum)];
+      TProfile& myPurityProfile = trigPurityProfiles[(*itMomentum)];
       double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
       if (nExpectedTriggerPoints>=0) { // sanity check (! nan)
         myProfile.Fill(eta, nExpectedTriggerPoints);
         if (nHits>0) {
           myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
+           double curAvgTrue=0;
+           double curAvgInteresting=0;
+           double curAvgFake=0;
+           double bgReductionFactor; // Reduction of the combinatorial background for ptMixed modules by turning off the appropriate pixels
+           for (std::vector<Module*>::iterator itModule = hitModules.begin(); itModule!= hitModules.end(); ++itModule) {
+             Module* hitModule = (*itModule);
+             PtErrorAdapter pterr(*hitModule);
+             // Hits that we would like to have from tracks above this threshold
+             curAvgInteresting += pterr.getParticleFrequencyPerEventAbove(*itMomentum);
+             // ... out of which we only see these
+             curAvgTrue += pterr.getTriggerFrequencyTruePerEventAbove(*itMomentum);
+               
+             // The background is given by the contamination from low pT tracks...
+             curAvgFake += pterr.getTriggerFrequencyTruePerEventBelow(*itMomentum);
+             // ... plus the combinatorial background from occupancy (can be reduced using ptMixed modules)
+             if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
+             curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*simParms().numMinBiasEvents() * bgReductionFactor;
+           }
+           myPurityProfile.Fill(eta, 100*curAvgTrue/(curAvgTrue+curAvgFake));
         }
       }
     }
@@ -692,6 +706,7 @@ void Analyzer::computeTriggerFrequency(Tracker& tracker) {
   simParms_->accept(v);
   tracker.accept(v);
 
+  //triggerFrequencyTrueSummares_ = v.triggerFrequencyTrueSummaries;
   triggerFrequencyFakeSummaries_ = v.triggerFrequencyFakeSummaries;
   triggerFrequencyInterestingSummaries_ = v.triggerFrequencyInterestingSummaries;
   triggerRateSummaries_ = v.triggerRateSummaries; 
@@ -699,6 +714,8 @@ void Analyzer::computeTriggerFrequency(Tracker& tracker) {
   triggerPuritySummaries_ = v.triggerPuritySummaries; 
   triggerDataBandwidthSummaries_ = v.triggerDataBandwidthSummaries;
   triggerFrequenciesPerEvent_ = v.triggerFrequenciesPerEvent;
+  stripOccupancySummaries_ = v.stripOccupancySummaries;
+  hitOccupancySummaries_ = v.hitOccupancySummaries;
 }
 
 
@@ -1013,8 +1030,8 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   // set the track direction vector
   dir.SetCoordinates(1, theta, phi);
   direction = dir;
-  static std::ofstream ofs(!isPixel ? "mathits.txt" : "mathits_px.txt");
-  ofs << "TRACK: eta=" << eta << " theta=" << theta << " phi=" << phi << std::endl;
+//  static std::ofstream ofs(!isPixel ? "mathits.txt" : "mathits_px.txt"); // DEBUG
+//  ofs << "TRACK: eta=" << eta << " theta=" << theta << " phi=" << phi << std::endl;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     // only consider modules that have type BarrelModule or EndcapModule
@@ -1030,7 +1047,7 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           tmp.interaction = iter->getInteractionLength();
 
           Module& m = iter->getModule();
-          ofs << "  Mod: " << m.center().Z() << "," << m.center().Rho() << "," << m.center().Phi() << " d: " << distance << " RI: " << tmp.radiation << "," << tmp.interaction << std::endl;
+//          ofs << "  Mod: " << m.center().Z() << "," << m.center().Rho() << "," << m.center().Phi() << " d: " << distance << " RI: " << tmp.radiation << "," << tmp.interaction << std::endl;
           // 2D material maps
           fillMapRT(r, theta, tmp);
           // radiation and interaction length scaling for barrels
@@ -1064,8 +1081,8 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           hit->setCorrectedMaterial(tmp);
           hit->setPixel(isPixel);
           t.addHit(hit);
-          static std::ofstream of("hits.txt"); // CUIDADO just for debug -- remove!!!
-          of << theta << '\t' << phi << '\t' << (iter->getModule().subdet()==BARREL ? 'B' : 'E') << '\t' << roundprec<3>(iter->getModule().center().Z()) << '\t' << roundprec<3>(iter->getModule().center().Rho()) << '\t' << roundprec<3>(iter->getModule().center().Phi()) << '\t' << iter->getModule().dsDistance() << '\t' << roundprec<3>(distance) << '\t' << tmp.radiation << '\t' << tmp.interaction << std::endl;
+//          static std::ofstream of("hits.txt"); // CUIDADO just for debug -- remove!!!
+//          of << theta << '\t' << phi << '\t' << (iter->getModule().subdet()==BARREL ? 'B' : 'E') << '\t' << roundprec<3>(iter->getModule().center().Z()) << '\t' << roundprec<3>(iter->getModule().center().Rho()) << '\t' << roundprec<3>(iter->getModule().center().Phi()) << '\t' << iter->getModule().dsDistance() << '\t' << roundprec<3>(distance) << '\t' << tmp.radiation << '\t' << tmp.interaction << std::endl;
         }
     }
     iter++;
@@ -1911,6 +1928,7 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   // std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
   std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
   std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
+  std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
 
   // Prepare the graphs for the trigger performace
   std::ostringstream aName;
@@ -1923,6 +1941,7 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
     //std::pair<double, TGraph> elemGraph;
     std::pair<double, TProfile> elemProfile;
     std::pair<double, TProfile> elemFractionProfile;
+    std::pair<double, TProfile> elemPurityProfile;
     //TGraph graph;
     TProfile profile("dummyName", "dummyTitle", nbins, 0, myEtaMax);
     //elemGraph.first = *iter;
@@ -1931,17 +1950,23 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
     elemProfile.second = profile;
     elemFractionProfile.first = *iter;
     elemFractionProfile.second = profile;
+    elemPurityProfile.first = *iter;
+    elemPurityProfile.second = profile;
     // Prepare plots: triggered graphs
     // trigGraphs.insert(elemGraph);
     trigProfiles.insert(elemProfile);
     trigFractionProfiles.insert(elemFractionProfile);
+    trigPurityProfiles.insert(elemPurityProfile);
     // trigGraphs[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
     trigProfiles[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
     trigFractionProfiles[*iter].SetTitle("Average trigger efficiency;#eta;Efficiency [%]");
+    trigPurityProfiles[*iter].SetTitle("Average stub purity;#eta;Purity [%]");
     aName.str(""); aName << "triggered_vs_eta" << *iter << "_profile";      
     trigProfiles[*iter].SetName(aName.str().c_str());
     aName.str(""); aName << "triggered_vs_eta" << *iter << "_fractionProfile";
     trigFractionProfiles[*iter].SetName(aName.str().c_str());
+    aName.str(""); aName << "triggered_vs_eta" << *iter << "_purityProfile";
+    trigPurityProfiles[*iter].SetName(aName.str().c_str());
   }
 
   //std::pair<double, TGraph> elemTotalGraph;
@@ -2373,6 +2398,28 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   myDice.SetSeed(MY_RANDOM_SEED);
   createResetCounters(tracker, moduleTypeCount);
 
+  class LayerNameVisitor : public ConstGeometryVisitor {
+    string id_;
+  public:
+    std::set<string> data;
+    LayerNameVisitor(const Tracker& t) { t.accept(*this); }
+    void visit(const Barrel& b) { id_ = b.myid(); }
+    void visit(const Endcap& e) { id_ = e.myid(); }
+    void visit(const Layer& l) { data.insert(id_ + " " + any2str(l.myid())); }
+    void visit(const Disk& d) { data.insert(id_ + " " + any2str(d.myid())); }
+  };
+
+  LayerNameVisitor layerNames(tracker);
+
+  // Creating the layer hit coverage profiles
+  layerEtaCoverageProfile.clear();
+  for (auto it = layerNames.data.begin(); it!=layerNames.data.end(); ++it) {
+    TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfile%s", it->c_str()), it->c_str(), 200, maxEta, maxEta);
+    layerEtaCoverageProfile[*it] = (*aProfile);
+    delete aProfile;
+  }
+
+
   /*for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
     it!=etaProfileByType.end(); it++) {
     aPlot = (*it).second;
@@ -2429,6 +2476,21 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       total2D.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
       mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
       mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
+
+      for (auto it = layerNames.data.begin(); it!=layerNames.data.end(); ++it) {
+        double layerHit = 0;
+        for (ModuleVector::iterator moduleIt = hitModules.begin(); moduleIt!=hitModules.end(); moduleIt++) {
+          UniRef ur = (*moduleIt)->uniRef();
+          if ((*it) == (ur.cnt + " " + any2str(ur.layer))) {
+            layerHit=1;
+            continue;
+          }
+        }
+        layerEtaCoverageProfile[*it].Fill(aLine.second, layerHit);
+      }
+
+
+
     }
   }
 

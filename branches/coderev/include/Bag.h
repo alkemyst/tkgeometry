@@ -68,6 +68,7 @@
     static const int TriggeredProfile;
     static const int TriggerProfile;
     static const int TriggeredFractionProfile;
+    static const int TriggerPurityProfile;
     static const std::string TriggerProfileName;
     static const std::string TriggerProfileNameWindow;
     static const std::string TurnOnCurveName;
