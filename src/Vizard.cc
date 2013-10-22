@@ -2563,7 +2563,6 @@ namespace insur {
         std::string plotOption = "";
         std::map<double, TGraph>::iterator g_iter, g_guard;
         // momentum canvas loop
-        int myColor=0;
         g_guard = a.getRhoGraphs(idealMaterial, isTrigger).end();
         gStyle->SetGridStyle(style_grid);
         gStyle->SetGridColor(color_hard_grid);

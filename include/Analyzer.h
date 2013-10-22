@@ -21,7 +21,6 @@
 #include <set>
 #include <algorithm>
 #include <hit.hh>
-//#include <module.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
@@ -157,6 +156,7 @@ namespace insur {
     TProfile& getTotalEtaProfile() {return totalEtaProfile;};
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;};
+    std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;};
     std::vector<TObject> getSavingVector();
     TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
     TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
@@ -200,6 +200,9 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+
+    std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
+    std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
 
     SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
     std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
@@ -277,6 +280,10 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
     std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
 
+    std::map<std::string, SummaryTable> stripOccupancySummaries_;
+    std::map<std::string, SummaryTable> hitOccupancySummaries_;
+
+
     SummaryTable processorConnectionSummary_;
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
@@ -308,6 +315,7 @@ namespace insur {
     TGraph powerDensity;
     TProfile totalEtaProfile;
     std::vector<TProfile> typeEtaProfile;
+    std::map<std::string, TProfile> layerEtaCoverageProfile;
 
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
