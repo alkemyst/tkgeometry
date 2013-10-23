@@ -2880,7 +2880,7 @@ namespace insur {
     return false;
   }
 
-  bool Vizard::triggerSummary(Analyzer& a, RootWSite& site, bool extended) {
+  bool Vizard::triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended) {
     //********************************//
     //*                              *//
     //*   Page with the trigger      *//
@@ -3213,6 +3213,7 @@ namespace insur {
     TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
     TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum];
 
+
     // Create the content holder for these maps
     RootWContent& myContent = myPage.addContent("Module configuration maps", false);
 
@@ -3228,6 +3229,19 @@ namespace insur {
     suggestedSpacingAWCanvas.SetFillColor(color_plot_background);
     nominalCutCanvas.SetFillColor(color_plot_background);
 
+      //struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } }; // CUIDADO old map code still used, PlotDrawer based maps ready to be used for some maps, but for now commented out. All the obsolete map drawing code in Analyzer has to be removed before starting to use the new code, for uniformity
+    //PlotDrawer<YZ, Spacing> thicknessDrawer;
+    //thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+    //thicknessDrawer.drawFrame<HistogramFrameStyle>(thickCanvas);
+    //thicknessDrawer.drawModules<ContourStyle>(thickCanvas);
+
+    //struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
+    //PlotDrawer<YZ, TriggerWindow> windowDrawer;
+    //windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+    //windowDrawer.drawFrame<HistogramFrameStyle>(windowCanvas);
+    //windowDrawer.drawModules<ContourStyle>(windowCanvas);
+
+
     // Actually plot the maps
     thickCanvas.cd();
     thicknessMap.Draw("colz");
@@ -3239,7 +3253,12 @@ namespace insur {
       suggestedSpacingAWCanvas.cd();
       suggestedSpacingMapAW.Draw("colz");
       nominalCutCanvas.cd();
-      //nominalCutCanvas.SetLogz();
+      //struct PtCut { double operator()(const Module& m) { return PtErrorAdapter(m).getPtCut(); } };
+      //PlotDrawer<YZ, PtCut> cutDrawer;
+      //cutDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+      //cutDrawer.drawFrame<HistogramFrameStyle>(nominalCutCanvas);
+      //cutDrawer.drawModules<ContourStyle>(nominalCutCanvas);
+      nominalCutCanvas.SetLogz();
       nominalCutMap.Draw("colz");
     }
 
