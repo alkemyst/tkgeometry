@@ -562,7 +562,7 @@ namespace insur {
    */
   bool Squid::reportTriggerPerformanceSite(bool extended) {
     startTaskClock("Creating trigger summary report");
-    if (v.triggerSummary(a, site, extended)) {
+    if (v.triggerSummary(a, *tr, site, extended)) {
       stopTaskClock();
       return true;
     } else {

@@ -164,7 +164,7 @@ namespace insur {
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-    bool triggerSummary(Analyzer& a, RootWSite& site, bool extended);
+    bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
                             const std::string& matfile, const std::string& pixmatfile,
