@@ -61,7 +61,7 @@ public:
     double irr12 = irradiationMap_->at(std::make_pair(int(x1), int(y2)));
     double irr22 = irradiationMap_->at(std::make_pair(int(x2), int(y2)));
     double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
-    double fluence = irrxy * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+    double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
     double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
     double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
     //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
