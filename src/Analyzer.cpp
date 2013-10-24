@@ -2378,8 +2378,8 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   // A bunch of pointers
   std::map <std::string, int> moduleTypeCount;
-  std::map <std::string, TH2D> etaProfileByType;
-  TH2D* aPlot;
+  std::map <std::string, TProfile> etaProfileByType;
+//  TH2D* aPlot;
   std::string aType;
 
 
@@ -2429,12 +2429,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
        it!=moduleTypeCount.end(); it++) {
-    // std::cerr << "Creating plot for module type " << (*it).first << std::endl; //debug
-    aPlot = new TH2D( (*it).first.c_str(), (*it).first.c_str(),
-                      100, 0., maxEta*1.1,
-                      1000, 0., 10.);
-    etaProfileByType[(*it).first]=(*aPlot);
-    delete aPlot;
+    TProfile& aProfile = etaProfileByType[(*it).first];
+    aProfile.SetBins(100, 0, maxEta);
+    aProfile.SetName((*it).first.c_str());
+    aProfile.SetTitle((*it).first.c_str());
   }
 
   //  ModuleVector allModules;
@@ -2451,8 +2449,13 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   nTracks = nTracksPerSide*nTracksPerSide;
   mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
   TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
-  TH2D total2D("total2d", "Total 2D", 100, 0., 2.5, 4000 , 0., 40.);
-  //TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 4000 , 0., 40.);
+  totalEtaProfile.Reset();
+  totalEtaProfile.SetName("totalEtaProfile");
+  totalEtaProfile.SetMarkerStyle(8);
+  totalEtaProfile.SetMarkerColor(1);
+  totalEtaProfile.SetMarkerSize(1.5);
+  totalEtaProfile.SetTitle("Number of hit modules;#eta;Number of hits");
+  totalEtaProfile.SetBins(100, 0, maxEta);
 
   // Shoot nTracksPerSide^2 tracks
   for (int i=0; i<nTracksPerSide; i++) {
@@ -2473,7 +2476,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         etaProfileByType[(*it).first].Fill(fabs(aLine.second), (*it).second);
       }
       // Fill other plots
-      total2D.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
+      totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
       mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
       mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
 
@@ -2521,21 +2524,17 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   //TProfile* total = total2D.ProfileX("etaProfileTotal");
   char profileName_[256];
   sprintf(profileName_, "etaProfileTotal%d", bsCounter++);
-  totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
+  // totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
   savingGeometryV.push_back(totalEtaProfile);
-  totalEtaProfile.SetMarkerStyle(8);
-  totalEtaProfile.SetMarkerColor(1);
-  totalEtaProfile.SetMarkerSize(1.5);
-  totalEtaProfile.SetTitle("Number of hit modules;#eta;Number of hits");
   if (totalEtaProfile.GetMaximum()<maximum_n_planes) totalEtaProfile.SetMaximum(maximum_n_planes);
   totalEtaProfile.Draw();
   std::string profileName;
   TProfile* myProfile;
-  for (std::map <std::string, TH2D>::iterator it = etaProfileByType.begin();
+  for (std::map <std::string, TProfile>::iterator it = etaProfileByType.begin();
        it!=etaProfileByType.end(); it++) {
     plotCount++;
-    myProfile=(*it).second.ProfileX();
-    savingGeometryV.push_back(*myProfile);
+    myProfile=(TProfile*)it->second.Clone();
+    savingGeometryV.push_back(*myProfile); // TODO: remove savingGeometryV everywhere :-) [VERY obsolete...]
     myProfile->SetMarkerStyle(8);
     myProfile->SetMarkerColor(Palette::color((*it).first));
     myProfile->SetMarkerSize(1);
