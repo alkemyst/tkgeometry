@@ -57,11 +57,13 @@ class TriggerProcessorBandwidthVisitor : public ConstGeometryVisitor {
 
 public:
   SummaryTable processorConnectionSummary, processorInboundBandwidthSummary, processorInboundStubPerEventSummary;
+  SummaryTable processorCommonConnectionSummary;
   TH1I moduleConnectionsDistribution;
 
   class ModuleConnectionData {
     int phiCpuConnections_, etaCpuConnections_;
   public:
+    set<std::pair<int, int>> connectedProcessors;
     int phiCpuConnections() const { return phiCpuConnections_; }
     int etaCpuConnections() const { return etaCpuConnections_; }
     int totalCpuConnections() const { return phiCpuConnections_*etaCpuConnections_; }
@@ -89,6 +91,7 @@ public:
 
   void preVisit() {
     processorConnectionSummary.setHeader("Phi", "Eta");
+    processorCommonConnectionSummary.setHeader("Phi", "Eta");
     processorInboundBandwidthSummary.setHeader("Phi", "Eta");
     processorInboundStubPerEventSummary.setHeader("Phi", "Eta");
 
@@ -128,6 +131,8 @@ public:
             processorConnections_[std::make_pair(j,i)] += 1;
             processorConnectionSummary.setCell(j+1, i+1, processorConnections_[std::make_pair(j,i)]);
 
+            moduleConnections[&m].connectedProcessors.insert(make_pair(i+1, j+1));
+
             processorInboundBandwidths_[std::make_pair(j,i)] += triggerDataBandwidths_[p.table][std::make_pair(p.row, p.col)]; // *2 takes into account negative Z's
             processorInboundBandwidthSummary.setCell(j+1, i+1, processorInboundBandwidths_[std::make_pair(j,i)]);
 
@@ -151,7 +156,21 @@ public:
     processorConnectionSummary.setSummaryCell("Total", processorConnectionsTotal);
     processorInboundStubPerEventSummary.setSummaryCell("Total", inboundStubsPerEventTotal);
 
-    for (auto mvp : moduleConnections) moduleConnectionsDistribution.Fill(mvp.second.totalCpuConnections(), 1);
+    for (auto mvp : moduleConnections) {
+      moduleConnectionsDistribution.Fill(mvp.second.totalCpuConnections(), 1);
+      std::set<pair<int, int>> connectedProcessors = mvp.second.connectedProcessors; // we make a copy of the set here
+      while (!connectedProcessors.empty()) {
+        pair<int, int> colRef = *connectedProcessors.begin();
+        int col = colRef.second + numProcPhi*(colRef.first-1);
+        if (!processorCommonConnectionSummary.hasCell(-1, col)) processorCommonConnectionSummary.setCell(0, col, "t" + any2str(colRef.first) + "," + any2str(colRef.second)); // set column header
+        for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
+          int row = pIt->second + numProcPhi*(pIt->first-1);
+          if (!processorCommonConnectionSummary.hasCell(row, 0)) processorCommonConnectionSummary.setCell(row, 0, "t" + any2str(pIt->first) + "," + any2str(pIt->second));
+          processorCommonConnectionSummary.setCell(row, col, 1, std::plus<int>());
+        }
+        connectedProcessors.erase(connectedProcessors.begin());
+      } 
+    }
   }
 };
 

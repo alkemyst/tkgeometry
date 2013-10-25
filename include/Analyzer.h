@@ -205,6 +205,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
 
     SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
+    SummaryTable& getProcessorCommonConnectionSummary() { return processorCommonConnectionSummary_; }
     std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
     SummaryTable& getProcessorInboundBandwidthSummary() { return processorInboundBandwidthSummary_; }
     SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
@@ -285,6 +286,7 @@ namespace insur {
 
 
     SummaryTable processorConnectionSummary_;
+    SummaryTable processorCommonConnectionSummary_;
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;

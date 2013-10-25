@@ -729,6 +729,7 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
   v.postVisit();
 
   processorConnectionSummary_ = v.processorConnectionSummary; 
+  processorCommonConnectionSummary_ = v.processorCommonConnectionSummary;
   processorInboundBandwidthSummary_ = v.processorInboundBandwidthSummary; 
   processorInboundStubPerEventSummary_ = v.processorInboundStubPerEventSummary; 
   moduleConnectionsDistribution = v.moduleConnectionsDistribution; 
