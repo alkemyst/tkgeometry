@@ -55,16 +55,20 @@ double AnalyzerHelpers::calculatePetalAreaMC(const Tracker& tracker, const SimPa
 
 double AnalyzerHelpers::calculatePetalAreaModules(const Tracker& tracker, const SimParms& simParms, double crossoverR) {
   double curvatureR = simParms.particleCurvatureR(simParms.triggerPtCut()); // curvature radius of particles with the minimum accepted pt
+  int numTriggerProcessorsPhi = simParms.numTriggerTowersPhi();
 
   struct PetalAreaVisitor : public ConstGeometryVisitor {
-    double curvatureR_, crossoverR_;  
+    double curvatureR_, crossoverR_, numTriggerProcessorsPhi_;  
     int hits = 0;
-    PetalAreaVisitor(double curvatureR, double crossoverR) : curvatureR_(curvatureR), crossoverR_(crossoverR) {}
-    void visit(const EndcapModule& m) {
-      if (m.disk() != 1 || m.side() < 0) return;
-      if (AnalyzerHelpers::isModuleInPetal(m, 0., curvatureR_, crossoverR_)) hits++;
+    PetalAreaVisitor(double curvatureR, double crossoverR, double numTriggerProcessorsPhi) : curvatureR_(curvatureR), crossoverR_(crossoverR), numTriggerProcessorsPhi_(numTriggerProcessorsPhi) {}
+    void visit(const Module& m) {
+      if (m.side() < 0) return;
+      const double petalInterval = 2*M_PI / numTriggerProcessorsPhi_; // aka Psi
+      for (int i = 0; i < numTriggerProcessorsPhi_; ++i) {
+        if (AnalyzerHelpers::isModuleInPetal(m, petalInterval*i, curvatureR_, crossoverR_)) { hits++; } // we could break after the find found hit, but this way we take into account the (admittedly unlikely) situation of petals being so wide that some modules belong to more than one.
+      }
     }
-  } v(curvatureR, crossoverR);
+  } v(curvatureR, crossoverR, numTriggerProcessorsPhi);
 
   tracker.accept(v);
 

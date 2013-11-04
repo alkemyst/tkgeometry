@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "TH1.h"
+#include "TH2.h"
 #include "Math/Point2D.h"
 #include "TRandom3.h"
 #include "Math/Functor.h"
@@ -42,6 +43,8 @@ namespace AnalyzerHelpers {
 
 }
 
+using namespace AnalyzerHelpers;
+
 class TriggerProcessorBandwidthVisitor : public ConstGeometryVisitor {
   typedef std::map<std::pair<int, int>, int> ProcessorConnections;
   typedef std::map<std::pair<int, int>, double> ProcessorInboundBandwidths;
@@ -59,6 +62,9 @@ public:
   SummaryTable processorConnectionSummary, processorInboundBandwidthSummary, processorInboundStubPerEventSummary;
   SummaryTable processorCommonConnectionSummary;
   TH1I moduleConnectionsDistribution;
+  TH2I processorCommonConnectionMap;
+  std::pair<Circle, Circle> sampleTriggerPetal;
+  double crossoverR;
 
   class ModuleConnectionData {
     int phiCpuConnections_, etaCpuConnections_;
@@ -77,7 +83,6 @@ public:
 
 private:
   int numProcEta, numProcPhi;
-  double crossoverR_;
 
   double inboundBandwidthTotal = 0.;
   int processorConnectionsTotal = 0;
@@ -113,7 +118,12 @@ public:
 
   void visit(const Tracker& t) { 
     tracker_ = &t; 
-    crossoverR_ = AnalyzerHelpers::calculatePetalCrossover(*tracker_, *simParms_);
+    crossoverR = AnalyzerHelpers::calculatePetalCrossover(*tracker_, *simParms_);
+    sampleTriggerPetal = findCirclesTwoPoints((Point){0., 0.}, (Point){crossoverR, 0.}, simParms_->particleCurvatureR(simParms_->triggerPtCut()));
+    int totalProcs = numProcEta * numProcPhi;
+    processorCommonConnectionMap.SetBins(totalProcs, 0, totalProcs, totalProcs, 0, totalProcs);
+    processorCommonConnectionMap.SetXTitle("TT");
+    processorCommonConnectionMap.SetYTitle("TT");
   }
 
   void visit(const DetectorModule& m) {
@@ -125,7 +135,7 @@ public:
       if (AnalyzerHelpers::isModuleInEtaSector(*simParms_, *tracker_, m, i)) {
         etaConnections++;
         for (int j=0; j < numProcPhi; j++) {
-          if (AnalyzerHelpers::isModuleInPhiSector(*simParms_, m, crossoverR_, j)) {
+          if (AnalyzerHelpers::isModuleInPhiSector(*simParms_, m, crossoverR, j)) {
             totalConnections++;
 
             processorConnections_[std::make_pair(j,i)] += 1;
@@ -156,20 +166,47 @@ public:
     processorConnectionSummary.setSummaryCell("Total", processorConnectionsTotal);
     processorInboundStubPerEventSummary.setSummaryCell("Total", inboundStubsPerEventTotal);
 
+    std::map<std::pair<int, int>, int> processorCommonConnectionMatrix;
+
     for (auto mvp : moduleConnections) {
       moduleConnectionsDistribution.Fill(mvp.second.totalCpuConnections(), 1);
       std::set<pair<int, int>> connectedProcessors = mvp.second.connectedProcessors; // we make a copy of the set here
-      while (!connectedProcessors.empty()) {
-        pair<int, int> colRef = *connectedProcessors.begin();
-        int col = colRef.second + numProcPhi*(colRef.first-1);
-        if (!processorCommonConnectionSummary.hasCell(-1, col)) processorCommonConnectionSummary.setCell(0, col, "t" + any2str(colRef.first) + "," + any2str(colRef.second)); // set column header
-        for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
-          int row = pIt->second + numProcPhi*(pIt->first-1);
-          if (!processorCommonConnectionSummary.hasCell(row, 0)) processorCommonConnectionSummary.setCell(row, 0, "t" + any2str(pIt->first) + "," + any2str(pIt->second));
-          processorCommonConnectionSummary.setCell(row, col, 1, std::plus<int>());
+      if (connectedProcessors.size() == 1) {
+        int ref = connectedProcessors.begin()->second + numProcPhi*(connectedProcessors.begin()->first-1);
+        processorCommonConnectionMatrix[std::make_pair(ref, ref)] += 1;
+      } else {
+        while (!connectedProcessors.empty()) {
+          pair<int, int> colRef = *connectedProcessors.begin();
+          int col = colRef.second + numProcPhi*(colRef.first-1);
+          connectedProcessors.erase(connectedProcessors.begin());
+          for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
+            int row = pIt->second + numProcPhi*(pIt->first-1);
+            processorCommonConnectionMatrix[std::make_pair(row, col)] += 1;
+          }
+        } 
+      }
+    }
+    TAxis* xAxis = processorCommonConnectionMap.GetXaxis();
+    TAxis* yAxis = processorCommonConnectionMap.GetYaxis();
+    for (int i = 1; i <= numProcEta; i++) {
+      for (int j = 1; j <= numProcPhi; j++) {
+        processorCommonConnectionSummary.setCell(0, j + (i-1)*numProcPhi, "t" + any2str(i) + "," + any2str(j));
+        processorCommonConnectionSummary.setCell(j + (i-1)*numProcPhi, 0, "t" + any2str(i) + "," + any2str(j));
+        xAxis->SetBinLabel(j + (i-1)*numProcPhi, ("t" + any2str(i) + "," + any2str(j)).c_str());
+        yAxis->SetBinLabel(j + (i-1)*numProcPhi, ("t" + any2str(i) + "," + any2str(j)).c_str());
+      }
+    }
+    for (int col = 1; col <= numProcEta*numProcPhi; col++) {
+      for (int row = col; row <= numProcEta*numProcPhi; row++) {
+        if (processorCommonConnectionMatrix.count(std::make_pair(row, col))) {
+          int val = processorCommonConnectionMatrix[std::make_pair(row, col)];
+          processorCommonConnectionSummary.setCell(row, col, val);
+          processorCommonConnectionMap.SetCellContent(row, col, val/2);
+          if (row != col) processorCommonConnectionMap.SetCellContent(col, row, val/2);
+          else processorCommonConnectionMap.SetCellContent(row, col, val);
         }
-        connectedProcessors.erase(connectedProcessors.begin());
-      } 
+        //else processorCommonConnectionSummary_.setCell(row, col, "0");
+      }
     }
   }
 };

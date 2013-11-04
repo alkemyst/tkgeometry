@@ -230,6 +230,84 @@ namespace insur {
   }
 
 
+void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
+                                     const std::vector<double>& momenta,
+                                     const std::vector<double>& triggerMomenta,
+                                     const std::vector<double>& thresholdProbabilities,
+                                     int etaSteps,
+                                     MaterialBudget* pm) {
+
+  double efficiency = simParms().efficiency();
+
+  materialTracksUsed = etaSteps;
+
+  int nTracks;
+  double etaStep, eta, theta, phi;
+
+  // prepare etaStep, phiStep, nTracks, nScans
+  if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
+  else etaStep = getEtaMaxTrigger();
+  nTracks = etaSteps;
+
+  // prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
+
+  // reset the list of tracks
+  std::map<string, std::vector<Track>> tv;
+  std::map<string, std::vector<Track>> tvIdeal;
+
+  for (int i_eta = 0; i_eta < nTracks; i_eta++) {
+    phi = myDice.Rndm() * PI * 2.0;
+    Material tmp;
+    Track track;
+    eta = i_eta * etaStep;
+    theta = 2 * atan(exp(-eta));
+    track.setTheta(theta);      
+    track.setPhi(phi);
+
+    tmp = findAllHits(mb, pm, eta, theta, phi, track);
+
+    // Debug: material amount
+    //std::cerr << "eta = " << eta
+    //        << ", material.radiation = " << tmp.radiation
+    //        << ", material.interaction = " << tmp.interaction
+    //        << std::endl;
+
+    // TODO: add the beam pipe as a user material eveywhere!
+    // in a coherent way
+    // Add the hit on the beam pipe
+    Hit* hit = new Hit(23./sin(theta));
+    hit->setOrientation(Hit::Horizontal);
+    hit->setObjectKind(Hit::Inactive);
+    Material beamPipeMat;
+    beamPipeMat.radiation = 0.0023 / sin(theta);
+    beamPipeMat.interaction = 0.0019 / sin(theta);
+    hit->setCorrectedMaterial(beamPipeMat);
+    track.addHit(hit);
+
+    if (!track.noHits()) {
+      for (string tag : track.tags()) {
+        track.keepTaggedOnly(tag);
+        if (simParms().useIPConstraint()) track.addIPConstraint(simParms().rError(), simParms().zErrorCollider());
+        track.sort();
+        track.setTriggerResolution(true);
+
+        if (efficiency!=1) track.addEfficiency(efficiency, false);
+        if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
+          track.computeErrors(momenta);
+          tv[tag].push_back(track);
+
+          Track trackIdeal = track;
+          trackIdeal.removeMaterial();
+          trackIdeal.computeErrors(momenta);
+          tvIdeal[tag].push_back(trackIdeal);    
+        }    
+      }
+    }
+  }
+
+  for (const auto& mit : tv) calculateGraphs(momenta, mit.second, graphBag::RealGraph, mit.first);
+  for (const auto& mit : tvIdeal) calculateGraphs(momenta, mit.second, graphBag::IdealGraph, mit.first);
+}
 
 
   /**
@@ -297,6 +375,8 @@ namespace insur {
     fillTriggerPerformanceMaps(tracker);
 
   }
+
+
 
 void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions) {
   double aSpacing;
@@ -734,6 +814,9 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
   processorInboundStubPerEventSummary_ = v.processorInboundStubPerEventSummary; 
   moduleConnectionsDistribution = v.moduleConnectionsDistribution; 
   moduleConnections_ = v.moduleConnections;
+  processorCommonConnectionMap_ = v.processorCommonConnectionMap;
+  sampleTriggerPetal_ = v.sampleTriggerPetal;
+  triggerPetalCrossoverR_ = v.crossoverR;
 }
 
 
@@ -1490,14 +1573,15 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
  */
 void Analyzer::calculateGraphs(const std::vector<double>& p, 
                                const std::vector<Track>& trackVector,
-                               int graphAttributes) {
+                               int graphAttributes, 
+                               const string& graphTag) {
 
-  std::map<double, TGraph>& thisRhoGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::RhoGraph );
-  std::map<double, TGraph>& thisPhiGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::PhiGraph );
-  std::map<double, TGraph>& thisDGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::DGraph );
-  std::map<double, TGraph>& thisCtgThetaGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::CtgthetaGraph );
-  std::map<double, TGraph>& thisZ0Graphs = myGraphBag.getGraphs(graphAttributes | graphBag::Z0Graph );
-  std::map<double, TGraph>& thisPGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::PGraph );
+  std::map<double, TGraph>& thisRhoGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::RhoGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::RhoGraph, graphTag);
+  std::map<double, TGraph>& thisPhiGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::PhiGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::PhiGraph, graphTag);
+  std::map<double, TGraph>& thisDGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::DGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::DGraph, graphTag);
+  std::map<double, TGraph>& thisCtgThetaGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::CtgthetaGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::CtgthetaGraph, graphTag);
+  std::map<double, TGraph>& thisZ0Graphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::Z0Graph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::Z0Graph, graphTag);
+  std::map<double, TGraph>& thisPGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::PGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::PGraph, graphTag);
 
   std::map<double, double>::const_iterator miter, mguard;
   std::vector<double>::const_iterator iter, guard = p.end();

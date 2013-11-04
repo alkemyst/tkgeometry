@@ -139,6 +139,12 @@ namespace insur {
                                 const std::vector<double>& triggerMomenta,
                                 const std::vector<double>& thresholdProbabilities,
                                 int etaSteps = 50, MaterialBudget* pm = NULL);
+    void analyzeTaggedTracking(MaterialBudget& mb,
+                               const std::vector<double>& momenta,
+                               const std::vector<double>& triggerMomenta,
+                               const std::vector<double>& thresholdProbabilities,
+                               int etaSteps = 50,
+                               MaterialBudget* pm = NULL);
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
@@ -200,12 +206,16 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+    
+    double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
+    const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
 
     std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
     std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
 
     SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
     SummaryTable& getProcessorCommonConnectionSummary() { return processorCommonConnectionSummary_; }
+    TH2I& getProcessorCommonConnectionMap() { return processorCommonConnectionMap_; }
     std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
     SummaryTable& getProcessorInboundBandwidthSummary() { return processorInboundBandwidthSummary_; }
     SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
@@ -287,9 +297,13 @@ namespace insur {
 
     SummaryTable processorConnectionSummary_;
     SummaryTable processorCommonConnectionSummary_;
+    TH2I processorCommonConnectionMap_;
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;
+
+    double triggerPetalCrossoverR_;
+    std::pair<Circle, Circle> sampleTriggerPetal_;
 
     ModuleConnectionMap moduleConnections_;
 
@@ -345,7 +359,8 @@ namespace insur {
 
     void calculateGraphs(const std::vector<double>& p,
                          const std::vector<Track>& trackVector,
-                         int graphAttributes);
+                         int graphAttributes,
+                         const string& graphTag = "");
     void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);
     void fillTriggerPerformanceMaps(Tracker& tracker);

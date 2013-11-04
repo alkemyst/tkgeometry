@@ -443,6 +443,11 @@ namespace insur {
       a.computeWeightSummary(*mb);
       if (triggerResolution) {
         startTaskClock("Estimating tracking resolution of track-trigger");
+        a.analyzeTaggedTracking(*mb,
+                                mainConfiguration.getMomenta(),
+                                mainConfiguration.getTriggerMomenta(),
+                                mainConfiguration.getThresholdProbabilities(),
+                                tracks, pm);
         a.analyzeTrigger(*mb,
                          mainConfiguration.getMomenta(),
                          mainConfiguration.getTriggerMomenta(),
@@ -547,6 +552,7 @@ namespace insur {
       startTaskClock("Creating resolution report");
       v.errorSummary(a, site, "", false);
       v.errorSummary(a, site, "trigger", true);
+      v.taggedErrorSummary(a, site);
       stopTaskClock();
       return true;
     }
@@ -656,7 +662,7 @@ namespace insur {
     return myPixelMaterialFile_;
   }
 
-  void Squid::simulateTracks(const po::variables_map& varmap, int seed) {
+  void Squid::simulateTracks(const po::variables_map& varmap, int seed) { // CUIDADO not ported to coderev -- yet?
     startTaskClock("Shooting particles");
 /*    TrackShooter ts;
     //std::ofstream ofs((outputfile + "." + any2str(getpid())).c_str());
@@ -673,6 +679,13 @@ namespace insur {
 
     ts.shootTracks(varmap, seed);*/
     stopTaskClock();
+  }
+
+  void Squid::setCommandLine(int argc, char* argv[]) {
+    if (argc <= 1) return;
+    std::string cmdLine(argv[1]);
+    for (int i = 2; i < argc; i++) cmdLine += std::string(" ") + argv[i];
+    v.setCommandLine(cmdLine);
   }
 }
 

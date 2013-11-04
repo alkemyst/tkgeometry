@@ -50,10 +50,16 @@ int graphBag::clearStandardGraphs() {
 }
 
 int graphBag::clearGraphs(const int& attributeMask) {
+  int deleteCounter = 0;
+  for (auto it = taggedGraphMap_.begin(); it != taggedGraphMap_.end();) { // first clear tagged graphs with the specified attribute
+    if ((it->first.first & attributeMask) == attributeMask) {
+      it = taggedGraphMap_.erase(it);
+      ++deleteCounter;
+    } else ++it;
+  }
   std::map<int, std::map<double, TGraph> >::iterator it;
   std::map<int, std::map<double, TGraph> >::iterator nextIt;
 
-  int deleteCounter = 0;
   int anAttribute;
   for (it=graphMap_.begin(); it!=graphMap_.end(); ) {
     anAttribute=it->first;
@@ -82,6 +88,11 @@ int graphBag::buildAttribute(bool ideal, bool isTrigger) {
 
 std::map<double, TGraph>& graphBag::getGraphs(const int& attribute) {
   return graphMap_[attribute];
+}
+
+std::map<double, TGraph>& graphBag::getTaggedGraphs(int attribute, const string& tag) {
+  tagSet_.insert(tag);
+  return taggedGraphMap_[std::make_pair(attribute, tag)];
 }
 
 std::map<double, TH2D>& mapBag::getMaps(const int& attribute) {
