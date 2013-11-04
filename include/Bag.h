@@ -3,10 +3,13 @@
 
 #include <map>
 #include <string>
+#include <set>
 
 #include <TProfile.h>
 #include <TGraph.h>
 #include <TH2.h>
+
+using std::string;
 
   class graphBag {
   public:
@@ -23,6 +26,8 @@
     static const int TriggerGraph;
     static const int StandardGraph;
     std::map<double, TGraph>& getGraphs(const int& attribute);
+    std::map<double, TGraph>& getTaggedGraphs(int attribute, const string& tag);
+    const std::set<string>& getTagSet() const { return tagSet_; }
     int clearTriggerGraphs();
     int clearStandardGraphs();
     static int buildAttribute(bool ideal, bool isTrigger);
@@ -30,6 +35,8 @@
     //static double joinMomenta(double momentum1, double momentum2);
   private:
     std::map<int, std::map<double, TGraph> > graphMap_;
+    std::map<std::pair<int, string>, std::map<double, TGraph> > taggedGraphMap_;
+    std::set<string> tagSet_;
     int clearGraphs(const int& attributeMask);
   };
 

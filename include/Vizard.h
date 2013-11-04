@@ -36,6 +36,7 @@
 #include <TPaletteAxis.h>
 #include <TProfile.h>
 #include <TPolyLine3D.h>
+#include <TArc.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
@@ -164,6 +165,7 @@ namespace insur {
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
+    bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
@@ -173,6 +175,7 @@ namespace insur {
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();
     std::string getSummaryLabelString();
+    void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
 
   protected:
     TGeoManager* gm;
@@ -193,6 +196,7 @@ namespace insur {
     TGeoMaterial* matlazy;
   private:
     bool geometry_created;
+    std::string commandLine_;
     int detailedModules(std::vector<Layer*>* layers,
                         TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
     TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
@@ -222,6 +226,12 @@ namespace insur {
                      std::map<graphIndex, TGraph*>& myPlotMap,
                      Analyzer *a,
                      std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
+    
+    void fillTaggedPlotMap(graphBag& gb,
+                           const string& plotName,
+                           int graphType,
+                           const string& tag,
+                           std::map<graphIndex, TGraph*>& myPlotMap);
     std::string summaryCsv_;
     std::string summaryCsvLabels_;
     std::string occupancyCsv_;

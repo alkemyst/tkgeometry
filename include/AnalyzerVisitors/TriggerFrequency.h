@@ -23,7 +23,7 @@ class TriggerFrequencyVisitor : public ConstGeometryVisitor {
   StubRateHistos totalStubRateHistos_, trueStubRateHistos_;
 
   int nbins_;
-  double bunchSpacingNs_, nMB_;
+  double bunchSpacingNs_, nMB_, interestingPt_;
 
   void setupSummaries(const string& cntName) {
     triggerFrequencyTrueSummaries[cntName].setHeader("Layer", "Ring");
@@ -56,6 +56,7 @@ public:
   void visit(const SimParms& sp) {
     bunchSpacingNs_ = sp.bunchSpacingNs();
     nMB_ = sp.numMinBiasEvents();
+    interestingPt_ = sp.triggerPtCut();
   }
 
   void visit(const Barrel& b) { setupSummaries(b.myid()); }
@@ -103,11 +104,9 @@ public:
     //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
     //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
-    // TODO! Important <- make this interestingPt cut configurable
-    const double interestingPt = 2;
-    curAvgTrue  = curAvgTrue + (pterr.getTriggerFrequencyTruePerEventAbove(interestingPt)*nMB_ - curAvgTrue)/(curCnt+1);
-    curAvgInteresting += (pterr.getParticleFrequencyPerEventAbove(interestingPt)*nMB_ - curAvgInteresting)/(curCnt+1);
-    curAvgFake  = curAvgFake + ((pterr.getTriggerFrequencyFakePerEvent()*nMB_ + pterr.getTriggerFrequencyTruePerEventBelow(interestingPt))*nMB_ - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+    curAvgTrue  = curAvgTrue + (pterr.getTriggerFrequencyTruePerEventAbove(interestingPt_)*nMB_ - curAvgTrue)/(curCnt+1);
+    curAvgInteresting += (pterr.getParticleFrequencyPerEventAbove(interestingPt_)*nMB_ - curAvgInteresting)/(curCnt+1);
+    curAvgFake  = curAvgFake + ((pterr.getTriggerFrequencyFakePerEvent()*nMB_ + pterr.getTriggerFrequencyTruePerEventBelow(interestingPt_))*nMB_ - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
     double curAvgTotal = curAvgTrue + curAvgFake;
 

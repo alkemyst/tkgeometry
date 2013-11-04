@@ -472,13 +472,13 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                         for (int i = 0; i < r; i++)
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
-                            double prec = hitV_.at(r)->getResolutionRphi();
+                            double prec = hitV_.at(r)->getResolutionRphi(); // if Bmod = getResoX natural 
 			    //#ifdef HIT_DEBUG
 			    //			    ostringstream tempSS;
 			    //			    tempSS << "Hit precision: " << prec << " at radius: " << hitV_.at(r)->getRadius();
 			    //			    logDEBUG(tempSS);
 			    //#endif
-			    if (hitV_.at(r)->getOrientation()==Hit::Vertical) {
+			    if (hitV_.at(r)->getOrientation()==Hit::Vertical) { // if Emod add this 
 			      // I have to introduce an additional error in the position
 			      // to account for the uncertainty on r
 
@@ -991,6 +991,16 @@ void Track::keepTriggerOnly() {
   }
 
   // debugRemoval=false;
+}
+
+
+void Track::keepTaggedOnly(const string& tag) {
+  for (auto h : hitV_) {
+    Module* m = h->getHitModule();
+    if (!m) continue;
+    if (std::count_if(m->trackingTags.begin(), m->trackingTags.end(), [&tag](const string& s){ return s == tag; })) h->setObjectKind(Hit::Active);
+    else h->setObjectKind(Hit::Inactive);
+  }
 }
 
 /**

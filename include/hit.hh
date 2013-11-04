@@ -131,6 +131,8 @@ protected:
   void computeCovarianceMatrixRZ();
   void computeCorrelationMatrix(const vector<double>& momenta);
   void computeCovarianceMatrix();
+
+  std::set<std::string> tags_;
 public:
   Track();
   Track(const Track& t);
@@ -150,7 +152,14 @@ public:
   const map<momentum, double>& getDeltaZ0() const { return deltaZ0_; }
   const map<momentum, double>& getDeltaP() const { return deltaP_; }
   // TODO: maybe updateradius is not necessary here. To be checked
-  Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); newHit->updateRadius(); return newHit;}
+  Hit* addHit(Hit* newHit) {
+    hitV_.push_back(newHit); 
+    if (newHit->getHitModule() != NULL) tags_.insert(newHit->getHitModule()->trackingTags.begin(), newHit->getHitModule()->trackingTags.end()); 
+    newHit->setTrack(this); 
+    newHit->updateRadius(); 
+    return newHit;
+  }
+  const std::set<std::string>& tags() const { return tags_; }
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);
   void printErrors();
@@ -160,6 +169,7 @@ public:
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
   void addEfficiency(double efficiency, bool alsoPixel = false);
   void keepTriggerOnly();
+  void keepTaggedOnly(const string& tag);
   void setTriggerResolution(bool isTrigger);
   // static bool debugRemoval; // debug
   double expectedTriggerPoints(const double& triggerMomentum) const;
