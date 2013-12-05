@@ -376,9 +376,19 @@ rootwebTest: $(TESTDIR)/rootwebTest
 $(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o 
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o $(TESTDIR)/rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o $(TESTDIR)/rootwebTest
 
+
+test: $(TESTDIR)/ModuleTest
+
+$(TESTDIR)/%: $(SRCDIR)/Tests/%.cpp $(INCDIR)/Tests/%.h
+	@echo "Building target $@..."
+	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAGS) -o $@ $< $(SRCDIR)/DetectorModule.cpp $(SRCDIR)/GeometricModule.cpp $(SRCDIR)/Sensor.cpp $(SRCDIR)/global_funcs.cpp $(SRCDIR)/Polygon3d.cpp
+	@echo "Built target $@"
+
+
 #CLEANUP
 cleanall:
 	@rm -rf $(LIBDIR)/*
+	@rm -rf $(TESTDIR)/*
 
 clean: cleanall
 

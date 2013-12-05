@@ -1454,10 +1454,10 @@ namespace insur {
         tagMapMaxHitOccupancy[aSensorTag] = MAX(m.hitOccupancyPerEvent()*nMB, tagMapMaxHitOccupancy[aSensorTag]);
         tagMapAveStripOccupancy[aSensorTag] += m.stripOccupancyPerEvent()*nMB;
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
-        tagMapAveRphiResolution[aSensorTag] += m.resolutionRPhi();
-        tagMapAveYResolution[aSensorTag] += m.resolutionY();
-        tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
-        tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
+        tagMapAveRphiResolution[aSensorTag] += m.resolutionLocalX();
+        tagMapAveYResolution[aSensorTag] += m.resolutionLocalY();
+        //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
+        //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
         tagMapSensorPowerAvg[aSensorTag] += m.irradiationPower();
         if (tagMapSensorPowerMax[aSensorTag] < m.irradiationPower()) tagMapSensorPowerMax[aSensorTag] = m.irradiationPower();
         totCountMod++;
@@ -1745,12 +1745,12 @@ namespace insur {
       double powerPerModule;
       powerPerModule =  tagMapIt->second->totalPower(); // power [mW] of a module with this # strips // CUIDADO needs to take into account numChannels
       aPower << std::fixed << std::setprecision(totalPowerPrecision)
-        << powerPerModule * v.tagMapCount[tagMapIt->first] * 1e-3; // conversion from W to kW
+        << powerPerModule * v.tagMapCount[tagMapIt->first]; 
       // number of modules of this type
 
       aPowerPerModule.str("");
       aPowerPerModule << std::fixed << std::setprecision(modulePowerPrecision)
-      << powerPerModule * 1e3; // conversion from W to mW
+      << powerPerModule;
       totalPower += powerPerModule * v.tagMapCount[tagMapIt->first];
       // Power in sensors (per module and total)
       aSensorPower.str("");
@@ -1758,11 +1758,11 @@ namespace insur {
       aSensorPowerPerModuleMax.str("");
       double& totalSensorPowerTag = v.tagMapSensorPowerAvg[tagMapIt->first];
       aSensorPower << std::fixed << std::setprecision(totalPowerPrecision)
-                   << totalSensorPowerTag * 1e-3; // conversion from W to kW
+                   << totalSensorPowerTag;
       aSensorPowerPerModuleAvg << std::fixed << std::setprecision(modulePowerPrecision)
-                               << totalSensorPowerTag / v.tagMapCount[tagMapIt->first] * 1e3; // conversion from W to kW
+                               << totalSensorPowerTag / v.tagMapCount[tagMapIt->first];
       aSensorPowerPerModuleMax << std::fixed << std::setprecision(modulePowerPrecision)
-                               << v.tagMapSensorPowerMax[tagMapIt->first] * 1e3; // conversion from W to mW
+                               << v.tagMapSensorPowerMax[tagMapIt->first];
 
       // Cost
       aCost.str("");

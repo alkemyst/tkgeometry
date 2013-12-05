@@ -64,8 +64,8 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule);
   Module* getHitModule() { return hitModule_; };
-  double getResolutionRphi();
-  double getResolutionY();
+  double getResolutionRphi(double trackR);
+  double getResolutionZ(double trackR);
   void setHitModule(Module* myModule);
   /**
    * @enum An enumeration of the category and orientation constants used within the object
@@ -114,6 +114,7 @@ class Track {
 protected:
   double theta_;
   double phi_;
+  double cotgTheta_;
   std::vector<Hit*> hitV_;
   // Track resolution as a function of momentum
   map<momentum, TMatrixTSym<double> > correlations_;
@@ -141,6 +142,7 @@ public:
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
   double getTheta() const {return theta_;}
+  double getCotgTheta() const { return cotgTheta_; }
   double setPhi(double& newPhi);
   double getPhi() const {return phi_;}
   map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
