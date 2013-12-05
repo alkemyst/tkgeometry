@@ -18,6 +18,12 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <pwd.h>
+#include <iostream>
+#include <string>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 #include <Extractor.h>
 #include <XMLWriter.h>
 #include <MaterialTable.h>
@@ -46,12 +52,20 @@ namespace insur {
         tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "", bool wt = false);
+        struct ConfigFile { std::string name, content; };
+        void addConfigFile(const ConfigFile& file) { configFiles_.push_back(file); }
     protected:
         CMSSWBundle data;
         Extractor ex;
         XMLWriter wr;
     private:
+        std::vector<ConfigFile> configFiles_;
         void print();
+        void writeSimpleHeader(std::ostream& os);
+        void writeExtendedHeader(std::ostream& os);
+        std::string currentDateTime() const;
+        std::string fullUserName() const;
+        const std::vector<ConfigFile>& getConfigFiles() const { return configFiles_; }
     };
 }
 #endif	/* _TK2CMSSW_H */

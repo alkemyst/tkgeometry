@@ -129,6 +129,7 @@ namespace insur {
   }
 
 
+#ifdef NO_TAGGED_TRACKING
   /**
    * The analysis function performing all necessary the trigger resolution
    * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
@@ -229,6 +230,7 @@ namespace insur {
     calculateGraphs(momenta, tvIdeal, graphBag::TriggerGraph | graphBag::IdealGraph);
   }
 
+#else
 
 void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
                                      const std::vector<double>& momenta,
@@ -308,7 +310,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
   for (const auto& mit : tv) calculateGraphs(momenta, mit.second, graphBag::RealGraph, mit.first);
   for (const auto& mit : tvIdeal) calculateGraphs(momenta, mit.second, graphBag::IdealGraph, mit.first);
 }
-
+#endif
 
   /**
    * The analysis function performing all necessary the trigger efficiencies
@@ -2475,9 +2477,12 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   double maxEta = (absMinEta>absMaxEta) ? absMinEta : absMaxEta;
 
   // Computing the margin of the tracks to shoot
-  double randomPercentMargin = 0.1;
+  double randomPercentMargin = 0.04;
   double randomSpan = (etaMinMax.second - etaMinMax.first)*(1. + randomPercentMargin);
   double randomBase = etaMinMax.first - (etaMinMax.second - etaMinMax.first)*(randomPercentMargin)/2.;
+
+  maxEta *= (1 + randomPercentMargin);
+  if (maxEta<3) maxEta=3; // TODO: make this configurable
 
   // Initialize random number generator, counters and histograms
   myDice.SetSeed(MY_RANDOM_SEED);

@@ -59,6 +59,7 @@ namespace insur {
     std::ifstream ifs(getGeometryFile());
     std::stringstream ss;
     preprocessConfiguration(ifs, ss, getGeometryFile());
+    t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
 
     using namespace boost::property_tree;
     ptree pt;
@@ -68,8 +69,8 @@ namespace insur {
       std::ofstream barof, endof;
     public:
       CoordExportVisitor(std::string trid) : barof(trid + "_barrel_coords.txt"), endof(trid + "_endcap_coords.txt") {}
-      void visit(const BarrelModule& m) override { barof << m.center().Rho() << ", " << m.center().Z() << std::endl; }
-      void visit(const EndcapModule& m) override { endof << m.center().Rho() << ", " << m.center().Z() << std::endl; }
+      void visit(const BarrelModule& m) override { barof << m.center().Z() << ", " << m.center().Rho() << ", " << m.center().Phi() << std::endl; }
+      void visit(const EndcapModule& m) override { endof << m.center().Z() << ", " << m.center().Rho() << ", " << m.center().Phi() << std::endl; }
     };
 
     class ModuleDataVisitor : public ConstGeometryVisitor {
@@ -92,7 +93,7 @@ namespace insur {
            << m.dsDistance() << sep << m.thickness() << sep 
            << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep
            << m.moduleType() << sep
-           << m.resolutionRPhi() << sep << m.resolutionY() << sep 
+           << m.resolutionLocalX() << sep << m.resolutionLocalY() << sep 
            << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
       }
     };
@@ -105,9 +106,9 @@ namespace insur {
         t->myid(kv.second.data());
         t->store(kv.second);
         t->build();
-        //CoordExportVisitor v(t->myid());
+        CoordExportVisitor v(t->myid());
         //ModuleDataVisitor v1(t->myid());
-        //t->accept(v);
+        t->accept(v);
         //t->accept(v1);
         if (t->myid() == "Pixels") px = t;
         else tr = t;
@@ -443,16 +444,19 @@ namespace insur {
       a.computeWeightSummary(*mb);
       if (triggerResolution) {
         startTaskClock("Estimating tracking resolution of track-trigger");
-        a.analyzeTaggedTracking(*mb,
-                                mainConfiguration.getMomenta(),
-                                mainConfiguration.getTriggerMomenta(),
-                                mainConfiguration.getThresholdProbabilities(),
-                                tracks, pm);
+#ifdef NO_TAGGED_TRACKING
         a.analyzeTrigger(*mb,
                          mainConfiguration.getMomenta(),
                          mainConfiguration.getTriggerMomenta(),
                          mainConfiguration.getThresholdProbabilities(),
                          tracks, pm);
+#else
+        a.analyzeTaggedTracking(*mb,
+                                mainConfiguration.getMomenta(),
+                                mainConfiguration.getTriggerMomenta(),
+                                mainConfiguration.getThresholdProbabilities(),
+                                tracks, pm);
+#endif
         stopTaskClock();
       }
       return true;
@@ -551,8 +555,11 @@ namespace insur {
     if (mb) {
       startTaskClock("Creating resolution report");
       v.errorSummary(a, site, "", false);
+#ifdef NO_TAGGED_TRACKING
       v.errorSummary(a, site, "trigger", true);
+#else
       v.taggedErrorSummary(a, site);
+#endif
       stopTaskClock();
       return true;
     }

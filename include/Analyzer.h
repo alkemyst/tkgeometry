@@ -42,6 +42,9 @@
 #include "SummaryTable.h"
 #include "TagMaker.h"
 
+
+// #define NO_TAGGED_TRACKING
+
 namespace insur {
 
   /**
@@ -134,17 +137,20 @@ namespace insur {
     virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL, bool computeResolution = false);
     //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
     void computeTriggerProcessorsBandwidth(Tracker& tracker);
+#ifdef NO_TAGGED_TRACKING
     virtual void analyzeTrigger(MaterialBudget& mb,
                                 const std::vector<double>& momenta,
                                 const std::vector<double>& triggerMomenta,
                                 const std::vector<double>& thresholdProbabilities,
                                 int etaSteps = 50, MaterialBudget* pm = NULL);
+#else
     void analyzeTaggedTracking(MaterialBudget& mb,
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
                                int etaSteps = 50,
                                MaterialBudget* pm = NULL);
+#endif
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
