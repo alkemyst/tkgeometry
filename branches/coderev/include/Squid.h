@@ -139,6 +139,7 @@ namespace insur {
     std::string mySettingsFile_;
     std::string myMaterialFile_;
     std::string myPixelMaterialFile_;
+    std::set<std::string> includeSet_; // list of configuration files
     bool defaultMaterialFile;
     bool defaultPixelMaterialFile;
 

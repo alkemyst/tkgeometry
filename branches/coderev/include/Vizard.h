@@ -168,7 +168,7 @@ namespace insur {
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
-    bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
+    bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
                             const std::string& matfile, const std::string& pixmatfile,
                             bool defaultMaterial, bool defaultPixelMaterial,
                             Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
