@@ -9,7 +9,6 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include "clone_ptr.h"
 #include "global_funcs.h"
 #include "Property.h"
 #include "Module.h"
