@@ -54,11 +54,10 @@ namespace insur {
     if (tr) delete tr;
     if (px) delete px;
     startTaskClock("Building tracker and pixel");
-   // tr = cp.parseFile(getGeometryFile(), getSettingsFile());
 
     std::ifstream ifs(getGeometryFile());
     std::stringstream ss;
-    preprocessConfiguration(ifs, ss, getGeometryFile());
+    includeSet_ = preprocessConfiguration(ifs, ss, getGeometryFile());
     t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
 
     using namespace boost::property_tree;
@@ -601,7 +600,7 @@ namespace insur {
       getMaterialFile();
       getPixelMaterialFile();
       startTaskClock("Saving additional information");
-      v.additionalInfoSite(getGeometryFile(), getSettingsFile(),
+      v.additionalInfoSite(includeSet_, getSettingsFile(),
                            getMaterialFile(), getPixelMaterialFile(),
                            defaultMaterialFile, defaultPixelMaterialFile,
                            a, *tr, *simParms_, site);
