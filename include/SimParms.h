@@ -44,6 +44,8 @@ public:
 
   Property<std::string, NoDefault> irradiationMapFile;
 
+  PropertyNode<std::string> taggedTracking;
+
   SimParms() : 
       numMinBiasEvents("numMinBiasEvents", parsedAndChecked()),
       zErrorCollider("zErrorCollider", parsedAndChecked()),
@@ -63,8 +65,9 @@ public:
       chargeDepletionVoltage("chargeDepletionVoltage", parsedOnly(), 600),
       alphaParm("alphaParm", parsedOnly(), 4e-17),
       referenceTemp("referenceTemp", parsedOnly(), 20),
-      magneticField("magneticField", parsedOnly(), 4.0),
-      irradiationMapFile("irradiationMapFile", parsedAndChecked()) 
+      magneticField("magneticField", parsedOnly(), 3.8),
+      irradiationMapFile("irradiationMapFile", parsedAndChecked()), 
+      taggedTracking("TaggedTracking", parsedOnly())
   {}
 
   void build();
