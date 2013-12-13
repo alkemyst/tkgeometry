@@ -57,7 +57,7 @@ namespace insur {
 
     std::ifstream ifs(getGeometryFile());
     std::stringstream ss;
-    includeSet_ = preprocessConfiguration(ifs, ss, getGeometryFile());
+    includeSet_ = mainConfiguration.preprocessConfiguration(ifs, ss, getGeometryFile());
     t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
     using namespace boost::property_tree;
     ptree pt;
