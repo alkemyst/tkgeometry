@@ -43,12 +43,19 @@ if $TKG_SETUP_BIN ; then
 
     # Create the destination directories that should be filled
     mkdir -p $TKG_DESTINATION_MATTAB
+    mkdir -p $TKG_DESTINATION_STDINCLUDE
     mkdir -p $TKG_DESTINATION_XML
     mkdir -p $TKG_DESTINATION_STYLE
     # Copy the installation directories
     cp -rf $myDir/$TKG_SOURCE_MATTAB/* $TKG_DESTINATION_MATTAB \
 	&& echo Material config directory created/updated \
 	|| echo Failed copying the material configuration directory $TKG_SOURCE_MATTAB to $TKG_DESTINATION_MATTAB
+    cp -rf $myDir/$TKG_SOURCE_STDINCLUDE/* $TKG_DESTINATION_STDINCLUDE \
+  && echo Standard include directory created/updated \
+  || echo Failed copying the standard include directory $TKG_SOURCE_STDINCLUDE to $TKG_DESTINATION_STDINCLUDE
+    cp -rf $myDir/$TKG_SOURCE_GEOMETRIES/* $TKG_DESTINATION_GEOMETRIES \
+  && echo Geometries directory created/updated \
+  || echo Failed copying the geometries directory $TKG_SOURCE_GEOMETRIES to $TKG_DESTINATION_GEOMETRIES
     cp -rf $myDir/$TKG_SOURCE_XML/* $TKG_DESTINATION_XML \
 	&& echo Xml directory created/updated \
 	|| echo Failed copying the xml directory $TKG_SOURCE_XML to $TKG_DESTINATION_XML

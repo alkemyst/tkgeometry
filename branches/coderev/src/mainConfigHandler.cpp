@@ -359,6 +359,16 @@ string mainConfigHandler::getDefaultMaterialsDirectory() {
   return getDefaultMaterialsDirectory_();
 }
 
+string mainConfigHandler::getStandardIncludeDirectory() {
+  getConfiguration();
+  return getStandardIncludeDirectory_();
+}
+
+string mainConfigHandler::getGeometriesDirectory() {
+  getConfiguration();
+  return getGeometriesDirectory_();
+}
+
 string mainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
 string mainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
 string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
@@ -369,4 +379,48 @@ string mainConfigHandler::getRootfileDirectory_() { return standardDirectory_+"/
 string mainConfigHandler::getGraphDirectory_() { return standardDirectory_+"/"+insur::default_graphdir; }
 string mainConfigHandler::getSummaryDirectory_() { return standardDirectory_+"/"+insur::default_summarypath; }
 string mainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }
+string mainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+insur::default_configdir+"/"+insur::default_stdincludedir; }
+string mainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
 
+
+std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {
+  using namespace std;
+  string line;
+  int numLine = 1;
+  std::set<string> includeSet;
+  includeSet.insert(istreamid);
+  while(getline(is, line).good()) {
+    if (line.find("//") != string::npos) line = line.erase(line.find("//"));
+    string trimmed = trim(line);
+    int tstart;
+    if ((tstart = trimmed.find("@include")) != string::npos) {
+      trimmed = trimmed.substr(tstart);
+      int qstart, qend;
+      string filename;
+      if ((qstart = trimmed.find_first_of("\"")) != string::npos && (qend = trimmed.find_last_of("\"")) != string::npos) {
+        filename = ctrim(trimmed.substr(qstart, qend - qstart + 1), "\"");
+      } else {
+        auto tokens = split(trimmed, " ");
+        filename = tokens.size() > 1 ? tokens[1] : "";
+      }
+      string prefix = (trimmed.find("@includestd") != string::npos ? getStandardIncludeDirectory()+"/" : std::string(""));
+      filename = prefix + filename;
+      ifstream ifs(filename);
+      if (ifs) {
+        stringstream ss;
+        auto&& moreIncludes = preprocessConfiguration(ifs, ss, filename);
+        includeSet.insert(moreIncludes.begin(), moreIncludes.end());
+        string indent = line.substr(0, line.find_first_not_of(" \t"));
+        while (getline(ss, line).good()) {
+          os << indent << line << endl;   
+        }
+      } else {
+        cerr << "WARNING : " << istreamid << ":" << numLine << ": Ignoring malformed @include or @includestd directive" << endl;
+      }
+    } else {
+      os << line << endl;
+    }
+    numLine++;
+  }
+  return includeSet;
+}

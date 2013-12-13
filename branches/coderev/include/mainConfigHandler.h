@@ -3,7 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <global_constants.h>
+#include <global_funcs.h>
 
 using namespace std;
 
@@ -38,7 +40,10 @@ public:
   string getGraphDirectory();
   string getSummaryDirectory();
   string getDefaultMaterialsDirectory();
+  string getStandardIncludeDirectory();
+  string getGeometriesDirectory();
   string getConfigFileName();
+  std::set<string> preprocessConfiguration(istream& is, ostream& os, const string& istreamid);
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
   vector<double>& getThresholdProbabilities();
@@ -67,6 +72,8 @@ private:
   string getGraphDirectory_();
   string getSummaryDirectory_();
   string getDefaultMaterialsDirectory_();
+  string getStandardIncludeDirectory_();
+  string getGeometriesDirectory_();
 };
 
 #endif

@@ -96,6 +96,10 @@ namespace insur {
   static const std::string default_xmlpath = "xml";
   static const std::string default_xml = "tk2CMSSWxml";
   static const std::string default_styledir = "style";
+  static const std::string default_configdir = "config";
+  static const std::string default_stdincludedir = "stdinclude";
+  static const std::string default_geometriesdir = "geometries";
+
 
   static const std::string csv_separator = ",";
 }
