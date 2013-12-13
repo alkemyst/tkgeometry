@@ -140,8 +140,8 @@ public:
   void rotateX(double angle) { decorated().rotateX(angle); for (auto& s : sensors_) s.poly().rotateX(angle); }
   void rotateY(double angle) { decorated().rotateY(angle); for (auto& s : sensors_) s.poly().rotateY(angle); }
   void rotateZ(double angle) { decorated().rotateZ(angle); for (auto& s : sensors_) s.poly().rotateZ(angle); rAxis_ = RotationZ(angle)(rAxis_); }
-  void tilt(double angle) { rotateX(angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
-  void skew(double angle) { rotateY(angle); skewAngle_ += angle; }
+  void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
+  void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
 
   ModuleShape shape() const { return decorated().shape(); }
 ////////

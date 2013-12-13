@@ -1116,8 +1116,8 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   // set the track direction vector
   dir.SetCoordinates(1, theta, phi);
   direction = dir;
-//  static std::ofstream ofs(!isPixel ? "mathits.txt" : "mathits_px.txt"); // DEBUG
-//  ofs << "TRACK: eta=" << eta << " theta=" << theta << " phi=" << phi << std::endl;
+  static std::ofstream ofs(!isPixel ? "mathits.txt" : "mathits_px.txt"); // DEBUG
+  ofs << "TRACK: eta=" << eta << " theta=" << theta << " phi=" << phi << std::endl;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     // only consider modules that have type BarrelModule or EndcapModule
@@ -1133,7 +1133,7 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           tmp.interaction = iter->getInteractionLength();
 
           Module& m = iter->getModule();
-//          ofs << "  Mod: " << m.center().Z() << "," << m.center().Rho() << "," << m.center().Phi() << " d: " << distance << " RI: " << tmp.radiation << "," << tmp.interaction << std::endl;
+          ofs << "  Mod: " << m.center().Z() << "," << m.center().Rho() << "," << m.center().Phi() << " d: " << distance << " RI: " << tmp.radiation << "," << tmp.interaction << std::endl;
           // 2D material maps
           fillMapRT(r, theta, tmp);
           // radiation and interaction length scaling for barrels

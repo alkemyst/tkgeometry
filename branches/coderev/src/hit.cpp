@@ -238,6 +238,7 @@ Track::Track() {
  */
 Track::Track(const Track& t) {
     theta_ = t.theta_;
+    cotgTheta_ = t.cotgTheta_;
     correlations_ = t.correlations_;
     covariances_ = t.covariances_;
     deltarho_ = t.deltarho_;
@@ -640,7 +641,7 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
     //      std::cerr << " p = " << momenta.at(p) << std::endl;
     //#endif
 
-    double rho = 1E-3 * insur::magnetic_field * 0.3 / momenta.at(p);
+    double curvatureR = pt2radius(momenta.at(p), insur::magnetic_field);
     TMatrixTSym<double> corr(n);
     // pre-compute the squares of the scattering angles
     // already divided by sin^2 (that is : we should use p instead of p_T here
@@ -683,14 +684,10 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
                 * (hitV_.at(c)->getDistance() - hitV_.at(i)->getDistance())
                 * (hitV_.at(r)->getDistance() - hitV_.at(i)->getDistance());
             if (r == c) {
-              double prec = hitV_.at(r)->getResolutionZ(pt2radius(momenta.at(p), insur::magnetic_field));
-              //if (hitV_.at(r)->getOrientation()==Hit::Vertical) prec *= ctgTheta;
-              // #ifdef HIT_DEBUG_RZ
-              // 			    if (debugRZCorrelationMatrix) {
-              // 			      std::cerr << "Hit precision: " << prec << "\t";
-              // 			      std::cerr << "Distance: " << hitV_.at(r)->getDistance() << std::endl;
-              // 			    }
-              // #endif
+              double prec = hitV_.at(r)->getResolutionZ(curvatureR);
+              static std::ofstream ofs("hits.txt");
+              ofs << roundprec<3>(theta_) << " " << momenta.at(p) << " " << (hitV_.at(r)->getOrientation()==Hit::Vertical ? "V " : "H ") << prec << " " 
+                  << (hitV_.at(r)->getHitModule() ? hitV_.at(r)->getHitModule()->tiltAngle() : -999.) << std::endl;
               sum = sum + prec * prec;
             }
             corr(r, c) = sum;
