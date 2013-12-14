@@ -612,6 +612,13 @@ namespace insur {
     baseName_ = newBasename;
   }    
 
+  void Squid::setGeometryFile(std::string geomFile) {
+    myGeometryFile_ = geomFile;
+    size_t pos = geomFile.find_last_of('.');
+    if (pos != string::npos) { geomFile.erase(pos); }
+    baseName_ = geomFile;
+  }
+
   void Squid::setHtmlDir(std::string htmlDir) {
     htmlDir_ = htmlDir;
   }
