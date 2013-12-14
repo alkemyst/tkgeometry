@@ -23,3 +23,5 @@ Sensor 2 {
   numStripsAcross 1016
   numSegments 2
 }
+
+plotColor 2 

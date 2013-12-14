@@ -68,6 +68,8 @@ public:
 
   PropertyVector<string, ','> trackingTags;
 
+  Property<int8_t, Default> plotColor;
+
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
   void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
@@ -95,7 +97,8 @@ public:
       reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
       trackingTags             ("trackingTags"             , parsedOnly()),
       resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
-      resolutionLocalY         ("resolutionLocalY"         , parsedOnly())
+      resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
+      plotColor                ("plotColor"                , parsedOnly(), 0)
   {}
 
   virtual void setup();
