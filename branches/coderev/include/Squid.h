@@ -99,6 +99,7 @@ namespace insur {
     bool additionalInfoSite();
     bool makeSite(bool addLogPage = true);
     void setBasename(std::string newBaseName);
+    void setGeometryFile(std::string geomFile);
     void setHtmlDir(std::string htmlDir);
 
     void simulateTracks(const po::variables_map& varmap, int seed);

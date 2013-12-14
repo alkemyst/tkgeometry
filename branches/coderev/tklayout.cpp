@@ -10,8 +10,7 @@ namespace po = boost::program_options;
 int main(int argc, char* argv[]) {
   std::string usage("Usage: ");
   usage += argv[0];
-  usage += " <config basename> [options]";
-  usage += "\n\n<config basename> is the config file name, minus standard suffixes\nsuch as \".cfg\", \"_Types.cfg\" etc, which are added automatically\n";
+  usage += " <geometry file> [options]";
   int geomtracks, mattracks;
   //std::vector<int> tracksim;
   int verbosity;
@@ -21,8 +20,8 @@ int main(int argc, char* argv[]) {
   
   po::options_description shown("Analysis options");
   shown.add_options()
-    ("help", "Display this help message.")
-    ("opt-file", po::value<std::string>(&optfile)->implicit_value(""), "Specify an option file to parse program options from additionally to the command line")
+    ("help,h", "Display this help message.")
+    ("opt-file", po::value<std::string>(&optfile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
     ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(100), "N. of tracks for geometry calculations.")
     ("material-tracks,N", po::value<int>(&mattracks)->default_value(100), "N. of tracks for material calculations.")
     ("power,p", "Report irradiated power analysis.")
@@ -34,7 +33,7 @@ int main(int argc, char* argv[]) {
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("all,a", "Report all analyses, except extended\ntrigger. (implies all other relevant\nreport options)")
     ("graph,g", "Build and report neighbour graph.")
-    ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, basename will be used\nas subdir.")
+    ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
     ("html-dir", po::value<std::string>(&htmldir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
     ("verbosity", po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
     ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
@@ -85,11 +84,11 @@ int main(int argc, char* argv[]) {
 
     if (geomtracks < 1) throw po::invalid_option_value("geometry-tracks");
     if (mattracks < 1) throw po::invalid_option_value("material-tracks");
-    if (!vm.count("base-name")) throw po::error("Missing geometry base name"); 
+    if (!vm.count("base-name") && !vm.count("help")) throw po::error("Missing geometry file"); 
 
   } catch(po::error e) {
     std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
-    //std::cout << usage << std::endl << shown << trackopt << std::endl;
+    std::cout << usage << std::endl << shown << trackopt << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -109,7 +108,7 @@ int main(int argc, char* argv[]) {
   }
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
 
-  squid.setBasename(basename);
+  squid.setGeometryFile(basename);
   if (htmldir != "") squid.setHtmlDir(htmldir);
 
 
