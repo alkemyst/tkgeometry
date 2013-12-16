@@ -157,6 +157,8 @@ void Layer::buildStraight() {
 
 void Layer::buildTilted() {
   std::ifstream ifs(tiltedLayerSpecFile());
+  if (ifs.fail()) throw PathfulException("Cannot open tilted modules spec file \"" + tiltedLayerSpecFile() + "\"");
+
   string line;
   vector<TiltedModuleSpecs> tmspecs1, tmspecs2;
   while(getline(ifs, line).good()) {

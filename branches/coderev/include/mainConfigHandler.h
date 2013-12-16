@@ -36,9 +36,6 @@ public:
   string getXmlDirectory();
   string getMattabDirectory();
   string getIrradiationDirectory();
-  string getRootfileDirectory();
-  string getGraphDirectory();
-  string getSummaryDirectory();
   string getDefaultMaterialsDirectory();
   string getStandardIncludeDirectory();
   string getGeometriesDirectory();
@@ -68,9 +65,6 @@ private:
   string getXmlDirectory_();
   string getMattabDirectory_();
   string getIrradiationDirectory_();
-  string getRootfileDirectory_();
-  string getGraphDirectory_();
-  string getSummaryDirectory_();
   string getDefaultMaterialsDirectory_();
   string getStandardIncludeDirectory_();
   string getGeometriesDirectory_();

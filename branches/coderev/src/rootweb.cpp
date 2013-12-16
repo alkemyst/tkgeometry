@@ -1015,13 +1015,13 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
 
   auto it = originalFileNames_.begin();
   for (auto fn : fileNames_) {
-    auto path = split(fn, "/");
+    //auto path = split(fn, "/");
     string destinationFileName = targetDirectory_;
-    std::for_each(path.begin(), path.end()-1, [&destinationFileName](string p) {
-      destinationFileName += "/" + p;
-      if (!boost::filesystem::exists(destinationFileName)) boost::filesystem::create_directory(destinationFileName);
-    });
-    destinationFileName += "/" + path.back();
+    //std::for_each(path.begin(), path.end()-1, [&destinationFileName](string p) {
+    //  destinationFileName += "/" + p;
+    //  if (!boost::filesystem::exists(destinationFileName)) boost::filesystem::create_directory(destinationFileName);
+    //});
+    destinationFileName += "/" + fn; //path.back();
     if (boost::filesystem::exists(*it) && *it != destinationFileName) { // CUIDADO: naive control on copy on itself. 
       try {
         if (boost::filesystem::exists(destinationFileName))
@@ -1033,10 +1033,15 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
       }
     }
   }
-    
+  std::vector<std::string> cleanedUpFileNames;
+  std::transform(originalFileNames_.begin(), originalFileNames_.end(), std::back_inserter(cleanedUpFileNames), [](const std::string& s) {
+    auto pos = s.find("stdinclude");
+    return pos != string::npos ? s.substr(pos) : s;
+  });
   output << "<b>" << description_ << ":</b>";
-  for (auto fn : fileNames_) {
-    output << " <a href=\"" << fn << "\">" << fn << "</a></tt>" << " ";
+  auto dfn = fileNames_.begin();
+  for (auto cfn : cleanedUpFileNames) {
+    output << (cleanedUpFileNames.size() > 1 ? "<br>&nbsp&nbsp&nbsp&nbsp" : "") << " <a href=\"" << targetDirectory_ + "/" + *(dfn++) << "\">" << cfn << "</a></tt>" << " ";
   }
   output << "<br/>";
   return output;

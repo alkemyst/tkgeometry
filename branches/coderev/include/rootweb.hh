@@ -210,7 +210,7 @@ public:
   ~RootWBinaryFileList() {};
   template<class I> RootWBinaryFileList(I begin, I end) : RootWFileList(begin, end) {}
   template<class I> RootWBinaryFileList(I begin, I end, string newDescription) : RootWFileList(begin, end, newDescription) {}
-  template<class I> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, I beginOrigNames, I endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) { 
+  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) { 
     setOriginalFiles(beginOrigNames, endOrigNames); 
   }
   template<class I> void setOriginalFiles(I begin, I end) { originalFileNames_.insert(originalFileNames_.end(), begin, end); }

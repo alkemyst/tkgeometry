@@ -53,9 +53,13 @@ namespace insur {
   bool Squid::buildTracker() {
     if (tr) delete tr;
     if (px) delete px;
-    startTaskClock("Building tracker and pixel");
 
     std::ifstream ifs(getGeometryFile());
+    if (ifs.fail()) {
+      std::cerr << "ERROR: cannot open geometry file " << getGeometryFile() << std::endl;
+      return false;
+    }
+    startTaskClock("Building tracker and pixel");
     std::stringstream ss;
     includeSet_ = mainConfiguration.preprocessConfiguration(ifs, ss, getGeometryFile());
     t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
@@ -300,7 +304,7 @@ namespace insur {
    */
   bool Squid::translateFullSystemToXML(std::string xmlout, bool wt) {
     if (mb) {
-      t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlout, wt);
+      t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlout.empty() ? baseName_ : xmlout, wt);
       return true;
     }
     else {
@@ -349,7 +353,7 @@ namespace insur {
     string trackerName;
     if (htmlDir_ != "") trackerName = htmlDir_;
     else {
-      if (tr) trackerName = tr->myid();
+      if (tr) trackerName = baseName_;
       else trackerName = default_trackername;
     }
     string layoutDirectory;
