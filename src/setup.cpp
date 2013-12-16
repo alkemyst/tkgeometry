@@ -30,10 +30,6 @@ int main(int argc, char* argv[]) {
       cout << "TKG_DESTINATION_GEOMETRIES=\"" << m.getGeometriesDirectory() << "\"" << endl;
       cout << "TKG_DESTINATION_XML=\"" << m.getXmlDirectory() << "\"" << endl;
       cout << "TKG_DESTINATION_STYLE=\"" << m.getStyleDirectory() << "\"" << endl;
-      cout << "# Directoriesto be created during install" << endl;
-      cout << "TKG_DESTINATION_ROOT=\"" << m.getRootfileDirectory() << "\"" << endl;
-      cout << "TKG_DESTINATION_GRAPH=\"" << m.getGraphDirectory() << "\"" << endl;
-      cout << "TKG_DESTINATION_SUMMARY=\"" << m.getSummaryDirectory() << "\"" << endl;
       result=true;
     }
   }

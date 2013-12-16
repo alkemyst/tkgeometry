@@ -91,7 +91,6 @@ namespace insur {
   static const std::string default_rootfile = "trackergeometry.root";
   static const std::string default_graphdir = "graphs";
   static const std::string default_graphfile = "neighbours.graph";
-  static const std::string default_summarypath = "matsum";
   static const std::string default_summary = "profiles.html";
   static const std::string default_xmlpath = "xml";
   static const std::string default_xml = "tk2CMSSWxml";

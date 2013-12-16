@@ -42,7 +42,9 @@ if $TKG_SETUP_BIN ; then
     # Get the rest of the configuration from the config file itself
     source $TKG_CONFIGFILE
 
-
+    cp -f $TKG_MAIN $TKG_BIN_TARGET \
+	&& echo Main program installed/updated \
+	|| echo Failed copying the main program $TKG_MAIN to $TKG_BIN_TARGET
 
     SVNURL=`$SVNBIN info | grep URL | cut -d' ' -f2-`
     echo $SVNURL | grep -q -e '^http' || {
@@ -57,17 +59,14 @@ if $TKG_SETUP_BIN ; then
             echo ERROR: directory $TKG_STANDARDDIRECTORY/$myDir is not under the same version control as `pwd`
             exit -1
           fi
+          echo -n Updating $myDir...
           $SVNBIN up $TKG_STANDARDDIRECTORY/$myDir
        else
+          echo -n Checking out $myDir...
           mkdir -p $TKG_STANDARDDIRECTORY/$myDir
           $SVNBIN checkout $SVNURL/$myDir $TKG_STANDARDDIRECTORY/$myDir
        fi
     done
-    # TODO: remove the directories below...
-    mkdir -p $TKG_STANDARDDIRECTORY/rootfiles
-    mkdir -p $TKG_STANDARDDIRECTORY/graphs
-    mkdir -p $TKG_STANDARDDIRECTORY/matsum
-
 
     if ! $TKG_SETUP_BIN --checkDir ; then
 	echo Problem during installation

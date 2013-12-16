@@ -153,7 +153,6 @@ namespace insur {
     void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
     void writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream);
     void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
-    void histogramSummary(Analyzer& a, std::string outfilename);
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
