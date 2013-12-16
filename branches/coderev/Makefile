@@ -27,11 +27,11 @@ COMPILERFLAGS+=-g
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
+all: tklayout setup
+	@echo "Full build successful."
+
 bin: tklayout 
 	@echo "Executable built."
-
-all: tklayout
-	@echo "Full build successful."
 
 install:
 	./install.sh
@@ -311,8 +311,8 @@ $(LIBDIR)/StopWatch.o: $(SRCDIR)/StopWatch.cpp $(INCDIR)/StopWatch.h
 setup: $(BINDIR)/setup.bin
 	@echo "setup built"
 
-$(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o setup.cpp
-	$(COMP) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o setup.cpp \
+$(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp
+	$(COMP) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/setup.bin
 
@@ -363,8 +363,8 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tklayout
 
-$(LIBDIR)/tklayout.o: tklayout.cpp
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tklayout.o tklayout.cpp
+$(LIBDIR)/tklayout.o: $(SRCDIR)/tklayout.cpp
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tklayout.o $(SRCDIR)/tklayout.cpp
 
 testObjects: $(TESTDIR)/testObjects
 $(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o

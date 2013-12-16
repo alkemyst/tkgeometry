@@ -116,7 +116,7 @@ public:
 
 class WedgeModule : public GeometricModule {
   double length_, minWidth_, maxWidth_;
-  double area_,/*dist_*/;
+  double area_/*dist_*/;
   bool cropped_;
   double amountCropped_;
 public:
