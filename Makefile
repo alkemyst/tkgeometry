@@ -7,10 +7,16 @@ ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
 ROOTLIBFLAGS+=-lHistPainter
-BOOSTLIBFLAGS=-L/opt/lib -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
+ifneq ($(strip $(BOOST_INCLUDE)),)
+INCLUDEFLAGS=-I$(BOOST_INCLUDE)
+endif
+ifneq ($(strip $(BOOST_LIB)),)
+BOOSTLIBFLAGS=-L$(BOOST_LIB)
+endif
+BOOSTLIBFLAGS+=-L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX)
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
-INCLUDEFLAGS=-I/opt/include/ -Iinclude/
+INCLUDEFLAGS+=-Iinclude/
 SRCDIR=src
 INCDIR=include
 LIBDIR=lib
