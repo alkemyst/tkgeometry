@@ -1906,7 +1906,7 @@ namespace insur {
       std::vector<std::string> destSet;
       std::transform(includeSet.begin(), includeSet.end(), std::back_inserter(destSet), [](const std::string& s) {
         auto pos = s.find_last_of('/');
-        return (pos != string::npos ? s.substr(pos) : s);  
+        return (pos != string::npos ? s.substr(pos+1) : s);  
       });
       RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", includeSet.begin(), includeSet.end());
       simulationContent->addItem(myBinaryFileList);

@@ -1041,7 +1041,7 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
   output << "<b>" << description_ << ":</b>";
   auto dfn = fileNames_.begin();
   for (auto cfn : cleanedUpFileNames) {
-    output << (cleanedUpFileNames.size() > 1 ? "<br>&nbsp&nbsp&nbsp&nbsp" : "") << " <a href=\"" << targetDirectory_ + "/" + *(dfn++) << "\">" << cfn << "</a></tt>" << " ";
+    output << (cleanedUpFileNames.size() > 1 ? "<br>&nbsp&nbsp&nbsp&nbsp" : "") << " <a href=\"" << *(dfn++) << "\">" << cfn << "</a></tt>" << " ";
   }
   output << "<br/>";
   return output;
