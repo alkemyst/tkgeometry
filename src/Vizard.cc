@@ -1980,12 +1980,12 @@ namespace insur {
     tracker.accept(v);
     for (auto it = v.typeMap.begin(); it != v.typeMap.end(); ++it) {
       typesTable.setContent(0,iType, it->first);
-      typesTable.setContent(1,iType,1e3*it->second->powerStripChip(),2);
-      typesTable.setContent(2,iType,1e3*it->second->powerStripOptical(),2);
-      typesTable.setContent(3,iType,1e3*it->second->totalPowerStrips(), 2);
-      typesTable.setContent(4,iType,1e3*it->second->powerModuleChip(),2);
-      typesTable.setContent(5,iType,1e3*it->second->powerModuleOptical(),2);
-      typesTable.setContent(6,iType,1e3*it->second->totalPowerModule(), 2);
+      typesTable.setContent(1,iType,it->second->powerStripChip(),2);
+      typesTable.setContent(2,iType,it->second->powerStripOptical(),2);
+      typesTable.setContent(3,iType,it->second->totalPowerStrip(), 2);
+      typesTable.setContent(4,iType,it->second->powerModuleChip(),2);
+      typesTable.setContent(5,iType,it->second->powerModuleOptical(),2);
+      typesTable.setContent(6,iType,it->second->totalPowerModule(), 2);
       iType++;
     }
 

@@ -178,8 +178,8 @@ public:
   int totalChannels() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numChannels(); } return cnt; } 
 
   double totalPowerModule() const { return powerModuleOptical() + powerModuleChip(); }
-  double totalPowerStrips() const { return (powerStripOptical() + powerStripChip()) * totalChannels(); }
-  double totalPower() const { return totalPowerModule() + totalPowerStrips(); }
+  double totalPowerStrip() const { return powerStripOptical() + powerStripChip(); }
+  double totalPower() const { return totalPowerModule() + totalPowerStrip()*outerSensor().numChannels(); }
 
   
   int numStripsAcross() const { return sensors().front().numStripsAcross(); }
