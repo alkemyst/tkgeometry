@@ -1,29 +1,34 @@
-#summary Quick-start guide to download and compile tklayout rev. 664 or greater on lxplus machines.
+#summary Quick-start guide to download and compile tklayout rev. 856 or greater on lxplus machines.
 
 = Quick start recipe =
 
-*NOTE*: this quick start recipe details the procedure for compiling and running tkLayout revision 664 or greater on *lxplus machines with 64-bit SLC5*.
+*NOTE*: this quick start recipe details the procedure for compiling and running tkLayout revision 856 or greater on *lxplus machines with 64-bit SLC6*.
 
 Some tinkering with library paths, environment variables and/or Makefile options might be needed to successfully compile tkLayout on other architectures/operating systems.
 
 tkLayout requires:
- * ROOT version > 5.28.00
- * BOOST version > 1.41
- * gcc version > 4.2
+ * ROOT version > 5.34.09
+ * BOOST version > 1.55
+ * gcc version > 4.7
 
 
 
-*1.* All the necessary libraries and compiler versions are already installed on lxplus machines running 64-bit SLC5, thus after logging on, like this:
-
-<code>
-ssh lx64slc5.cern.ch</code>
-
-*2.* Then, you just need to source the following scripts to setup an appropriate environment:
+*1.* All the necessary libraries and compiler versions are already installed on lxplus machines running 64-bit SLC6, thus after logging on, like this:
 
 <code>
-source /afs/cern.ch/sw/lcg/contrib/gcc/4.3/x86_64-slc5/setup.sh
-source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.00/x86_64-slc5-gcc43-dbg/root/bin/thisroot.sh</code>
+ssh lxplus6.cern.ch</code>
 
+*2.* Then, you just need to source the following scripts and to set the following variables to setup an appropriate environment:
+
+<code>
+source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.09/x86_64-slc6-gcc47-dbg/root/bin/thisroot.sh
+source /afs/cern.ch/sw/lcg/contrib/gcc/4.7/x86_64-slc6-gcc47-opt/setup.sh
+export LD_LIBRARY_PATH=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_64-slc6-gcc47-opt/lib:$LD_LIBRARY_PATH
+export BOOST_LIB=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_64-slc6-gcc47-opt/lib
+export BOOST_INCLUDE=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_64-slc6-gcc47-opt/include/boost-1_55
+export BOOST_SUFFIX=-gcc47-mt-1_55
+</code>
+You can also put those commands on a script and launch the script on startup (i.e. calling it in .bashrc)
 
 *3.* Then, proceed to the checkout of the code:
 
