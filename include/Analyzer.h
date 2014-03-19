@@ -31,10 +31,10 @@
 #include <TMultiGraph.h>
 #include <TGraphErrors.h>
 #include <Math/Vector3D.h>
+#include <TRandom3.h>
 
-#include <global_funcs.h>
+#include "global_funcs.h"
 
-#include "TRandom3.h"
 #include "Module.h"
 #include "SimParms.h"
 #include "AnalyzerVisitor.h"

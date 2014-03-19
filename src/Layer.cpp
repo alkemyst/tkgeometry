@@ -147,7 +147,7 @@ void Layer::buildStraight() {
   rods_.push_back(second);
 
   for (int i = 2; i < numRods_; i++) {
-    RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
+    RodPair* rod = new StraightRodPair(i%2 ? *second : *first); // clone rods
     rod->setup();
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
@@ -195,12 +195,18 @@ void Layer::buildTilted() {
   rods_.push_back(second);
 
   for (int i = 2; i < numRods_; i++) {
-    RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
+    RodPair* rod = new TiltedRodPair(i%2 ? *second : *first); // clone rods
     rod->setup();
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
     rods_.push_back(rod);
   }
+
+  // computing the layer's place radius as the average of all the modules' radii
+  placeRadius_  = std::accumulate(tmspecs1.begin(), tmspecs1.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+  placeRadius_ += std::accumulate(tmspecs2.begin(), tmspecs2.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+  placeRadius_ /= tmspecs1.size() + tmspecs2.size();
+
 }
 
 void Layer::build() {

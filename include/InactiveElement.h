@@ -48,7 +48,7 @@ namespace insur {
     double getRWidth();
     void setRWidth(double width);
     int getFeederIndex();
-    void setFeederIndex(int layer);
+    void setFeederIndex(int feederIndex);
     InType getFeederType();
     void setFeederType(InType type);
     int getNeighbourIndex();
@@ -63,10 +63,10 @@ namespace insur {
     std::pair<double, double> getEtaMinMax();
     virtual void print();
   protected:
-    bool is_vertical, is_final;
-    double z_offset, z_length, i_radius, w_radius;
-    int feeder_index, neighbour_index;
-    InType feeder_type, neighbour_type;
+    bool isVertical_, isFinal_;
+    double zOffset_, zLength_, iRadius_, wRadius_;
+    int feederIndex_, neighbourIndex_;
+    InType feederType_, neighbourType_;
   };
 }
 #endif	/* _INACTIVEELEMENT_H */

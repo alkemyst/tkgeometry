@@ -9,11 +9,11 @@ namespace insur {
      * The constructors make sure the UP/DOWN flag is set correctly (it is provided by the parent class, but not set).
      */
     InactiveRing::InactiveRing() : InactiveElement() {
-        is_vertical = true;
+        isVertical_ = true;
     }
     
     InactiveRing::InactiveRing(InactiveElement& previous) : InactiveElement(previous) {
-        is_vertical = true;
+        isVertical_ = true;
     }
     
     /**
@@ -35,6 +35,6 @@ namespace insur {
      * @return True if the length is less than or equal to the width, false otherwise
      */
     bool InactiveRing::sanityCheck() {
-        return (z_length <= w_radius) && is_vertical;
+        return (zLength_ <= wRadius_) && isVertical_;
     }
 }

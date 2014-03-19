@@ -34,16 +34,17 @@ namespace insur {
     public:
         void pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
         void pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
-        void tracker(CMSSWBundle& d, std::ofstream& out, bool wt = false);
+        void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, bool wt = false);
         void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
         void prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
         void trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
         void recomaterial(std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool wt = false);
     protected:
+        void trackerLogicalVolume(std::ostringstream& stream, std::istream& instream); // takes the stream containing the tracker logical volume template and outputs it to the outstream
         void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream);
         void rotationSection(std::vector<Rotation>& r, std::string label, std::ostringstream& stream);
         void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream, bool wt = false);
-        void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid, bool wt = false);
+        void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool wt = false);
         void posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream);
         void specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream);
         void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
@@ -52,7 +53,7 @@ namespace insur {
                                                std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream);
         void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream);
         void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
-        void trapezoid(std::string name, double dx, double dy, double dyy, double dz, std::ostringstream& stream);
+        void trapezoid(std::string name, double dx, double dxx, double dy, double dyy, double dz, std::ostringstream& stream);
         void tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream);
         void polycone(std::string name, std::vector<std::pair<double, double> >& rzu,
                                std::vector<std::pair<double, double> >& rzd, std::ostringstream& stream);

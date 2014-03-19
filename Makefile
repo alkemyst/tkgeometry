@@ -224,7 +224,7 @@ $(LIBDIR)/InactiveSurfaces.o: $(SRCDIR)/InactiveSurfaces.cc $(INCDIR)/InactiveSu
 	@echo "Built target InactiveSurfaces.o"
 
 #ELEMENTS
-elements: $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o
+elements: $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/InactiveModuleTube.o
 	@echo "Built target 'elements'."
 
 $(LIBDIR)/ModuleCap.o: $(SRCDIR)/ModuleCap.cc $(INCDIR)/ModuleCap.h
@@ -246,6 +246,11 @@ $(LIBDIR)/InactiveTube.o: $(SRCDIR)/InactiveTube.cc $(INCDIR)/InactiveTube.h
 	@echo "Building target InactiveTube.o..."
 	$(COMP) -c -o $(LIBDIR)/InactiveTube.o $(SRCDIR)/InactiveTube.cc
 	@echo "Built target InactiveTube.o."
+
+$(LIBDIR)/InactiveModuleTube.o: $(SRCDIR)/InactiveModuleTube.cc $(INCDIR)/InactiveModuleTube.h
+	@echo "Building target InactiveModuleTube.o..."
+	$(COMP) -c -o $(LIBDIR)/InactiveModuleTube.o $(SRCDIR)/InactiveModuleTube.cc
+	@echo "Built target InactiveModuleTube.o."
 
 #USHERS
 ushers: $(LIBDIR)/Usher.o
@@ -359,7 +364,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.
   $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/InactiveModuleTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o
 	$(LINK)	$(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
@@ -370,7 +375,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/InactiveModuleTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o \
 	$(LIBDIR)/tklayout.o \

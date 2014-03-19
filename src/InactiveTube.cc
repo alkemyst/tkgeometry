@@ -9,11 +9,11 @@ namespace insur {
      * The constructors make sure the UP/DOWN flag is set correctly (it is provided by the parent class, but not set).
      */
     InactiveTube::InactiveTube() : InactiveElement() {
-        is_vertical = false;
+        isVertical_ = false;
     }
     
     InactiveTube::InactiveTube(InactiveElement& previous) : InactiveElement(previous) {
-        is_vertical = false;
+        isVertical_ = false;
     }
     
      /**
@@ -35,6 +35,6 @@ namespace insur {
      * @return True if the length is greater than or equal to the width, false otherwise
      */
     bool InactiveTube::sanityCheck() {
-        return (z_length >= w_radius) && !is_vertical;
+        return (zLength_ >= wRadius_) && !isVertical_;
     }
 }
