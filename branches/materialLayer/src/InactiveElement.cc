@@ -10,11 +10,11 @@ namespace insur {
      * The constructor sets some defaults: no neighbours, intermediate element.
      */
     InactiveElement::InactiveElement() {
-        is_final = false;
-        feeder_type = no_in;
-        feeder_index = -1;
-        neighbour_type = no_in;
-        neighbour_index = -1;
+        isFinal_ = false;
+        feederType_ = no_in;
+        feederIndex_ = -1;
+        neighbourType_ = no_in;
+        neighbourIndex_ = -1;
     }
     
     /**
@@ -22,129 +22,129 @@ namespace insur {
      * @return The average cylinder surface for a horizontal tube, the disc surface for a vertical disc
      */
     double InactiveElement::getSurface() {
-        if (isVertical()) return ((i_radius + w_radius) * (i_radius + w_radius) - i_radius * i_radius) * PI;
-        else return 2 * PI * (i_radius + w_radius / 2.0) * z_length;
+        if (isVertical()) return ((iRadius_ + wRadius_) * (iRadius_ + wRadius_) - iRadius_ * iRadius_) * PI;
+        else return 2 * PI * (iRadius_ + wRadius_ / 2.0) * zLength_;
     }
     
     /**
      * Get the orientation of the object.
      * @return True if the element points up or down, false if it points sideways
      */
-    bool InactiveElement::isVertical() { return is_vertical; }
+    bool InactiveElement::isVertical() { return isVertical_; }
     
     /**
      * Set the orientation flag of the object.
      * @param vertical The new value for the up/down flag
      */
-    void InactiveElement::setVertical(bool vertical) { is_vertical = vertical; }
+    void InactiveElement::setVertical(bool vertical) { isVertical_ = vertical; }
     
     /**
      * Check if the content of this element travels out of the tracking volume after this.
      * @return True if the element is not a neighbour to anything, false otherwise
      */
-    bool InactiveElement::isFinal() { return is_final; }
+    bool InactiveElement::isFinal() { return isFinal_; }
     
     /**
      * Set if the content of this element travels out of the tracking volume after this.
      * @param final Should be true if the element is not a neighbour to anything and false otherwise
      */
-    void InactiveElement::setFinal(bool final) { is_final = final; }
+    void InactiveElement::setFinal(bool final) { isFinal_ = final; }
     
     /**
      * Get the distance of this object's leftmost point to the xy-plane.
      * @return The offset from the origin along the z-axis
      */
-    double InactiveElement::getZOffset() { return z_offset; }
+    double InactiveElement::getZOffset() { return zOffset_; }
     
     /**
      * Set the distance of this object's leftmost point to the xy-plane.
      * @param zoffset The offset from the origin along the z-axis
      */
-    void InactiveElement::setZOffset(double zoffset) { z_offset = zoffset; }
+    void InactiveElement::setZOffset(double zoffset) { zOffset_ = zoffset; }
     
     /**
      * Get the length of the element.
      * @return The total length of the element along the z-axis
      */
-    double InactiveElement::getZLength() { return z_length; }
+    double InactiveElement::getZLength() { return zLength_; }
     
     /**
      * Set the length of the element.
      * @param zlength The total length of the element along the z-axis
      */
-    void InactiveElement::setZLength(double zlength) { z_length = zlength; }
+    void InactiveElement::setZLength(double zlength) { zLength_ = zlength; }
     
     /**
      * Get the inner radius of the element.
      * @return The distance from the z-axis to the innermost point of the element
      */
-    double InactiveElement::getInnerRadius() { return i_radius; }
+    double InactiveElement::getInnerRadius() { return iRadius_; }
     
     /**
      * Set the inner radius of the element.
      * @param iradius The distance from the z-axis to the innermost point of the element
      */
-    void InactiveElement::setInnerRadius(double iradius) { i_radius = iradius; }
+    void InactiveElement::setInnerRadius(double iradius) { iRadius_ = iradius; }
     
     /**
      * Get the width of the element.
      * @return The distance from the innermost to the outermost point of the element in the xy-plane
      */
-    double InactiveElement::getRWidth() { return w_radius; }
+    double InactiveElement::getRWidth() { return wRadius_; }
     
     /**
      * Set the width of the element.
      * @param rwidth The distance from the innermost to the outermost point of the element in the xy-plane
      */
-    void InactiveElement::setRWidth(double rwidth) { w_radius = rwidth; }
+    void InactiveElement::setRWidth(double rwidth) { wRadius_ = rwidth; }
     
     /**
      * Get the index of the element's feeder volume.
      * @return The index within the tracker object's layer or disc vector, or of the service volume; -1 if there is none
      */
-    int InactiveElement::getFeederIndex() { return feeder_index; }
+    int InactiveElement::getFeederIndex() { return feederIndex_; }
     
     /**
      * Set the index of the element's feeder volume.
      * @param layer The index within the tracker object's layer or disc vector, or of the service volume
      */
-    void InactiveElement::setFeederIndex(int layer) { feeder_index = layer; }
+    void InactiveElement::setFeederIndex(int layer) { feederIndex_ = layer; }
     
     /**
      * Get the type of the element's feeder volume.
      * @return The type of feeder as listed in the enumeration <i>InType</i>
      */
-    InactiveElement::InType InactiveElement::getFeederType() { return feeder_type; }
+    InactiveElement::InType InactiveElement::getFeederType() { return feederType_; }
     
     /**
      * Set the type of the element's feeder volume.
      * @param type The type of feeder as listed in the enumeration <i>InType</i>
      */
-    void InactiveElement::setFeederType(InType type) { feeder_type = type; }
+    void InactiveElement::setFeederType(InType type) { feederType_ = type; }
     
     /**
      * Get the index of the element's neighbour volume.
      * @return The index of the previous service volume
      */
-    int InactiveElement::getNeighbourIndex() { return neighbour_index; }
+    int InactiveElement::getNeighbourIndex() { return neighbourIndex_; }
     
     /**
      * Set the index of the element's neighbour volume.
      * @param previous The index of the previous service volume
      */
-    void InactiveElement::setNeighbourIndex(int previous) { neighbour_index = previous; }
+    void InactiveElement::setNeighbourIndex(int previous) { neighbourIndex_ = previous; }
     
     /**
      * Get the type of the element's neighbour volume.
      * @return The type of neighbour as listed in the enumeration <i>InType</i>
      */
-    InactiveElement::InType InactiveElement::getNeighbourType() { return neighbour_type; }
+    InactiveElement::InType InactiveElement::getNeighbourType() { return neighbourType_; }
     
     /**
      * Set the type of the element-s neighbour volume.
      * @param type The type of neighbour as listed in the enumeration <i>InType</i>
      */
-    void InactiveElement::setNeighbourType(InactiveElement::InType type) { neighbour_type = type; }
+    void InactiveElement::setNeighbourType(InactiveElement::InType type) { neighbourType_ = type; }
     
     /**
      * Set the total mass of the inactive element.
@@ -220,10 +220,10 @@ namespace insur {
     void InactiveElement::print() {
         MaterialProperties::print();
         std::cout << "Inactive element properties (current state)" << std::endl;
-        std::cout << "z_offset = " << z_offset << std::endl;
-        std::cout << "z_length = " << z_length << std::endl;
-        std::cout << "i_radius = " <<i_radius  << std::endl;
-        std::cout << "w_radius = " << w_radius << std::endl;
+        std::cout << "z_offset = " << zOffset_ << std::endl;
+        std::cout << "z_length = " << zLength_ << std::endl;
+        std::cout << "i_radius = " <<iRadius_  << std::endl;
+        std::cout << "w_radius = " << wRadius_ << std::endl;
         if (isVertical()) std::cout << "Volume is vertical." << std::endl;
         else std::cout << "Volume is horizontal" << std::endl;
     }

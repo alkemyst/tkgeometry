@@ -42,6 +42,11 @@ namespace insur {
     InactiveElement& getEndcapServicePart(int index); // throws exception
     std::vector<InactiveElement>::iterator removeEndcapServicePart(int index);
     std::vector<InactiveElement>& getEndcapServices(); // may return empty vector
+    // layer module services
+    void addModuleServicePart(InactiveElement service);
+    InactiveElement& getModuleServicePart(int index); // throws exception
+    std::vector<InactiveElement>::iterator removeModuleServicePart(int index);
+    std::vector<InactiveElement>& getModuleServices(); // may return empty vector
     // supports
     void addSupportPart(InactiveElement support);
     InactiveElement& getSupportPart(int index); // throws exception
@@ -55,7 +60,7 @@ namespace insur {
     //layout flag
     bool is_up;
     // element collections
-    std::vector<InactiveElement> barrelservices, endcapservices, supports;
+    std::vector<InactiveElement> barrelServices, endcapServices, moduleServices, supports;
   private:
 
   };

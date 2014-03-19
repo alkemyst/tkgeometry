@@ -11,7 +11,7 @@ namespace insur {
      * @param service The element that is appended to the list of barrel service parts
      */
     void InactiveSurfaces::addBarrelServicePart(InactiveElement service) {
-        barrelservices.push_back(service);
+        barrelServices.push_back(service);
     }
     
     /**
@@ -21,7 +21,7 @@ namespace insur {
      * @return A reference to the requested barrel service part
      */
     InactiveElement& InactiveSurfaces::getBarrelServicePart(int index) {
-        return barrelservices.at(index);
+        return barrelServices.at(index);
     }
     
     /**
@@ -31,8 +31,8 @@ namespace insur {
      * @return An interator to the barrel element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeBarrelServicePart(int index) {
-        if ((index >= 0) && ((unsigned int)index < barrelservices.size())) return barrelservices.erase(barrelservices.begin() + index);
-        return barrelservices.end();
+        if ((index >= 0) && ((unsigned int)index < barrelServices.size())) return barrelServices.erase(barrelServices.begin() + index);
+        return barrelServices.end();
     }
     
     /**
@@ -40,7 +40,7 @@ namespace insur {
      * @return A reference to the internal barrel service vector
      */
     std::vector<InactiveElement>& InactiveSurfaces::getBarrelServices() {
-        return barrelservices;
+        return barrelServices;
     }
     
     /**
@@ -48,7 +48,7 @@ namespace insur {
      * @param service The element that is appended to the list of endcap service parts
      */
     void InactiveSurfaces::addEndcapServicePart(InactiveElement service) {
-        endcapservices.push_back(service);
+        endcapServices.push_back(service);
     }
     
     /**
@@ -58,7 +58,7 @@ namespace insur {
      * @return A reference to the requested endcap service part
      */
     InactiveElement& InactiveSurfaces::getEndcapServicePart(int index) {
-        return endcapservices.at(index);
+        return endcapServices.at(index);
     }
     
     /**
@@ -68,8 +68,8 @@ namespace insur {
      * @return An interator to the endcap element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeEndcapServicePart(int index) {
-        if ((index >= 0) && ((unsigned int)index < endcapservices.size())) return endcapservices.erase(endcapservices.begin() + index);
-        return endcapservices.end();
+        if ((index >= 0) && ((unsigned int)index < endcapServices.size())) return endcapServices.erase(endcapServices.begin() + index);
+        return endcapServices.end();
     }
     
     /**
@@ -77,8 +77,48 @@ namespace insur {
      * @return A reference to the internal endcap services vector
      */
     std::vector<InactiveElement>& InactiveSurfaces::getEndcapServices() {
-        return endcapservices;
+        return endcapServices;
     }
+
+    /*===== layer module services =====*/
+    /**
+     * Add a single inactive element to the list of layer module services by copying it.
+     * @param service The element that is appended to the list of layer module service parts
+     */
+    void InactiveSurfaces::addModuleServicePart(InactiveElement service) {
+      moduleServices.push_back(service);
+    }
+
+    /**
+     * Access an individual element in the list of layer module services by its index.
+     * The internal vector will throw an exception if the index is out of range.
+     * @param index The index of the requested layer module service part
+     * @return A reference to the requested layer module service part
+     */
+    InactiveElement& InactiveSurfaces::getModuleServicePart(int index) {
+      return moduleServices.at(index);
+    }
+
+    /**
+     * Remove a single layer module element identified by its index from the list. If the removed layer module service part
+     * was the last on the list or the given index is out of range, the returned iterator will point to <i>end()</i>.
+     * @param index The index of the layer module element that will be removed
+     * @return An interator to the layer module element immediately after the removed one
+     */
+    std::vector<InactiveElement>::iterator InactiveSurfaces::removeModuleServicePart(int index) {
+      if ((index >= 0) && ((unsigned int)index < barrelServices.size())) return moduleServices.erase(moduleServices.begin() + index);
+      return moduleServices.end();
+    }
+
+    /**
+     * Access the full list of layer module service parts at once.
+     * @return A reference to the internal layer module service vector
+     */
+    std::vector<InactiveElement>& InactiveSurfaces::getModuleServices() {
+      return moduleServices;
+    }
+
+
     /*===== supports =====*/
     /**
      * Add a single inactive element to the list of supports by copying it.
@@ -135,19 +175,19 @@ namespace insur {
      * @param full_summary A flag to switch verbose output on or off
      */
     void InactiveSurfaces::print(bool full_summary = true) {
-        std::cout << "Number of barrel service elements: " << barrelservices.size() << std::endl;
+        std::cout << "Number of barrel service elements: " << barrelServices.size() << std::endl;
         if (full_summary) {
-            for (unsigned int i = 0; i < barrelservices.size(); i++) {
+            for (unsigned int i = 0; i < barrelServices.size(); i++) {
                 std::cout << "Service element " << i << ":" << std::endl;
-                barrelservices.at(i).print();
+                barrelServices.at(i).print();
                 std::cout << std::endl;
             }
         }
-        std::cout << "Number of endcap service elements: " << endcapservices.size() << std::endl;
+        std::cout << "Number of endcap service elements: " << endcapServices.size() << std::endl;
         if (full_summary) {
-            for (unsigned int i = 0; i < endcapservices.size(); i++) {
+            for (unsigned int i = 0; i < endcapServices.size(); i++) {
                 std::cout << "Service element " << i << ":" << std::endl;
-                endcapservices.at(i).print();
+                endcapServices.at(i).print();
                 std::cout << std::endl;
             }
         }

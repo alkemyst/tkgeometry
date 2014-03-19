@@ -47,20 +47,45 @@ if $TKG_SETUP_BIN ; then
       echo ERROR: the current directory is not under SVN revision
       exit -1
     }
-    dirlist="$TKG_SOURCE_MATTAB $TKG_SOURCE_GEOMETRIES $TKG_SOURCE_XML $TKG_SOURCE_STYLE"
+    dirlist="$TKG_SOURCE_MATTAB $TKG_SOURCE_GEOMETRIES $TKG_SOURCE_XML $TKG_SOURCE_STYLE deployStyle"
     for myDir in $dirlist; do
-       if [ -d $TKG_STANDARDDIRECTORY/$myDir ] ; then
-          otherBase=`$SVNBIN info $TKG_STANDARDDIRECTORY/$myDir | grep URL | cut -d' ' -f2-`
-          if [ "$otherBase" != "$SVNURL/$myDir" ]; then
-            echo ERROR: directory $TKG_STANDARDDIRECTORY/$myDir is not under the same version control as `pwd`
-            exit -1
-          fi
-          echo -n Updating $myDir...
-          $SVNBIN up $TKG_STANDARDDIRECTORY/$myDir
+       if [ "$myDir" == "deployStyle" ]; then
+          myDir=$TKG_SOURCE_STYLE
+          targetDirectory=$TKG_LAYOUTDIRECTORY/$myDir
        else
-          echo -n Checking out $myDir...
-          mkdir -p $TKG_STANDARDDIRECTORY/$myDir
-          $SVNBIN checkout $SVNURL/$myDir $TKG_STANDARDDIRECTORY/$myDir
+          targetDirectory=$TKG_STANDARDDIRECTORY/$myDir
+       fi
+       if [ -d $targetDirectory ] ; then
+          echo -n Updating $targetDirectory...
+          if [ -d $targetDirectory/.svn ]; then
+            otherBase=`$SVNBIN info $targetDirectory | grep URL | cut -d' ' -f2-`
+            if [ "$otherBase" != "$SVNURL/$myDir" ]; then
+              echo ""
+              echo Directory $targetDirectory is under a different version control than `pwd`. 
+              echo Overwrite the old version control with the new one?
+              select yn in "Yes" "No"; do
+                case $yn in
+                  Yes ) rm -rf $targetDirectory; $SVNBIN checkout $SVNURL/$myDir $targetDirectory; break;;
+                  No ) echo Installation aborted by user; exit;;
+                esac
+              done
+            fi
+            $SVNBIN up $targetDirectory
+          else
+            echo ""
+            echo Directory $targetDirectory is not under a version control. 
+            echo Overwrite it with the latest version from svn?
+            select yn in "Yes" "No"; do
+              case $yn in
+                Yes ) rm -rf $targetDirectory; $SVNBIN checkout $SVNURL/$myDir $targetDirectory; break;;
+                No ) echo Installation aborted by user; exit;;
+              esac
+            done
+          fi
+       else
+          echo -n Checking out $targetDirectory...
+          mkdir -p $targetDirectory
+          $SVNBIN checkout $SVNURL/$myDir $targetDirectory
        fi
     done
 

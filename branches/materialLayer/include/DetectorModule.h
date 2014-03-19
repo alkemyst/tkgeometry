@@ -51,7 +51,7 @@ public:
   ReadonlyProperty<std::string, Default> moduleType; 
   ReadonlyProperty<int, AutoDefault>     numSensors;
   ReadonlyProperty<SensorLayout, Default> sensorLayout;
-  ReadonlyProperty<ZCorrelation, NoDefault> zCorrelation;
+  ReadonlyProperty<ZCorrelation, Default> zCorrelation;
   ReadonlyProperty<ReadoutMode, Default> readoutMode;
   ReadonlyProperty<ReadoutType, Default> readoutType;
 
@@ -90,7 +90,7 @@ public:
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
       readoutType              ("readoutType"              , parsedOnly() , READOUT_STRIP), 
       readoutMode              ("readoutMode"              , parsedOnly() , BINARY),
-      zCorrelation             ("zCorrelation"             , parsedOnly()),
+      zCorrelation             ("zCorrelation"             , parsedOnly(), SAMESEGMENT),
       numSparsifiedHeaderBits  ("numSparsifiedHeaderBits"  , parsedOnly()),
       numSparsifiedPayloadBits ("numSparsifiedPayloadBits" , parsedOnly()),
       numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
@@ -297,8 +297,8 @@ public:
     decorated().accept(v); 
   }
 
-  double minZ() const { return center().Z(); }
-  double maxZ() const { return center().Z(); }
+  double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
+  double maxZ() const { return center().Z(); } // ditto here
   double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
   double minR() const { XYZVector side[2];
                         std::partial_sort_copy(basePoly().begin(), basePoly().end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
