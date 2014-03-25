@@ -42,8 +42,7 @@ protected:
 
   int numHits_ = 0;
 
-  void buildSensorPolys();
-  void clearSensorPolys() { for (auto& s : sensors_) s.clearPoly(); }
+  void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
 public:
   Property<int16_t, AutoDefault> side;
 
@@ -167,10 +166,10 @@ public:
   ModuleShape shape() const { return decorated().shape(); }
 ////////
 
-  double maxZ() const { return gmax<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxZ(); }); }
-  double minZ() const { return gmin<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minZ(); }); }
-  double maxR() const { return gmax<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxR(); }); }
-  double minR() const { return gmin<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minR(); }); }
+  double maxZ() const { return maxget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxZ(); }); }
+  double minZ() const { return minget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minZ(); }); }
+  double maxR() const { return maxget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxR(); }); }
+  double minR() const { return minget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minR(); }); }
 
   double planarMaxZ() const { return CoordinateOperations::computeMaxZ(basePoly()); }
   double planarMinZ() const { return CoordinateOperations::computeMinZ(basePoly()); }
