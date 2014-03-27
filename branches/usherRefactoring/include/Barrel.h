@@ -28,8 +28,9 @@ private:
   PropertyNode<int> layerNode;
 public:
   Property<int, NoDefault> numLayers;
-  ReadonlyProperty<double, Computable> maxZ;
+  ReadonlyProperty<double, Computable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
+  ReadonlyProperty<bool, Default> skipServices;
 
   Barrel() : 
       numLayers("numLayers", parsedAndChecked()),
@@ -37,11 +38,13 @@ public:
       outerRadius("outerRadius", parsedAndChecked()),
       sameRods("sameRods", parsedAndChecked(), false),
       barrelRotation("barrelRotation", parsedOnly(), 0.),
+      skipServices("skipServices", parsedOnly(), false), // broken, do not use
       layerNode("Layer", parsedOnly())
   {}
 
   void setup() {
     maxZ.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; });
+    minZ.setup([this]() { double min = 0; for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
     maxR.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
     minR.setup([this]() { double min = 99999; for (const auto& l : layers_) { min = MIN(min, l.minR()); } return min; });
     for (auto& l : layers_) l.setup();

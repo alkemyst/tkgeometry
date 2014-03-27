@@ -13,7 +13,9 @@
 
 
 class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string> {
-  boost::ptr_vector<Disk> disks_;
+  typedef boost::ptr_vector<Disk> Container;
+
+  Container disks_;
   Property<double, NoDefault> barrelGap;
   PropertyNode<int> diskNode;
   
@@ -24,12 +26,14 @@ public:
   Property<double, NoDefault> minZ;
   Property<double, NoDefault> maxZ;
   ReadonlyProperty<double, Computable> maxR, minR;
+  ReadonlyProperty<bool, Default> skipServices;
 
   Endcap() :
       barrelGap("barrelGap", parsedOnly()),
       numDisks("numDisks", parsedAndChecked()),
       minZ("minZ", parsedOnly()),
       maxZ("maxZ", parsedAndChecked()),
+      skipServices("skipServices", parsedOnly(), false), // broken, do not use
       diskNode("Disk", parsedOnly())
   {}
 
@@ -41,6 +45,8 @@ public:
 
   void build();
   void cutAtEta(double eta);
+
+  const Container& disks() const { return disks_; }
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
