@@ -53,7 +53,7 @@ namespace insur {
     // Not strictly necessary, but it's useful to keep
     // the color the same for the most used module types
     lastPickedColor = 1;
-    //colorPicker("ptOut");
+    //colorPicker("pt2S");
     //colorPicker("rphi");
     //colorPicker("stereo");
     //colorPicker("ptIn");
@@ -460,7 +460,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
            double curAvgTrue=0;
            double curAvgInteresting=0;
            double curAvgFake=0;
-           double bgReductionFactor; // Reduction of the combinatorial background for ptMixed modules by turning off the appropriate pixels
+           double bgReductionFactor; // Reduction of the combinatorial background for ptPS modules by turning off the appropriate pixels
            for (const auto& modAndType : hitModules) {
              Module* hitModule = modAndType.first;
              PtErrorAdapter pterr(*hitModule);
@@ -471,7 +471,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
                
              // The background is given by the contamination from low pT tracks...
              curAvgFake += pterr.getTriggerFrequencyTruePerEventBelow(*itMomentum);
-             // ... plus the combinatorial background from occupancy (can be reduced using ptMixed modules)
+             // ... plus the combinatorial background from occupancy (can be reduced using ptPS modules)
              if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
              curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*simParms().numMinBiasEvents() * bgReductionFactor;
 
@@ -1107,7 +1107,7 @@ Material Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
 }
 
 void printPosRefString(std::ostream& os, const Module& m, const string& delim = " ") {
-  os << m.posRef().cnt << delim << m.posRef().z << delim << m.posRef().rho << delim << m.posRef().phi << delim << m.side();
+  os << "cnt=" << m.posRef().cnt << delim << "z=" << m.posRef().z << delim << "rho=" << m.posRef().rho << " (" << m.center().Rho() << ")" << delim << "phi=" << m.posRef().phi << delim << "side=" << m.side();
 } 
 
 /**
@@ -1917,17 +1917,15 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
   // Then: single maps
 
-  for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
-    for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
-      thicknessMap.SetBinContent(i,j,0);
-      windowMap.SetBinContent(i,j,0);
+  for (int i=1; i<=suggestedSpacingMap.GetNbinsX(); ++i) {
+    for (int j=1; j<=suggestedSpacingMap.GetNbinsY(); ++j) {
       suggestedSpacingMap.SetBinContent(i,j,0);
       suggestedSpacingMapAW.SetBinContent(i,j,0);
       nominalCutMap.SetBinContent(i,j,0);
     }
   }
 
-  SpacingCutVisitor scv(thicknessMap, windowMap, suggestedSpacingMap, suggestedSpacingMapAW, nominalCutMap, moduleOptimalSpacings);
+  SpacingCutVisitor scv(suggestedSpacingMap, suggestedSpacingMapAW, nominalCutMap, moduleOptimalSpacings);
   simParms_->accept(scv);
   tracker.accept(scv);
   scv.postVisit();
@@ -2496,9 +2494,11 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
 
   // A bunch of pointers
-  std::map <std::string, int> moduleTypeCount;
-  std::map <std::string, int> moduleTypeCountStubs;
+  std::map <std::string, int> moduleTypeCount; // counts hit per module type -- if any of the sensors (or both) are hit, it counts 1
+  std::map <std::string, int> sensorTypeCount; // counts hit per sensor on module type -- if one sensor is hit, it counts 1, if both sensors are hit, it counts 2
+  std::map <std::string, int> moduleTypeCountStubs; // counts stubs per module type -- if both sensors are hit and a stub is formed, it counts 1
   std::map <std::string, TProfile> etaProfileByType;
+  std::map <std::string, TProfile> etaProfileByTypeSensors;
   std::map <std::string, TProfile> etaProfileByTypeStubs;
 //  TH2D* aPlot;
   std::string aType;
@@ -2516,6 +2516,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   // Initialize random number generator, counters and histograms
   myDice.SetSeed(MY_RANDOM_SEED);
   createResetCounters(tracker, moduleTypeCount);
+  createResetCounters(tracker, sensorTypeCount);
   createResetCounters(tracker, moduleTypeCountStubs);
 
   class LayerNameVisitor : public ConstGeometryVisitor {
@@ -2544,12 +2545,8 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   }
 
 
-  /*for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
-    it!=etaProfileByType.end(); it++) {
-    aPlot = (*it).second;
-    if (aPlot) delete aPlot;
-    }*/
   etaProfileByType.clear();
+  etaProfileByTypeSensors.clear();
   etaProfileByTypeStubs.clear();
 
   for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
@@ -2558,6 +2555,13 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     aProfile.SetBins(100, 0, maxEta);
     aProfile.SetName((*it).first.c_str());
     aProfile.SetTitle((*it).first.c_str());
+  }
+
+  for (auto mel : sensorTypeCount) {
+    TProfile& aProfileStubs = etaProfileByTypeSensors[mel.first];
+    aProfileStubs.SetBins(100, 0, maxEta);
+    aProfileStubs.SetName(mel.first.c_str());
+    aProfileStubs.SetTitle(mel.first.c_str());
   }
 
   for (auto mel : moduleTypeCountStubs) {
@@ -2574,7 +2578,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   std::pair <XYZVector, double> aLine;
 
 
-  int nTrackHits;
   int nTracksPerSide = int(pow(nTracks, 0.5));
   int nBlocks = int(nTracksPerSide/2.);
   nTracks = nTracksPerSide*nTracksPerSide;
@@ -2585,8 +2588,16 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfile.SetMarkerStyle(8);
   totalEtaProfile.SetMarkerColor(1);
   totalEtaProfile.SetMarkerSize(1.5);
-  totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hits");
+  totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hit modules");
   totalEtaProfile.SetBins(100, 0, maxEta);
+
+  totalEtaProfileSensors.Reset();
+  totalEtaProfileSensors.SetName("totalEtaProfileSensors");
+  totalEtaProfileSensors.SetMarkerStyle(8);
+  totalEtaProfileSensors.SetMarkerColor(1);
+  totalEtaProfileSensors.SetMarkerSize(1.5);
+  totalEtaProfileSensors.SetTitle("Number of hits;#eta;Number of hits");
+  totalEtaProfileSensors.SetBins(100, 0, maxEta);
 
   totalEtaProfileStubs.Reset();
   totalEtaProfileStubs.SetName("totalEtaProfileStubs");
@@ -2596,51 +2607,68 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetTitle("Number of modules with a stub;#eta;Number of stubs");
   totalEtaProfileStubs.SetBins(100, 0, maxEta);
 
+  std::map<std::string, int> modulePlotColors; // CUIDADO quick and dirty way of creating a map with all the module colors (a cleaner way would be to have the map already created somewhere else)
+
   //XYZVector dir(0, 1, 0);
   // Shoot nTracksPerSide^2 tracks
   double angle = M_PI/2/(double)nTracksPerSide;
   for (int i=0; i<nTracksPerSide; i++) {
     for (int j=0; j<nTracksPerSide; j++) {
       // Reset the hit counter
-      nTrackHits=0;
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
-      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, tracker.modules());
-      //hitModules = trackHit(XYZVector(0, 0, 0), dir, tracker.modules());
-      //dir.SetY(dir.Y()*cos(angle) - dir.Z()*sin(angle));
-      //dir.SetZ(dir.Y()*sin(angle) + dir.Z()*cos(angle));
+      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, ((myDice.Rndm()*2)-1)* zError), aLine.first, tracker.modules());
       // Reset the per-type hit counter and fill it
       resetTypeCounter(moduleTypeCount);
+      resetTypeCounter(sensorTypeCount);
       resetTypeCounter(moduleTypeCountStubs);
-      for (auto mh : hitModules) {
+      int numStubs = 0;
+      int numHits = 0;
+      for (auto& mh : hitModules) {
         moduleTypeCount[mh.first->moduleType()]++;
-        if (mh.second == HitType::STUB) moduleTypeCountStubs[mh.first->moduleType()]++;
-        nTrackHits++;
+        if (mh.second & HitType::INNER) {
+          sensorTypeCount[mh.first->moduleType()]++;
+          numHits++;
+        }
+        if (mh.second & HitType::OUTER) {
+          sensorTypeCount[mh.first->moduleType()]++;
+          numHits++;
+        }
+        if (mh.second == HitType::STUB) {
+          moduleTypeCountStubs[mh.first->moduleType()]++;
+          numStubs++;
+        }
+        modulePlotColors[mh.first->moduleType()] = mh.first->plotColor();
       }
       // Fill the module type hit plot
       for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {
         etaProfileByType[(*it).first].Fill(fabs(aLine.second), (*it).second);
       }
-      for (auto mel : moduleTypeCountStubs) {
+
+      for (auto& mel : sensorTypeCount) {
+        etaProfileByTypeSensors[mel.first].Fill(fabs(aLine.second), mel.second);
+      }
+
+      for (auto& mel : moduleTypeCountStubs) {
         etaProfileByTypeStubs[mel.first].Fill(fabs(aLine.second), mel.second);
       }
       // Fill other plots
-      totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
       mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
       mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
 
-      int numStubs = std::count_if(hitModules.begin(), hitModules.end(), [](const std::pair<Module*, HitType>& mh) { return mh.second == HitType::STUB; });
+      totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
+      totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
       totalEtaProfileStubs.Fill(fabs(aLine.second), numStubs); 
 
       for (auto layerName : layerNames.data) {
-        double layerHit = 0;
-        double layerStub = 0;
+        int layerHit = 0;
+        int layerStub = 0;
         for (auto mh : hitModules) {
           UniRef ur = mh.first->uniRef();
           if (layerName == (ur.cnt + " " + any2str(ur.layer))) {
             layerHit=1;
             if (mh.second == HitType::STUB) layerStub=1;
-            break;
+            if (layerHit && layerStub) break;
           }
         }
         layerEtaCoverageProfile[layerName].Fill(aLine.second, layerHit);
@@ -2659,8 +2687,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       if (trackCount>0) {
         hitCount=mapPhiEta.GetBinContent(nx, ny);
         mapPhiEta.SetBinContent(nx, ny, hitCount/trackCount);
-        //hitCount=mapPhiEta.GetBinContent(nx, ny); //debug
-        //std::cerr << "hitCount " << hitCount << std::endl; //debug
       }
     }
   }
@@ -2672,7 +2698,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   etaProfileCanvas.cd();
   savingGeometryV.push_back(etaProfileCanvas);
-  int plotCount=0;
 
   //TProfile* total = total2D.ProfileX("etaProfileTotal");
   char profileName_[256];
@@ -2680,38 +2705,53 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   // totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
   savingGeometryV.push_back(totalEtaProfile);
   if (totalEtaProfile.GetMaximum()<maximum_n_planes) totalEtaProfile.SetMaximum(maximum_n_planes);
+  if (totalEtaProfileSensors.GetMaximum()<maximum_n_planes) totalEtaProfileSensors.SetMaximum(maximum_n_planes);
   if (totalEtaProfileStubs.GetMaximum()<maximum_n_planes) totalEtaProfileStubs.SetMaximum(maximum_n_planes);
   totalEtaProfile.Draw();
+  totalEtaProfileSensors.Draw();
   totalEtaProfileStubs.Draw();
   for (std::map <std::string, TProfile>::iterator it = etaProfileByType.begin();
        it!=etaProfileByType.end(); it++) {
-    plotCount++;
     TProfile* myProfile=(TProfile*)it->second.Clone();
     savingGeometryV.push_back(*myProfile); // TODO: remove savingGeometryV everywhere :-) [VERY obsolete...]
     myProfile->SetMarkerStyle(8);
-    myProfile->SetMarkerColor(Palette::color((*it).first));
+    myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
     std::string profileName = "etaProfile"+(*it).first;
+    myProfile->SetName(profileName.c_str());
+    myProfile->SetTitle((*it).first.c_str());
+    myProfile->GetXaxis()->SetTitle("eta");
+    myProfile->GetYaxis()->SetTitle("Number of hit modules");
+    myProfile->Draw("same");
+    typeEtaProfile.push_back(*myProfile);
+  }
+
+  for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeSensors.begin();
+       it!=etaProfileByTypeSensors.end(); it++) {
+    TProfile* myProfile=(TProfile*)it->second.Clone();
+    myProfile->SetMarkerStyle(8);
+    myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
+    myProfile->SetMarkerSize(1);
+    std::string profileName = "etaProfileSensors"+(*it).first;
     myProfile->SetName(profileName.c_str());
     myProfile->SetTitle((*it).first.c_str());
     myProfile->GetXaxis()->SetTitle("eta");
     myProfile->GetYaxis()->SetTitle("Number of hits");
     myProfile->Draw("same");
-    typeEtaProfile.push_back(*myProfile);
+    typeEtaProfileSensors.push_back(*myProfile);
   }
 
   for (std::map <std::string, TProfile>::iterator it = etaProfileByTypeStubs.begin();
        it!=etaProfileByTypeStubs.end(); it++) {
-    plotCount++;
     TProfile* myProfile=(TProfile*)it->second.Clone();
     myProfile->SetMarkerStyle(8);
-    myProfile->SetMarkerColor(Palette::color((*it).first));
+    myProfile->SetMarkerColor(Palette::color(modulePlotColors[it->first]));
     myProfile->SetMarkerSize(1);
-    std::string profileName = "etaProfile"+(*it).first;
+    std::string profileName = "etaProfileStubs"+(*it).first;
     myProfile->SetName(profileName.c_str());
     myProfile->SetTitle((*it).first.c_str());
     myProfile->GetXaxis()->SetTitle("eta");
-    myProfile->GetYaxis()->SetTitle("Number of hits");
+    myProfile->GetYaxis()->SetTitle("Number of stubs");
     myProfile->Draw("same");
     typeEtaProfileStubs.push_back(*myProfile);
   }
@@ -2729,8 +2769,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   std::map<std::string, double> typeToPower;
   std::map<std::string, double> typeToSurface;
 
-  //   for (ModuleVector::iterator aModule = allModules.begin();
-  //        aModule != allModules.end(); ++aModule) {
   for (auto aModule : tracker.modules()) {
     string aSensorType = aModule->moduleType();
     typeToCount[aSensorType] ++;
@@ -2789,17 +2827,12 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       std::string aType;
       int typeCounter=0;
 
-      //LayerVector& layerSet = tracker.getLayers();
-      //for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
-      //  moduleV = (*layIt)->getModuleVector();
-      //  for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
       for (auto m : tracker.modules()) {
           aType = m->moduleType();
           m->resetHits();
           if (moduleTypeCount.find(aType)==moduleTypeCount.end()) {
             moduleTypeCount[aType]=typeCounter++;
           }
-     //   }
       }
 
       return(typeCounter);
@@ -2845,20 +2878,13 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       std::vector<std::pair<Module*, HitType>> result;
       double distance;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
-      //double theta = direction.Theta()*180/M_PI;
-      //double phi = direction.Phi()*180/M_PI;
-      //double z = origin.Z();
 
-      //static std::ofstream ofs("hits.txt");
-      //ofs << "---- " << theta << " " << phi << " " << z << " ----" << std::endl;
+      static std::ofstream ofs("hits.txt");
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
         if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
-          //distance=m->trackCross(origin, direction);
           auto h = m->checkTrackHits(origin, direction); 
-          //if (distance > -1) { ofs << "OLD "; printPosRefString(ofs, *m); ofs << " " << distance << std::endl; }
-          //if (h.second != HitType::NONE) { ofs << "NEW "; printPosRefString(ofs, *m); ofs << " " << h.first.R() << " " << h.second << std::endl; }
           if (h.second != HitType::NONE) {
             result.push_back(std::make_pair(m,h.second));
           }

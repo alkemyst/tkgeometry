@@ -4,9 +4,11 @@
 
 #include <rphi>
 #include <stereo>
-#include <ptOut>
-#include <ptMixed>
-#include <ptIn>
+#include <pt2S>
+#include <ptPS>
+#include <pt2P>
+#include <pt2SLong>
+#include <pt2SShort>
 
 // Generic services conversion rules
 #include <generic/ConversionRules>

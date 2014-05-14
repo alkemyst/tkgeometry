@@ -4,7 +4,9 @@
  * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
 
+#include <SvnRevision.h>
 #include <Squid.h>
+
 namespace insur {
   // public
   /**
@@ -205,6 +207,7 @@ namespace insur {
         if (is) delete is;
         is = new InactiveSurfaces();
         u.arrange(*tr, *is, supports_, verbose);
+        materialwayTracker.build(*tr);
         if (px) {
           if (pi) delete pi;
           pi = new InactiveSurfaces();
@@ -383,9 +386,7 @@ namespace insur {
     site.addAuthor("Giovanni Bianchi");
     site.addAuthor("Nicoletta De Maio");
     site.addAuthor("Stefano Mersi");
-#ifdef REVISIONNUMBER
-    site.setRevision(REVISIONNUMBER);
-#endif
+    site.setRevision(SvnRevision::revisionNumber);
     return true;
   }
 
@@ -715,7 +716,7 @@ namespace insur {
   void Squid::setCommandLine(int argc, char* argv[]) {
     if (argc <= 1) return;
     std::string cmdLine(argv[1]);
-    for (int i = 2; i < argc; i++) cmdLine += std::string(" ") + argv[i];
+    g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
     v.setCommandLine(cmdLine);
   }
 }

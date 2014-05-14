@@ -13,14 +13,14 @@
 
 class Disk : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
-  typedef boost::ptr_vector<Ring> Container;
+  typedef PtrVector<Ring> Container;
 private:
   Container rings_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, Default> minRingOverlap;
+  Property<double, Default> rOverlap;
   Property<int, Default> bigParity;
 
   PropertyNode<int> ringNode;
@@ -46,7 +46,7 @@ public:
     outerRadius("outerRadius", parsedAndChecked()),
     bigDelta("bigDelta", parsedAndChecked()),
     zError("zError", parsedAndChecked()),
-    minRingOverlap("minRingOverlap", parsedOnly(), 1.),
+    rOverlap("rOverlap", parsedOnly(), 1.),
     bigParity("bigParity", parsedOnly(), 1),
     buildZ("buildZ", parsedOnly()),
     placeZ("placeZ", parsedOnly()),
@@ -60,7 +60,6 @@ public:
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
-    for (auto& r : rings_) r.setup();
   }
 
   void check() override;
