@@ -359,7 +359,6 @@ namespace insur {
 
 
 
-
   void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
     histogramSummary(a, site, "outer");
   }
@@ -1259,7 +1258,7 @@ namespace insur {
           auto* anEC = (*typeIt).second;
           int aRing=(*typeIt).first;
           ringTable->setContent(0, aRing, aRing);
-          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision); // CUIDADO minR was getDist()
+          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
           ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
         }
       }
@@ -1760,17 +1759,26 @@ namespace insur {
      */
 
     // Eta profile big plot
-    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hits)", 600, 600);
+    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", 600, 600);
     drawEtaProfiles(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Hit coverage in eta");
+    myImage->setComment("Hit modules across eta");
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfile", "Eta profile (Stubs)", 600, 600);
+    myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", 600, 600);
+    drawEtaProfilesSensors(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, 600, 600);
+    myImage->setComment("Hit coverage across eta");
+    myContent->addItem(myImage);
+
+    myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", 600, 600);
     drawEtaProfilesStubs(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Stub coverage in eta");
+    myImage->setComment("Stub coverage across eta");
     myContent->addItem(myImage);
+
+    if (name != "pixel") totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
+    else totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
 
     TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
     int prevStat = gStyle->GetOptStat();
@@ -1821,6 +1829,14 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfile, etaProfiles);
   }
 
+  bool Vizard::drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    TProfile& totalEtaProfileSensors = analyzer.getTotalEtaProfileSensors();
+    std::vector<TProfile>& etaProfilesSensors = analyzer.getTypeEtaProfilesSensors();
+    return drawEtaProfilesAny(totalEtaProfileSensors, etaProfilesSensors);
+  }
+
   bool Vizard::drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
@@ -1831,7 +1847,7 @@ namespace insur {
 
   bool Vizard::drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles) {
     std::vector<TProfile>::iterator etaProfileIterator;
-    totalEtaProfile.SetMaximum(15); // TODO: make this configurable
+    //totalEtaProfile.SetMaximum(15); // TODO: make this configurable
     totalEtaProfile.SetMinimum(0); // TODO: make this configurable
 
     totalEtaProfile.Draw();
@@ -1850,6 +1866,12 @@ namespace insur {
     TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
     if (!myVirtualPad) return false;
     return drawEtaProfiles(*myVirtualPad, analyzer);
+  }
+
+  bool Vizard::drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawEtaProfilesSensors(*myVirtualPad, analyzer);
   }
 
   bool Vizard::drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer) {
@@ -1969,6 +1991,19 @@ namespace insur {
       fullLayoutContent->addItem(anImage);
     }
 
+    THStack* totalEtaStack = new THStack();
+    if (totalEtaProfileSensors_) totalEtaStack->Add(totalEtaProfileSensors_->ProjectionX());
+    if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
+    TCanvas* totalEtaProfileFull = new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", 600, 600);
+    totalEtaProfileFull->cd();
+    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    totalEtaStack->GetStack()->Last()->Draw();
+    RootWImage* myImage = new RootWImage(totalEtaProfileFull, 600, 600);
+    myImage->setComment("Full hit coverage across eta");
+    fullLayoutContent->addItem(myImage);
+
+
     RootWInfo* cmdLineInfo;
     cmdLineInfo = new RootWInfo("Command line arguments");
     cmdLineInfo->setValue(commandLine_);
@@ -2018,8 +2053,6 @@ namespace insur {
     RootWTextFile* myTextFile;
     createBarrelModulesCsv(tracker);
     createEndcapModulesCsv(tracker);
-//    tracker.printBarrelModuleZ(barrelModuleCoordinates);  // CUIDADO use a visitor for this
-//    tracker.printEndcapModuleRPhiZ(endcapModuleCoordinates);
     // Barrel coordinates
     myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
     myTextFile->addText(barrelModulesCsv_);
@@ -2198,7 +2231,7 @@ namespace insur {
     TCanvas triggerFrequencyPerEventCanvas;
 
     PlotDrawer<YZ, Type, Max> yzbwDrawer(0, 0); // we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
-    PlotDrawer<YZ, Type, Max> yztfDrawer(0, 0); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's  // CUIDADO FIX THIS.. for now disabled!!
+    PlotDrawer<YZ, Type, Max> yztfDrawer(0, 0); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
 
     yzbwDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yztfDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
@@ -3073,7 +3106,7 @@ namespace insur {
 
         // Prepare the cuts for the averages
         const std::vector<std::string>& cutNames = a.getCutNames();
-        const std::vector<double>& cuts = a.getTriggerCuts(); // CUIDADO uses trigger cuts (AFAIK they should be the same as tracking cuts)
+        const std::vector<double>& cuts = a.getTriggerCuts();
         ostringstream label;
         std::string name;      
         RootWTable* myTable;
@@ -3547,8 +3580,6 @@ namespace insur {
     //*   Configuration maps         *//
     //*                              *//
     //********************************//
-    TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
-    TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
     TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum];
@@ -3569,24 +3600,24 @@ namespace insur {
     suggestedSpacingAWCanvas.SetFillColor(color_plot_background);
     nominalCutCanvas.SetFillColor(color_plot_background);
 
-      //struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } }; // CUIDADO old map code still used, PlotDrawer based maps ready to be used for some maps, but for now commented out. All the obsolete map drawing code in Analyzer has to be removed before starting to use the new code, for uniformity
-    //PlotDrawer<YZ, Spacing> thicknessDrawer;
-    //thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    //thicknessDrawer.drawFrame<HistogramFrameStyle>(thickCanvas);
-    //thicknessDrawer.drawModules<ContourStyle>(thickCanvas);
+    struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } };
+    PlotDrawer<YZ, Spacing> thicknessDrawer;
+    thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+    thicknessDrawer.drawFrame<HistogramFrameStyle>(thickCanvas);
+    thicknessDrawer.drawModules<ContourStyle>(thickCanvas);
 
-    //struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
-    //PlotDrawer<YZ, TriggerWindow> windowDrawer;
-    //windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    //windowDrawer.drawFrame<HistogramFrameStyle>(windowCanvas);
-    //windowDrawer.drawModules<ContourStyle>(windowCanvas);
+    struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
+    PlotDrawer<YZ, TriggerWindow> windowDrawer;
+    windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+    windowDrawer.drawFrame<HistogramFrameStyle>(windowCanvas);
+    windowDrawer.drawModules<ContourStyle>(windowCanvas);
 
 
     // Actually plot the maps
-    thickCanvas.cd();
-    thicknessMap.Draw("colz");
-    windowCanvas.cd();
-    windowMap.Draw("colz");
+    //thickCanvas.cd();
+    //thicknessMap.Draw("colz");
+    //windowCanvas.cd();
+    //windowMap.Draw("colz");
     if (extended) {
       suggestedSpacingCanvas.cd();
       suggestedSpacingMap.Draw("colz");
@@ -4267,6 +4298,7 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
+
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
@@ -4384,7 +4416,7 @@ namespace insur {
       int numRods_;
     public:
       void preVisit() {
-        output_ << "BarrelLayer name, r(mm), z(mm), number of modules" << std::endl;
+        output_ << "Barrel-Layer name, r(mm), z(mm), ss(mm), num mods" << std::endl;
       }
       void visit(const Barrel& b) {
         barName_ = b.myid();
@@ -4395,7 +4427,7 @@ namespace insur {
       }
       void visit(const BarrelModule& m) {
         if (m.posRef().phi > 2) return;
-        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << m.dsDistance() << ", " << numRods_ << std::endl;
+        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << m.dsDistance() << ", " << numRods_/2. << std::endl;
       }
 
       std::string output() const { return output_.str(); }

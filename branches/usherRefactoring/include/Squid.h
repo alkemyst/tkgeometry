@@ -35,6 +35,9 @@
 
 #include <Tracker.h>
 #include <Support.h>
+#include "Materialway.h"
+
+using materialRouting::Materialway;
 
 namespace po = boost::program_options;
 /**
@@ -117,6 +120,7 @@ namespace insur {
     MaterialBudget* pm;
     MatParser mp;
     Usher u;
+    Materialway materialwayTracker;
     MatCalc tkMaterialCalc;
     MatCalc pxMaterialCalc;
     Analyzer a;

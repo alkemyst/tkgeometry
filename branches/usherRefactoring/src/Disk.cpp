@@ -23,8 +23,7 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
   double lastSmallDelta;
 
   for (int i = 1, parity = -bigParity(); lastRho < outerRadius(); i++, parity *= -1) {
-    Ring* ring = new Ring();
-    ring->setup();
+    Ring* ring = GeometryFactory::make<Ring>();
     ring->buildDirection(Ring::BOTTOMUP);
     ring->buildCropRadius(outerRadius());
     ring->store(propertyTree());
@@ -35,7 +34,7 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
       double newZ  = buildZ() + (parity > 0 ? + bigDelta() : - bigDelta()) - ring->smallDelta() - getDsDistance(buildDsDistances, i)/2;  
       double lastZ = buildZ() + (parity > 0 ? - bigDelta() : + bigDelta()) + lastSmallDelta + getDsDistance(buildDsDistances, i)/2;
       double originZ = parity > 0 ? -zError() : +zError();
-      double nextRhoOrigin = (lastRho - minRingOverlap())/lastZ * newZ;
+      double nextRhoOrigin = (lastRho - rOverlap())/lastZ * newZ;
       double nextRhoShifted = lastRho/(lastZ - originZ) * (newZ - originZ);
       double nextRho = MIN(nextRhoOrigin, nextRhoShifted);
       ring->buildStartRadius(nextRho);
@@ -54,8 +53,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
   double lastRho;
   double lastSmallDelta;
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
-    Ring* ring = new Ring();
-    ring->setup();
+    Ring* ring = GeometryFactory::make<Ring>();
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
     if (ringNode.count(i) > 0) ring->store(ringNode.at(i));
@@ -65,7 +63,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
       double newZ  = buildZ() + (parity > 0 ? + bigDelta() : - bigDelta()) + ring->smallDelta() + getDsDistance(buildDsDistances, i)/2; // CUIDADO was + smallDelta + dsDistances[nRing-1]/2;
       double lastZ = buildZ() + (parity > 0 ? - bigDelta() : + bigDelta()) - lastSmallDelta - getDsDistance(buildDsDistances, i+1)/2; // CUIDADO was - smallDelta - dsDistances[nRing-1]/2; // try with prevRing here
       double originZ = parity > 0 ? zError() : -zError();
-      double nextRhoOrigin = (lastRho + minRingOverlap())/lastZ * newZ;
+      double nextRhoOrigin = (lastRho + rOverlap())/lastZ * newZ;
       double nextRhoShifted = lastRho/(lastZ - originZ) * (newZ - originZ);
       double nextRho = MAX(nextRhoOrigin, nextRhoShifted);
       ring->buildStartRadius(nextRho);

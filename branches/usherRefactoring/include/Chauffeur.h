@@ -8,19 +8,18 @@
 #ifndef CHAUFFEUR_H_
 #define CHAUFFEUR_H_
 
-namespace insur {
+namespace materialRouting {
 
   class Chauffeur {
   public:
     Chauffeur();
-    virtual
-    ~Chauffeur();
+    virtual ~Chauffeur();
 
     void arrange (Tracker& tracker, InactiveSurfaces& is, const std::list<Support*>& supports, bool printstatus = false);
     void arrangePixel (Tracker& tracker, InactiveSurfaces& is, bool printstatus = false);
 
   };
 
-} /* namespace insur */
+} /* namespace materialRouting */
 
 #endif /* CHAUFFEUR_H_ */

@@ -1,9 +1,9 @@
 // pt-2S module 10x10 for the outer region
 // GBT on the module
 // Module type
-type = ptOut
+type = pt2S
 // Default sensor:
-nStripsAcross = 1024;
+nStripsAcross = 1016;
 nSegments = 2;
 // Sensor and hybrid stuff
   #include <generic/Sensor>
