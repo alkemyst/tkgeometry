@@ -15,6 +15,16 @@
 #include "DetectorModule.h"
 #include "global_constants.h"
 #include "Tracker.h"
+#include "Visitable.h"
+#include "InactiveSurfaces.h"
+#include "InactiveTube.h"
+#include "InactiveRing.h"
+#include "InactiveElement.h"
+
+using insur::InactiveSurfaces;
+using insur::InactiveTube;
+using insur::InactiveRing;
+using insur::InactiveElement;
 
 namespace materialRouting {
 
@@ -37,6 +47,30 @@ namespace materialRouting {
   private:
     enum Direction { HORIZONTAL, VERTICAL };
 
+    class Section;
+    class Station;      //because Train need to use Station and Section, and Station and Section need to use Train
+
+    class Train {
+    public:
+      enum WagonType { GRAMS, GRAMS_METERS, MILLIMITERS };
+
+      Train();
+      virtual ~Train();
+
+      void relaseMaterial(Section* section) const;
+      void addWagon(WagonType type, std::string massTag, double value);
+    private:
+      struct Wagon {
+        std::string material;
+        double droppingGramsMeter;
+        Wagon(std::string newMassTag, double newDroppingGramsMeter) :
+          material(newMassTag),
+          droppingGramsMeter(newDroppingGramsMeter) {}
+      };
+      Station* destination;
+      std::vector<Wagon> wagons;
+    };
+
     /**
      * @class Section
      * @brief Represents a single element of the materialway
@@ -58,13 +92,41 @@ namespace materialRouting {
       int minR() const;
       int maxZ() const;
       int maxR() const;
+      int lenght() const;
       Direction bearing() const;
       Section* nextSection() const;
+      bool hasNextSection() const;
+      void inactiveElement(InactiveElement* inactiveElement);
+      InactiveElement* inactiveElement() const;
+
+      virtual void route(const Train& train);
     private:
       int minZ_, minR_, maxZ_, maxR_;
       Section* nextSection_;
       Direction bearing_;
+      InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */
     }; //class Section
+
+    class Station : public Section {
+    public:
+      Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
+      Station(int minZ, int minR, int maxZ, int maxR, Direction bearing);
+      virtual ~Station();
+
+      enum Type { LAYER, TERMINUS };
+      struct ConversionRule {
+
+      };
+
+      virtual void route(const Train& train);
+
+    private:
+      size_t labelHash;
+
+    };
+
+    typedef std::vector<Section*> SectionVector;
+    typedef std::map<const DetectorModule*, Section*> ModuleSectionMap;
 
     /**
      * @class Boundary
@@ -73,7 +135,7 @@ namespace materialRouting {
     class Boundary {
     public:
       Boundary();
-      Boundary(int minZ, int minR, int maxZ, int maxR);
+      Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR);
       virtual ~Boundary();
 
       int isHit(int z, int r, Direction aDirection) const;
@@ -82,82 +144,117 @@ namespace materialRouting {
       void minR(int minR);
       void maxZ(int maxZ);
       void maxR(int maxR);
-      void outgoingSection(Section* outgoingSection);
+      void outgoingSectionRight(Section* outgoingSectionRight);
       int minZ() const;
       int minR() const;
       int maxZ() const;
       int maxR() const;
-      Section* outgoingSection();
+      Section* outgoingSectionRight();
     private:
       int minZ_, minR_, maxZ_, maxR_;
-      Section* outgoingSection_;
+      Section* outgoingSectionRight_;
+      const Visitable* containedElement_;
     }; //class Boundary
 
+    typedef std::map<const Barrel*, Boundary*> BarrelBoundaryMap;
+    typedef std::map<const Endcap*, Boundary*> EndcapBoundaryMap;
+
     struct BoundaryComparator {
-      bool operator()(const Boundary& one, const Boundary& two) {
-        return ((one.maxZ() > two.maxZ()) || (one.maxR() > two.maxR()));
+      bool operator()(Boundary* const& one, Boundary* const& two) {
+        return ((one->maxZ() > two->maxZ()) || (one->maxR() > two->maxR()));
       }
     };
 
-    typedef std::set<Boundary, BoundaryComparator> BoundariesSet;
+    typedef std::set<Boundary*, BoundaryComparator> BoundariesSet;
 
     /**
-     * @class SectionUsher
+     * @class OuterUsher
      * @brief Is the core of the functionality that builds sections across boundaries
      * starting from a point and ending to another section or to the upper right angle
      */
-    class SectionUsher {
+    class OuterUsher {
      public:
-      SectionUsher(std::vector<Section>& sectionsList, BoundariesSet& boundariesList);
-      virtual ~SectionUsher();
+      OuterUsher(SectionVector& sectionsList, BoundariesSet& boundariesList);
+      virtual ~OuterUsher();
 
-      void go(Boundary& boundary, Direction direction);         /**< start the process of section building, returns pointer to the first */
+      void go(Boundary* boundary, const Tracker& tracker, Direction direction);         /**< start the process of section building, returns pointer to the first */
     private:
-      std::vector<Section>& sectionsList_;
+      SectionVector& sectionsList_;
       BoundariesSet& boundariesList_;
 
-      bool findBoundaryCollision(int& collision, int& border, int startZ, int startR, Direction direction);
+      bool findBoundaryCollision(int& collision, int& border, int startZ, int startR, const Tracker& tracker, Direction direction);
       bool findSectionCollision(std::pair<int,Section*>& sectionCollision, int startZ, int startR, int end, Direction direction);
       bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction);
       bool buildSectionPair(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int collision, int border, Direction direction);
       Section* splitSection(Section* section, int collision, Direction direction);
       Direction inverseDirection(Direction direction) const;
       void updateLastSectionPointer(Section* lastSection, Section* newSection);
-    }; //class SectionUsher
+    }; //class OuterUsher
 
+    /**
+     * @class InnerUsher
+     * @brief Build the internal sections of a boundary
+     */
+    class InnerUsher {
+    public:
+      InnerUsher(SectionVector& sectionsList, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations);
+      virtual ~InnerUsher();
+
+      void go(const Tracker& tracker);
+    private:
+      SectionVector& sectionsList_;
+      BarrelBoundaryMap& barrelBoundaryAssociations_;
+      EndcapBoundaryMap& endcapBoundaryAssociations_;
+      ModuleSectionMap& moduleSectionAssociations_;
+    }; //class InnerUsher
 
   public:
     Materialway();
     virtual ~Materialway();
 
-    bool build(Tracker& tracker);
+    bool build(const Tracker& tracker, InactiveSurfaces& inactiveSurface);
 
   private:
     BoundariesSet boundariesList_;       /**< Vector for storing all the boundaries */
-    std::vector<Section> sectionsList_;          /**< Vector for storing all the sections */
+    SectionVector sectionsList_;          /**< Vector for storing all the sections */
 
-    SectionUsher usher;
+    OuterUsher outerUsher;
+    InnerUsher innerUsher;
 
     static const double gridFactor;                                     /**< the conversion factor for using integers in the algorithm (helps finding collisions),
                                                                             actually transforms millimiters in microns */
     static const int sectionWidth;     /**< the width of a section */
     static const int safetySpace;           /**< the safety space between sections */
-    static const double globalMaxZ_mm;                     /**< the Z coordinate of the end point of the sections */
-    static const double globalMaxR_mm;                   /**< the rho coordinate of the end point of the sections */
-    static const int globalMaxZ;
-    static const int globalMaxR;
+    //static const double globalMaxZ_mm;                     /**< the Z coordinate of the end point of the sections */
+    //static const double globalMaxR_mm;                   /**< the rho coordinate of the end point of the sections */
+    //static const int globalMaxZ;
+    //static const int globalMaxR;
     static const int boundaryPadding;
-    static const int boundaryRightPadding;
+    static const int boundaryPrincipalPadding;
+    static const int globalMaxZPadding;
+    static const int globalMaxRPadding;
+    static const int layerSectionMargin;
+    static const int diskSectionMargin;
+    static const int layerSectionRightMargin;
+    static const int diskSectionUpMargin;
+    static const int layerSectionTolerance;
+    static const int diskSectionTolerance;
+    static const int layerStationLenght;
 
     static int discretize(double input);
     static double undiscretize(int input);
 
     bool buildBoundaries(const Tracker& tracker);             /**< build the boundaries around barrels and endcaps */
-    bool buildExternalSections(const Tracker& tracker);       /**< build the sections outside the boundaries */
-    bool buildInternalSections(const Tracker& tracker);       /**< build the sections inside the boundaries */
+    void buildExternalSections(const Tracker& tracker);       /**< build the sections outside the boundaries */
+    void buildInternalSections(const Tracker& tracker);                             /**< build the sections inside the boundaries */
+    void buildInactiveElements();
+    void testTrains();
+    void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
 
 
-    //std::map<BarrelModule&, Section*> barrelModuleSectionAssociations; /**< Map that associate each barrel module with the section that it feeds */
+    BarrelBoundaryMap barrelBoundaryAssociations_;
+    EndcapBoundaryMap endcapBoundaryAssociations_;
+    ModuleSectionMap moduleSectionAssociations_; /**< Map that associate each module with the section that it feeds */
     //std::map<Boundary&, Section*> boundarySectionAssociations;         /**< Map that associate each boundary with the outgoing section (for the construction) */
   };
 

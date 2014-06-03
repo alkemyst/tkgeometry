@@ -206,12 +206,13 @@ namespace insur {
       if (tr) {
         if (is) delete is;
         is = new InactiveSurfaces();
-        u.arrange(*tr, *is, supports_, verbose);
-        materialwayTracker.build(*tr);
+        //u.arrange(*tr, *is, supports_, verbose);
+        materialwayTracker.build(*tr, *is);
         if (px) {
           if (pi) delete pi;
           pi = new InactiveSurfaces();
-          u.arrangePixels(*px, *pi, verbose);
+          //u.arrangePixels(*px, *pi, verbose);
+          materialwayPixel.build(*px, *pi);
         }
         stopTaskClock();
         return true;
@@ -623,6 +624,18 @@ namespace insur {
                            getMaterialFile(), getPixelMaterialFile(),
                            defaultMaterialFile, defaultPixelMaterialFile,
                            a, *tr, *simParms_, site);
+      stopTaskClock();
+      return true;
+    }
+  }
+
+  bool Squid::serviceDebugSite() {
+    if (!tr) {
+      logERROR(err_no_tracker);
+      return false;
+    } else {
+      startTaskClock("Creating material routing debug page");
+      v.serviceDebugSite(*tr, site);
       stopTaskClock();
       return true;
     }

@@ -15,11 +15,12 @@
 #include "Barrel.h"
 #include "Endcap.h"
 #include "Visitor.h"
+#include "Visitable.h"
 
 using std::set;
 
 
-class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker> {
+class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
   class ModuleSetVisitor : public GeometryVisitor {
   public:
     typedef set<Module*> Modules;

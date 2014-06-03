@@ -9,6 +9,7 @@
 #include "Property.h"
 #include "Module.h"
 #include "RodPair.h"
+#include "Visitable.h"
 
 using std::string;
 using std::vector;
@@ -16,7 +17,7 @@ using std::pair;
 using std::unique_ptr;
 
 
-class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer> {
+class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:
   typedef PtrVector<RodPair> Container;
 private:

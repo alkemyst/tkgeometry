@@ -7,6 +7,7 @@
 #include "ModuleBase.h"
 #include "GeometricModule.h"
 #include "CoordinateOperations.h"
+#include "Visitable.h"
 
 
 //
