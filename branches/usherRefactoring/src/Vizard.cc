@@ -2128,6 +2128,40 @@ namespace insur {
   }
 
 
+  bool Vizard::serviceDebugSite(Tracker& tracker, RootWSite& site) {
+    RootWPage& myPage = site.addPage("La pagina del Martina");
+    myPage.addContent("La blague du jour", false);
+    RootWContent& myContent = myPage.addContent("Interesting stuff", true);
+//    TCanvas* myCanvas = new TCanvas("TitleOfTHisCanvas", "Title of the canvas", 600, 600);
+//    TH1D* myPlot = new TH1D("myPlotname", "Beautiful plot title angle #alpha_{0};Asse x;Asse y", 10, -0.5, 9.5);
+//    myPlot->SetFillColor(kBlue);
+//    myPlot->Fill(5);
+//    myCanvas->cd();
+//    myPlot->Draw();
+
+    double maxR = 1100;
+    double maxL = 2800;
+    double scaleFactor = maxR / 600;
+    int rzCanvasX = int(maxL/scaleFactor);
+    int rzCanvasY = int(maxR/scaleFactor);
+
+    TCanvas* RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZ, Type> yzDrawer;
+    yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+    TLine* myLine = new TLine(0, 0, 1000, 2000);
+    myLine->SetLineWidth(5);
+    myLine->Draw();
+
+    RootWImage& myImage = myContent.addImage(RZCanvas, 600, 600);
+    myImage.setComment("No, ma meglio...");
+    myImage.setName("noMaBello");
+
+
+  }
+
   bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Bandwidth");
     myPage->setAddress("bandwidth.html");

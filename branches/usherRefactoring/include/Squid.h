@@ -100,6 +100,7 @@ namespace insur {
     bool reportTriggerPerformanceSite(bool extended);
     bool reportNeighbourGraphSite();
     bool additionalInfoSite();
+    bool serviceDebugSite();
     bool makeSite(bool addLogPage = true);
     void setBasename(std::string newBaseName);
     void setGeometryFile(std::string geomFile);
@@ -121,6 +122,7 @@ namespace insur {
     MatParser mp;
     Usher u;
     Materialway materialwayTracker;
+    Materialway materialwayPixel;
     MatCalc tkMaterialCalc;
     MatCalc pxMaterialCalc;
     Analyzer a;

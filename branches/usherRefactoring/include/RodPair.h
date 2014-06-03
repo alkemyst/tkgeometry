@@ -13,6 +13,7 @@
 #include "Property.h"
 #include "Module.h"
 #include "messageLogger.h"
+#include "Visitable.h"
 
 using std::string;
 using std::vector;
@@ -21,7 +22,7 @@ using std::unique_ptr;
 
 typedef vector<unique_ptr<BarrelModule>> RodTemplate;
 
-class RodPair : public PropertyObject, public Buildable, public Identifiable<int> {
+class RodPair : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
   typedef PtrVector<BarrelModule> Container;
 protected:

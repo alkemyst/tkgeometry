@@ -4,7 +4,9 @@
  */
 
 #include <ModuleCap.h>
+
 namespace insur {
+
     // public
     /**
      * The constructor links the cap to an existing module.

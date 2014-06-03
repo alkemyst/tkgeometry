@@ -10,8 +10,9 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Ring.h"
+#include "Visitable.h"
 
-class Disk : public PropertyObject, public Buildable, public Identifiable<int> {
+class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
   typedef PtrVector<Ring> Container;
 private:
@@ -55,7 +56,7 @@ public:
 
   void setup() {
     minZ.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minZ()); } return min; });
-    maxZ.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
+    maxZ.setup([this]() { double max = -99999; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
     minR.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });

@@ -10,11 +10,12 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Layer.h"
+#include "Visitable.h"
 
 using std::string;
 using std::vector;
 
-class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel> {
+class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
 public:
   typedef PtrVector<Layer> Container;
 private:
