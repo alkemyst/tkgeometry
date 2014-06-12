@@ -1,3 +1,6 @@
+#include <cmath>
+#include <iostream>
+
 /**
  * @file InactiveElement.cc
  * @brief This is the base class implementation of a single inactive element
@@ -98,6 +101,10 @@ namespace insur {
      */
     void InactiveElement::setRWidth(double rwidth) { w_radius = rwidth; }
     
+    double InactiveElement::getVolume() const {
+      return M_PI * w_radius * (w_radius + 2*i_radius) * z_length;
+    }
+
     /**
      * Get the index of the element's feeder volume.
      * @return The index within the tracker object's layer or disc vector, or of the service volume; -1 if there is none

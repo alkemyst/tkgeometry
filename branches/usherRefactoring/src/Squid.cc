@@ -206,13 +206,11 @@ namespace insur {
       if (tr) {
         if (is) delete is;
         is = new InactiveSurfaces();
-        //u.arrange(*tr, *is, supports_, verbose);
-        materialwayTracker.build(*tr, *is);
+        u.arrange(*tr, *is, supports_, verbose);
         if (px) {
           if (pi) delete pi;
           pi = new InactiveSurfaces();
-          //u.arrangePixels(*px, *pi, verbose);
-          materialwayPixel.build(*px, *pi);
+          u.arrangePixels(*px, *pi, verbose);
         }
         stopTaskClock();
         return true;
@@ -228,6 +226,53 @@ namespace insur {
       stopTaskClock();
       return false;
     }
+  }
+
+  bool Squid::buildMaterials(bool verbose) {
+    startTaskClock("Building materials");
+
+    if (tr) {
+        std::string trackm = getMaterialFile();
+        if (trackm=="") return false;
+        if (!is) is = new InactiveSurfaces();
+        if (mb) delete mb;
+        mb  = new MaterialBudget(*tr, *is);
+        if (tkMaterialCalc.initDone()) tkMaterialCalc.reset(); // TODO: obsolete these
+        if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
+
+        if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+          materialwayTracker.build(*tr, *is, tkMaterialCalc);
+
+          // mb->materialsAll(tkMaterialCalc);
+          // if (verbose) mb->print();
+
+          if (px) {
+            std::string pixm = getPixelMaterialFile();
+            if (pixm!="") {
+              if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+                if (!pi) pi = new InactiveSurfaces();
+                if (pm) delete pm;
+                pm = new MaterialBudget(*px, *pi);
+                materialwayPixel.build(*px, *pi, pxMaterialCalc);
+
+                //pm->materialsAll(pxMaterialCalc);
+                //if (verbose) pm->print();
+              }
+            }
+          }
+
+        } else {
+          if (mb) delete mb;
+          mb = NULL;
+          if (pm) delete pm;
+          pm = NULL;
+          logERROR(err_init_failed);
+          return false;
+        }
+      } else {
+        logERROR(err_no_tracker);
+        return false;
+      }
   }
 
 
@@ -386,6 +431,7 @@ namespace insur {
     site.setCommentLink("../");
     site.addAuthor("Giovanni Bianchi");
     site.addAuthor("Nicoletta De Maio");
+    site.addAuthor("Stefano Martina");
     site.addAuthor("Stefano Mersi");
     site.setRevision(SvnRevision::revisionNumber);
     return true;

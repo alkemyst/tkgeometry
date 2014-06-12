@@ -20,11 +20,13 @@
 #include "InactiveTube.h"
 #include "InactiveRing.h"
 #include "InactiveElement.h"
+#include "MatCalc.h"
 
 using insur::InactiveSurfaces;
 using insur::InactiveTube;
 using insur::InactiveRing;
 using insur::InactiveElement;
+using insur::MatCalc;
 
 namespace materialRouting {
 
@@ -98,6 +100,7 @@ namespace materialRouting {
       bool hasNextSection() const;
       void inactiveElement(InactiveElement* inactiveElement);
       InactiveElement* inactiveElement() const;
+      //Section* appendNewSection
 
       virtual void route(const Train& train);
     private:
@@ -212,7 +215,7 @@ namespace materialRouting {
     Materialway();
     virtual ~Materialway();
 
-    bool build(const Tracker& tracker, InactiveSurfaces& inactiveSurface);
+    bool build(const Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc);
 
   private:
     BoundariesSet boundariesList_;       /**< Vector for storing all the boundaries */
@@ -237,9 +240,9 @@ namespace materialRouting {
     static const int diskSectionMargin;
     static const int layerSectionRightMargin;
     static const int diskSectionUpMargin;
-    static const int layerSectionTolerance;
-    static const int diskSectionTolerance;
+    static const int sectionTolerance;
     static const int layerStationLenght;
+    static const int layerStationWidth;
 
     static int discretize(double input);
     static double undiscretize(int input);
