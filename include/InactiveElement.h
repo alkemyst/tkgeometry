@@ -13,10 +13,9 @@
 #ifndef _INACTIVEELEMENT_H
 #define	_INACTIVEELEMENT_H
 
-#include <cmath>
-#include <iostream>
-#include <MaterialProperties.h>
-#include <global_constants.h>
+
+#include "MaterialProperties.h"
+#include "global_constants.h"
 namespace insur {
   /**
    * @class InactiveElement
@@ -47,6 +46,7 @@ namespace insur {
     void setInnerRadius(double iradius);
     double getRWidth();
     void setRWidth(double width);
+    double getVolume() const;
     int getFeederIndex();
     void setFeederIndex(int layer);
     InType getFeederType();

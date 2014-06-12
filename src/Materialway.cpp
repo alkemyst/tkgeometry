@@ -198,7 +198,7 @@ namespace materialRouting {
 
   void Materialway::Station::route(const Train& train) {
     Section::route(train);
-    //inactiveElement()->addLocalMass("Steel", 1000.0); //TODO:cancel
+    //inactiveElement()->addLocalMass("Steel", 10000.0); //TODO:cancel
   }
   //END Materialway::Station
   //=====================================================================================================================
@@ -468,10 +468,12 @@ namespace materialRouting {
       void visit(const Barrel& barrel) {
         //build section right to layers
         Boundary* boundary = barrelBoundaryAssociations_[&barrel];
+
         int minZ = discretize(barrel.maxZ()) + layerSectionRightMargin + safetySpace + layerStationLenght;
         int minR = discretize(barrel.minR());
         int maxZ = minZ + sectionWidth;
         int maxR = boundary->maxR() - safetySpace;
+
         startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSectionRight()); //TODO:build other segment in other direction?
       }
 
@@ -480,7 +482,7 @@ namespace materialRouting {
         Section* section = startBarrel;
         int attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
 
-        while(section->maxR() < attachPoint + layerSectionTolerance) {
+        while(section->maxR() < attachPoint + sectionTolerance) {
           if(!section->hasNextSection()) {
             //TODO: messaggio di errore
             return;
@@ -488,30 +490,38 @@ namespace materialRouting {
           section = section->nextSection();
         }
 
-        if (section->minR() < attachPoint - layerSectionTolerance) {
+        if (section->minR() < attachPoint - sectionTolerance) {
           section = splitSection(section, attachPoint);
         }
 
-        //built two main sections above the layer
+        //built two main sections above the layer (one for positive part, one for negative)
 
-        int minZ = 0;
-        int minR = attachPoint;
-        //int maxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
-        int maxZ = section->minZ() - safetySpace;
-        int maxR = minR + sectionWidth;
+        int sectionMinZ = 0;
+        int sectionMinR = attachPoint;
+        //int sectionMaxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
+        int sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
+        int sectionMaxR = sectionMinR + sectionWidth;
 
-        Station* station = new Station(maxZ + safetySpace, minR, maxZ + safetySpace + layerStationLenght, maxR, HORIZONTAL, section);
+        int stationMinZ = sectionMaxZ + safetySpace;
+        int stationMinR = sectionMinR -(layerStationWidth/2);
+        int stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
+        int stationMaxR = sectionMinR + (layerStationWidth/2);
+
+        Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, section); //TODO: check if is ok VERTICAL
         sectionsList_.push_back(station);
-        startLayerZPlus = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
+        startLayerZPlus = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
         sectionsList_.push_back(startLayerZPlus);
 
-        //minZ = discretize(layer.minZ()) - layerSectionRightMargin;
-        minZ = - section->minZ() + safetySpace;
-        maxZ = 0 - safetySpace;
+        //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;
+        sectionMinZ = - section->minZ() + safetySpace + layerStationLenght;
+        sectionMaxZ = 0 - safetySpace;
 
-        station = new Station(minZ - safetySpace - layerStationLenght, minR, minZ - safetySpace, maxR, HORIZONTAL);
+        stationMinZ = sectionMinZ - safetySpace - layerStationLenght;
+        stationMaxZ = sectionMinZ - safetySpace;
+
+        station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL); //TODO: check if is ok VERTICAL
         sectionsList_.push_back(station);
-        startLayerZMinus = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
+        startLayerZMinus = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
         sectionsList_.push_back(startLayerZMinus);
 
         //TODO:aggiungi riferimento della rod a startZ...
@@ -525,27 +535,27 @@ namespace materialRouting {
         if(module.maxZ() > 0) {
           attachPoint = discretize(module.maxZ());
           section = startLayerZPlus;
-          while (section->maxZ() < attachPoint + layerSectionTolerance) {
+          while (section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
               //TODO: messaggio di errore
               return;
             }
             section = section->nextSection();
           }
-          if (section->minZ() < attachPoint - layerSectionTolerance) {
+          if (section->minZ() < attachPoint - sectionTolerance) {
             section = splitSection(section, attachPoint, true);
           }
         } else {
           attachPoint = discretize(module.minZ());
           section = startLayerZMinus;
-          while (section->minZ() > attachPoint - layerSectionTolerance) {
+          while (section->minZ() > attachPoint - sectionTolerance) {
             if(!section->hasNextSection()) {
               //TODO: messaggio di errore
               return;
             }
             section = section->nextSection();
           }
-          if (section->maxZ() > attachPoint + layerSectionTolerance) {
+          if (section->maxZ() > attachPoint + sectionTolerance) {
             section = splitSection(section, attachPoint, false);
           }
         }
@@ -576,7 +586,7 @@ namespace materialRouting {
           Section* section = startEndcap;
           int attachPoint = discretize(disk.maxZ()) + diskSectionMargin;
 
-          while(section->maxZ() < attachPoint + diskSectionTolerance) {
+          while(section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
               //TODO: messaggio di errore
               return;
@@ -584,7 +594,7 @@ namespace materialRouting {
             section = section->nextSection();
           }
 
-          if (section->minZ() < attachPoint - diskSectionTolerance) {
+          if (section->minZ() < attachPoint - sectionTolerance) {
             section = splitSection(section, attachPoint);
           }
 
@@ -610,14 +620,14 @@ namespace materialRouting {
 
           attachPoint = discretize(module.maxR());
           section = startDisk;
-          while (section->maxR() < attachPoint + diskSectionTolerance) {
+          while (section->maxR() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
               //TODO: messaggio di errore
               return;
             }
             section = section->nextSection();
           }
-          if (section->minR() < attachPoint - diskSectionTolerance) {
+          if (section->minR() < attachPoint - sectionTolerance) {
             section = splitSection(section, attachPoint);
           }
 
@@ -639,6 +649,8 @@ namespace materialRouting {
       Section* startEndcap;
       ZPosition currEndcapPosition;
 
+
+      //Section* findAttachPoint(Section* section, )
 
       Section* splitSection(Section* section, int collision, bool zPlus = true) {
         //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
@@ -693,9 +705,9 @@ namespace materialRouting {
   const int Materialway::diskSectionMargin = discretize(2.0);          /**< the space between the disk and the service sections right of it */
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
-  const int Materialway::layerSectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers to the service section over it */
-  const int Materialway::diskSectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the disks to the service section right of it */
+  const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
   const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
+  const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
 
 
   Materialway::Materialway() :
@@ -711,7 +723,7 @@ namespace materialRouting {
     return double(input / gridFactor);
   }
 
-  bool Materialway::build(const Tracker& tracker, InactiveSurfaces& inactiveSurface) {
+  bool Materialway::build(const Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc) {
     /*
     std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
     std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;
