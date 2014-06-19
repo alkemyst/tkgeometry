@@ -6,6 +6,7 @@
  */
 
 #include "Materialway.h"
+#include <ctime>
 
 namespace materialRouting {
 
@@ -13,7 +14,7 @@ namespace materialRouting {
   //START Materialway::Boundary
   Materialway::Boundary::Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR) :
       containedElement_(containedElement),
-      outgoingSectionRight_(nullptr),
+      outgoingSection_(nullptr),
       minZ_(minZ),
       maxZ_(maxZ),
       minR_(minR),
@@ -51,8 +52,8 @@ namespace materialRouting {
   void Materialway::Boundary::maxR(int maxR) {
     maxR_ = maxR;
   }
-  void Materialway::Boundary::outgoingSectionRight(Section* outgoingSection) {
-    outgoingSectionRight_ = outgoingSection;
+  void Materialway::Boundary::outgoingSection(Section* outgoingSection) {
+    outgoingSection_ = outgoingSection;
   }
   int Materialway::Boundary::minZ() const {
     return minZ_;
@@ -66,8 +67,8 @@ namespace materialRouting {
   int Materialway::Boundary::maxR() const {
     return maxR_;
   }
-  Materialway::Section* Materialway::Boundary::outgoingSectionRight() {
-    return outgoingSectionRight_;
+  Materialway::Section* Materialway::Boundary::outgoingSection() {
+    return outgoingSection_;
   }
   //END Materialway::Boundary
   //=====================================================================================================================
@@ -79,7 +80,8 @@ namespace materialRouting {
   void Materialway::Train::relaseMaterial(Section* section) const {
     for(const Wagon& wagon : wagons) {
       if (section->inactiveElement() != nullptr) {
-        section->inactiveElement()->addLocalMass(wagon.material, wagon.droppingGramsMeter * undiscretize(section->lenght()) / 1000.);   //TODO: control if unit is mm
+        std::string tmp = wagon.material+"_HV lineeee";
+        section->inactiveElement()->addLocalMass(wagon.material, tmp, wagon.droppingGramsMeter * undiscretize(section->lenght()) / 1000.);   //TODO: control if unit is mm
       }
     }
   }
@@ -94,11 +96,14 @@ namespace materialRouting {
   //END Materialway::Train
   //=====================================================================================================================
   //START Materialway::Section
+  Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug) :
+    minZ_(minZ), minR_(minR), maxZ_(maxZ), maxR_(maxR), bearing_(bearing), nextSection_(nextSection), inactiveElement_(nullptr), debug_(debug) {}
+
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
-              minZ_(minZ), minR_(minR), maxZ_(maxZ), maxR_(maxR), bearing_(bearing), nextSection_(nextSection), inactiveElement_(nullptr) {}
+    Section(minZ, minR, maxZ, maxR, bearing, nextSection, false) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing) :
-              Section(minZ, minR, maxZ, maxR, bearing, nullptr) {}
+    Section(minZ, minR, maxZ, maxR, bearing, nullptr) {}
   Materialway::Section::~Section() {}
 
   int Materialway::Section::isHit(int z, int r, int end, Direction aDirection) const {
@@ -225,7 +230,7 @@ namespace materialRouting {
       going = foundBoundaryCollision && noSectionCollision;
     }
 
-    boundary->outgoingSectionRight(firstSection);
+    boundary->outgoingSection(firstSection);
   }
 
   /**
@@ -456,12 +461,12 @@ namespace materialRouting {
         barrelBoundaryAssociations_(barrelBoundaryAssociations),
         endcapBoundaryAssociations_(endcapBoundaryAssociations),
         moduleSectionAssociations_(moduleSectionAssociations),
-        startLayerZPlus(nullptr),
-        startLayerZMinus(nullptr),
+        startLayer(nullptr),
+        //startLayerZMinus(nullptr),
         startBarrel(nullptr),
         startEndcap(nullptr),
-        startDisk(nullptr),
-        currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
+        startDisk(nullptr) {}
+        //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
 
       //For the barrels ----------------------------------------------------
@@ -474,7 +479,7 @@ namespace materialRouting {
         int maxZ = minZ + sectionWidth;
         int maxR = boundary->maxR() - safetySpace;
 
-        startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSectionRight()); //TODO:build other segment in other direction?
+        startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection()); //TODO:build other segment in other direction?
       }
 
       void visit(const Layer& layer) {
@@ -509,9 +514,10 @@ namespace materialRouting {
 
         Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, section); //TODO: check if is ok VERTICAL
         sectionsList_.push_back(station);
-        startLayerZPlus = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
-        sectionsList_.push_back(startLayerZPlus);
+        startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
+        sectionsList_.push_back(startLayer);
 
+        /*
         //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;
         sectionMinZ = - section->minZ() + safetySpace + layerStationLenght;
         sectionMaxZ = 0 - safetySpace;
@@ -523,6 +529,7 @@ namespace materialRouting {
         sectionsList_.push_back(station);
         startLayerZMinus = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
         sectionsList_.push_back(startLayerZMinus);
+        */
 
         //TODO:aggiungi riferimento della rod a startZ...
       }
@@ -534,7 +541,7 @@ namespace materialRouting {
         //if the module is in z plus
         if(module.maxZ() > 0) {
           attachPoint = discretize(module.maxZ());
-          section = startLayerZPlus;
+          section = startLayer;
           while (section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
               //TODO: messaggio di errore
@@ -543,9 +550,12 @@ namespace materialRouting {
             section = section->nextSection();
           }
           if (section->minZ() < attachPoint - sectionTolerance) {
-            section = splitSection(section, attachPoint, true);
+            section = splitSection(section, attachPoint);
           }
-        } else {
+          moduleSectionAssociations_[&module] = section;
+        }
+        /*
+        else {
           attachPoint = discretize(module.minZ());
           section = startLayerZMinus;
           while (section->minZ() > attachPoint - sectionTolerance) {
@@ -558,15 +568,15 @@ namespace materialRouting {
           if (section->maxZ() > attachPoint + sectionTolerance) {
             section = splitSection(section, attachPoint, false);
           }
+          moduleSectionAssociations_[&module] = section;
         }
-
-        moduleSectionAssociations_[&module] = section;
+        */
       }
 
       //For the endcaps ----------------------------------------------------
       void visit(const Endcap& endcap) {
         if (endcap.minZ() >= 0) {
-          currEndcapPosition = POSITIVE;
+          //currEndcapPosition = POSITIVE;
 
           //build section above the disks
           Boundary* boundary = endcapBoundaryAssociations_[&endcap];
@@ -574,14 +584,16 @@ namespace materialRouting {
           int minR = discretize(endcap.maxR())  + diskSectionUpMargin + safetySpace;
           int maxZ = boundary->maxZ() - safetySpace;
           int maxR = minR + sectionWidth;
-          startEndcap = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, boundary->outgoingSectionRight()); //TODO:build other segment in other direction?
-        } else {
-          currEndcapPosition = NEGATIVE;
+          startEndcap = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, boundary->outgoingSection()); //TODO:build other segment in other direction?
         }
+        //else {
+          //currEndcapPosition = NEGATIVE;
+        //}
       }
 
       void visit(const Disk& disk) {
-        if(currEndcapPosition == POSITIVE) {
+        //if(currEndcapPosition == POSITIVE) {
+        if (disk.minZ() >= 0) {
           //split the right section
           Section* section = startEndcap;
           int attachPoint = discretize(disk.maxZ()) + diskSectionMargin;
@@ -607,6 +619,7 @@ namespace materialRouting {
           int maxR = section->minR() - safetySpace;
 
           startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL, section);
+          //startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL);
           sectionsList_.push_back(startDisk);
 
           //TODO:aggiungi riferimento della rod a startZ...
@@ -614,7 +627,8 @@ namespace materialRouting {
       }
 
       void visit(const EndcapModule& module) {
-        if(currEndcapPosition == POSITIVE) {
+        //if(currEndcapPosition == POSITIVE) {
+        if (module.minZ() >= 0) {
           Section* section;
           int attachPoint;
 
@@ -642,37 +656,37 @@ namespace materialRouting {
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
-      Section* startLayerZPlus;
-      Section* startLayerZMinus;
+      Section* startLayer;
+      //Section* startLayerZMinus;
       Section* startDisk;
       Section* startBarrel;
       Section* startEndcap;
-      ZPosition currEndcapPosition;
+      //ZPosition currEndcapPosition;
 
 
       //Section* findAttachPoint(Section* section, )
 
-      Section* splitSection(Section* section, int collision, bool zPlus = true) {
+      Section* splitSection(Section* section, int collision/*, bool zPlus = true*/, bool debug = false) {
         //std::cout << "SplitSection " << setw(10) << left << ++splitCounter << " ; collision " << setw(10) << left << collision <<" ; section->minZ() " << setw(10) << left << section->minZ() <<" ; section->maxZ() " << setw(10) << left << section->maxZ() <<" ; section->minR() " << setw(10) << left << section->minR() <<" ; section->maxR() " << setw(10) << left << section->maxR() << endl;
         Section* newSection = nullptr;
 
         if (section->bearing() == HORIZONTAL) {
-          if(zPlus) {
-            newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection());
-          } else {
-            newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection());
-          }
+          //if(zPlus) {
+            newSection = new Section(collision, section->minR(), section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
+          //} else {
+          //  newSection = new Section(section->minZ(), section->minR(), collision, section->maxR(), section->bearing(), section->nextSection());
+          //}
           sectionsList_.push_back(newSection);
 
-          if(zPlus) {
+          //if(zPlus) {
             section->maxZ(collision - safetySpace);
-          } else {
-            section->minZ(collision + safetySpace);
-          }
+          //} else {
+          //  section->minZ(collision + safetySpace);
+          //}
           section->nextSection(newSection);
 
         } else {
-          newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection());
+          newSection = new Section(section->minZ(), collision, section->maxZ(), section->maxR(), section->bearing(), section->nextSection(), debug);
           sectionsList_.push_back(newSection);
 
           section->maxR(collision - safetySpace);
@@ -781,15 +795,24 @@ namespace materialRouting {
     std::cout<<"barrelModule7: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[7].maxR()<<endl;
     std::cout<<"barrelModule8: < "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].minZ()<<"; > "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].maxZ()<<"; v "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].minR()<<"; ^ "<<tracker.barrels()[0].layers()[0].rods()[0].modules().first[8].maxR()<<endl;
 */
+
     bool retValue = false;
 
-    if (buildBoundaries(tracker))
+    //int startTime = time(0);
+    if (buildBoundaries(tracker)) {
+      //std::cout << "TIME " << difftime(time(0), startTime) << " end buildBoundaries" << endl;
       buildExternalSections(tracker);
+      //std::cout << "TIME " << difftime(time(0), startTime) << " end buildExternalSections" << endl;
       buildInternalSections(tracker);
+      //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInternalSections" << endl;
+    }
 
     buildInactiveElements();
+    //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveElements" << endl;
     testTrains();
+    //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << endl;
     buildInactiveSurface(inactiveSurface);
+    //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << endl;
 
     return retValue;
   }
@@ -861,31 +884,33 @@ namespace materialRouting {
 
     for(Section* section : sectionsList_) {
     //for(SectionVector::iterator sectionIter = sectionsList_.begin(); sectionIter != sectionsList_.end(); ++sectionIter) {
-      zLength = undiscretize(section->maxZ() - section->minZ());
-      zOffset = undiscretize(section->minZ());
-      innerRadius = undiscretize(section->minR());
-      rWidth = undiscretize(section->maxR() - section->minR());
+      if(section->debug_ == false) {
+        zLength = undiscretize(section->maxZ() - section->minZ());
+        zOffset = undiscretize(section->minZ());
+        innerRadius = undiscretize(section->minR());
+        rWidth = undiscretize(section->maxR() - section->minR());
 
-      if (section->bearing() == HORIZONTAL) {
-        InactiveTube* tube = new InactiveTube;
-        tube->setZLength(zLength);
-        tube->setZOffset(zOffset);
-        tube->setInnerRadius(innerRadius);
-        tube->setRWidth(rWidth);
-        tube->setFinal(true);
-        section->inactiveElement(tube);
-        //tube->addLocalMass("Steel", 1000.0*zLength);
-        //inactiveSurface.addBarrelServicePart(tube);
-      } else {
-        InactiveRing* ring = new InactiveRing;
-        ring->setZLength(zLength);
-        ring->setZOffset(zOffset);
-        ring->setInnerRadius(innerRadius);
-        ring->setRWidth(rWidth);
-        ring->setFinal(true);
-        section->inactiveElement(ring);
-        //ring->addLocalMass("Steel", 1000.0*rWidth);
-        //inactiveSurface.addBarrelServicePart(ring);
+        if (section->bearing() == HORIZONTAL) {
+          InactiveTube* tube = new InactiveTube;
+          tube->setZLength(zLength);
+          tube->setZOffset(zOffset);
+          tube->setInnerRadius(innerRadius);
+          tube->setRWidth(rWidth);
+          tube->setFinal(true);
+          section->inactiveElement(tube);
+          //tube->addLocalMass("Steel", 1000.0*zLength);
+          //inactiveSurface.addBarrelServicePart(tube);
+        } else {
+          InactiveRing* ring = new InactiveRing;
+          ring->setZLength(zLength);
+          ring->setZOffset(zOffset);
+          ring->setInnerRadius(innerRadius);
+          ring->setRWidth(rWidth);
+          ring->setFinal(true);
+          section->inactiveElement(ring);
+          //ring->addLocalMass("Steel", 1000.0*rWidth);
+          //inactiveSurface.addBarrelServicePart(ring);
+        }
       }
     }
   }
@@ -895,7 +920,7 @@ namespace materialRouting {
     std::map<Section*, int> counter;
     for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
       Train train;
-      train.addWagon(Train::GRAMS_METERS, "Cu", 10000);
+      train.addWagon(Train::GRAMS_METERS, "Cu_HV", 10);
       pair.second->route(train);
       counter[pair.second] ++;
     }
@@ -907,10 +932,28 @@ namespace materialRouting {
 
   void Materialway::buildInactiveSurface(InactiveSurfaces& inactiveSurface) {
     for(Section* section : sectionsList_) {
-      inactiveSurface.addBarrelServicePart(*section->inactiveElement());
+      if(section->inactiveElement() != nullptr) {
+        if((section->inactiveElement()->localMassCount() > 0) && (section->minZ() > 0)) {
+          inactiveSurface.addBarrelServicePart(*section->inactiveElement());
+          inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
+        }
+      }
     }
   }
 
+  InactiveElement* Materialway::buildOppositeInactiveElement(InactiveElement* inactiveElement) {
+    InactiveElement* newInactiveElement = new InactiveElement();
+    newInactiveElement->setVertical(inactiveElement->isVertical());
+    newInactiveElement->setFinal(inactiveElement->isFinal());
+    newInactiveElement->setZOffset(-1 * inactiveElement->getZOffset());
+    newInactiveElement->setZLength(inactiveElement->getZLength());
+    newInactiveElement->setInnerRadius(inactiveElement->getInnerRadius());
+    newInactiveElement->setRWidth(inactiveElement->getRWidth());
+    newInactiveElement->setTotalMass(inactiveElement->getTotalMass());
+    newInactiveElement->setLocalMass(inactiveElement->getLocalMass());
+
+    return newInactiveElement;
+  }
 
   //END Materialway
 

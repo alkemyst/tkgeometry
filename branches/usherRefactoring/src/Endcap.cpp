@@ -44,7 +44,7 @@ vector<double> Endcap::findMaxDsDistances() { // drill down into the property tr
 
 void Endcap::build() {
   try {
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
     if (!innerZ.state()) innerZ(barrelMaxZ() + barrelGap());

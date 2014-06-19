@@ -1176,8 +1176,9 @@ namespace insur {
       void preVisit() {
         layerTable->setContent(0, 0, "Layer");
         layerTable->setContent(1, 0, "r");
-        layerTable->setContent(2, 0, "# mod");
-        layerTable->setContent(3, 0, "# rods");
+        layerTable->setContent(2, 0, "z_max");
+        layerTable->setContent(3, 0, "# mod");
+        layerTable->setContent(4, 0, "# rods");
         diskTable->setContent(0, 0, "Disk");
         diskTable->setContent(1, 0, "z");
         diskTable->setContent(2, 0, "# mod");
@@ -1195,8 +1196,9 @@ namespace insur {
         totalBarrelModules += nModules;
         layerTable->setContent(0, nBarrelLayers, l.myid());
         layerTable->setContent(1, nBarrelLayers, l.placeRadius(), coordPrecision);
-        layerTable->setContent(2, nBarrelLayers, nModules);
-        layerTable->setContent(3, nBarrelLayers, l.numRods());
+        layerTable->setContent(2, nBarrelLayers, l.maxZ(), coordPrecision);
+        layerTable->setContent(3, nBarrelLayers, nModules);
+        layerTable->setContent(4, nBarrelLayers, l.numRods());
       }
 
       void visit(const Disk& d) override {
@@ -1248,7 +1250,7 @@ namespace insur {
 
       void postVisit() {
         layerTable->setContent(0, nBarrelLayers+1, "Total");
-        layerTable->setContent(2, nBarrelLayers+1, totalBarrelModules);
+        layerTable->setContent(3, nBarrelLayers+1, totalBarrelModules);
         diskTable->setContent(0, nDisks+1, "Total");
         diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
 
@@ -2120,6 +2122,11 @@ namespace insur {
     myTextFile->addText(occupancyCsv_);
     summaryContent->addItem(myTextFile);
 
+    // Bill of materials
+    myTextFile = new RootWTextFile("materials.csv", "Bill of materials");
+    myTextFile->addText(analyzer.getBillOfMaterials());
+    summaryContent->addItem(myTextFile);
+
     createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
     myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger Towers to Modules connections");
     myTextFile->addText(triggerSectorMapCsv_);
@@ -2564,7 +2571,7 @@ namespace insur {
         z0Canvas.SetGrid(1,1);
         pCanvas.SetGrid(1,1);
         std::string plotOption = "";
-        std::map<double, TGraph>::iterator g_iter, g_guard;
+        std::map<int, TGraph>::iterator g_iter, g_guard;
         // momentum canvas loop
         g_guard = a.getRhoGraphs(idealMaterial, isTrigger).end();
         gStyle->SetGridStyle(style_grid);
@@ -2894,10 +2901,10 @@ namespace insur {
     // Here you should check if the TGraph
     // list is empty => maybe not?
     
-    graphBag& gb = a.getGraphBag();
+    GraphBag& gb = a.getGraphBag();
 
     for (auto tag : gb.getTagSet()) {
-      if (!gb.getTaggedGraphs(graphBag::RealGraph | graphBag::RhoGraph, tag).empty() && !gb.getTaggedGraphs(graphBag::RealGraph | graphBag::DGraph, tag).empty() && !gb.getTaggedGraphs(graphBag::RealGraph | graphBag::PhiGraph, tag).empty()) {
+      if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::RhoGraph, tag).empty() && !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::DGraph, tag).empty() && !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PhiGraph, tag).empty()) {
         std::string pageTitle = "Resolution";
         std::string additionalSummaryTag;
         double verticalScale=1;
@@ -2918,10 +2925,10 @@ namespace insur {
           int idealMaterial;
           RootWContent* myContent;
           if (scenario==0) {
-            idealMaterial=graphBag::RealGraph;
+            idealMaterial=GraphBag::RealGraph;
             myContent = &resolutionContent;
           } else {
-            idealMaterial=graphBag::IdealGraph;
+            idealMaterial=GraphBag::IdealGraph;
             myContent = &idealResolutionContent;
           }
 
@@ -2950,11 +2957,11 @@ namespace insur {
           // momentum canvas loop
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
-          for (const auto& mapel : gb.getTaggedGraphs(graphBag::RhoGraph | idealMaterial, tag)) {
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph | idealMaterial, tag)) {
             const TGraph& momentumGraph = mapel.second;
             TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nRebin);
 
-            if (idealMaterial == graphBag::IdealGraph) {
+            if (idealMaterial == GraphBag::IdealGraph) {
               momentumProfile.SetMinimum(1E-5*100);
               momentumProfile.SetMaximum(.11*100*verticalScale);
             } else {
@@ -2982,10 +2989,10 @@ namespace insur {
           plotOption = "";
           myColor=0;
           // distance canvas loop
-          for (const auto& mapel : gb.getTaggedGraphs(graphBag::DGraph | idealMaterial, tag)) {
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph | idealMaterial, tag)) {
             const TGraph& distanceGraph = mapel.second;
             TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nRebin);
-            if (idealMaterial == graphBag::IdealGraph) {
+            if (idealMaterial == GraphBag::IdealGraph) {
               distanceProfile.SetMinimum(4*1e-4);
               distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
             } else {
@@ -3009,10 +3016,10 @@ namespace insur {
           plotOption = "";
           myColor=0;
           // angle canvas loop
-          for (const auto& mapel : gb.getTaggedGraphs(graphBag::PhiGraph | idealMaterial, tag)) {
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph | idealMaterial, tag)) {
             const TGraph& angleGraph = mapel.second;
             TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nRebin);
-            if (idealMaterial == graphBag::IdealGraph) {
+            if (idealMaterial == GraphBag::IdealGraph) {
               angleProfile.SetMinimum(1E-5);
               angleProfile.SetMaximum(0.01*verticalScale);
             } else {
@@ -3036,7 +3043,7 @@ namespace insur {
           plotOption = "";
           myColor=0;
           // ctgTheta canvas loop
-          for (const auto& mapel : gb.getTaggedGraphs(graphBag::CtgthetaGraph | idealMaterial, tag)) {
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph | idealMaterial, tag)) {
             const TGraph& ctgThetaGraph = mapel.second;
             TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nRebin);
             ctgThetaProfile.SetMinimum(1E-5);
@@ -3057,7 +3064,7 @@ namespace insur {
           plotOption = "";
           myColor=0;
           // z0 canvas loop
-          for (const auto& mapel : gb.getTaggedGraphs(graphBag::Z0Graph | idealMaterial, tag)) {
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph | idealMaterial, tag)) {
             const TGraph& z0Graph = mapel.second;
             TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nRebin);
             z0Profile.SetMinimum(1E-5);
@@ -3078,10 +3085,10 @@ namespace insur {
           plotOption = "";
           myColor=0;
           // p canvas loop
-          for (const auto& mapel : gb.getTaggedGraphs(graphBag::PGraph | idealMaterial, tag)) {
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph | idealMaterial, tag)) {
             const TGraph& pGraph = mapel.second;
             TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracking(), nRebin);
-            if (idealMaterial == graphBag::IdealGraph) {
+            if (idealMaterial == GraphBag::IdealGraph) {
               pProfile.SetMinimum(1E-5*100);
               pProfile.SetMaximum(.11*100*verticalScale);       
             } else {
@@ -3169,12 +3176,12 @@ namespace insur {
         std::map<graphIndex, TGraph*> myPlotMap;
         graphIndex myIndex;
 
-        fillTaggedPlotMap(gb, plotNames[0], graphBag::RhoGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[1], graphBag::DGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[2], graphBag::PhiGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[3], graphBag::CtgthetaGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[4], graphBag::Z0Graph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[5], graphBag::PGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[0], GraphBag::RhoGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[1], GraphBag::DGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[2], GraphBag::PhiGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[3], GraphBag::CtgthetaGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[4], GraphBag::Z0Graph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[5], GraphBag::PGraph, tag, myPlotMap);
 
         // Cycle over the different measurements
         for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
@@ -3944,7 +3951,7 @@ namespace insur {
 
 
   
-  void Vizard::fillTaggedPlotMap(graphBag& gb,
+  void Vizard::fillTaggedPlotMap(GraphBag& gb,
                                  const string& plotName,
                                  int graphType,
                                  const string& tag,
@@ -3959,8 +3966,8 @@ namespace insur {
     for (int i=0; i<2; ++i) {
       if (i==0) myIndex.ideal=false;
       else myIndex.ideal=true;
-      std::map<double, TGraph>& ptGraphsIdeal = gb.getTaggedGraphs((myIndex.ideal ? graphBag::IdealGraph : graphBag::RealGraph) | graphType, tag);
-      std::map<double, TGraph>::iterator graphsIterator;
+      std::map<int, TGraph>& ptGraphsIdeal = gb.getTaggedGraphs((myIndex.ideal ? GraphBag::IdealGraph : GraphBag::RealGraph) | graphType, tag);
+      std::map<int, TGraph>::iterator graphsIterator;
       for (graphsIterator=ptGraphsIdeal.begin();
            graphsIterator!=ptGraphsIdeal.end();
            ++graphsIterator) {
@@ -3980,7 +3987,7 @@ namespace insur {
   void Vizard::fillPlotMap(std::string& plotName, 
                            std::map<graphIndex, TGraph*>& myPlotMap,
                            Analyzer *a,
-                           std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool),
+                           std::map<int, TGraph>& (Analyzer::*retriveFunction)(bool, bool),
                            bool isTrigger) {
     graphIndex myIndex;
     double p;
@@ -3992,8 +3999,8 @@ namespace insur {
     for (int i=0; i<2; ++i) {
       if (i==0) myIndex.ideal=false;
       else myIndex.ideal=true;
-      std::map<double, TGraph>& ptGraphsIdeal = (a->*retriveFunction)(myIndex.ideal, isTrigger);
-      std::map<double, TGraph>::iterator graphsIterator;
+      std::map<int, TGraph>& ptGraphsIdeal = (a->*retriveFunction)(myIndex.ideal, isTrigger);
+      std::map<int, TGraph>::iterator graphsIterator;
       for (graphsIterator=ptGraphsIdeal.begin();
            graphsIterator!=ptGraphsIdeal.end();
            ++graphsIterator) {

@@ -69,6 +69,7 @@ namespace insur {
     ptree pt;
     info_parser::read_info(ss, pt);
 
+    /*
     class CoordExportVisitor : public ConstGeometryVisitor {
       std::ofstream barof, endof;
     public:
@@ -101,6 +102,7 @@ namespace insur {
            << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
       }
     };
+    */
 
     try { 
       auto childRange = getChildRange(pt, "Tracker");
@@ -443,6 +445,7 @@ namespace insur {
    * @return a boolean with the operation success
    */
   bool Squid::makeSite(bool addLogPage /* = true */) {
+    std::cerr << "Creating website cerr" << std::endl;
     startTaskClock("Creating website");
     if (!prepareWebsite()) {
       logERROR("Problem in preparing website");
@@ -455,6 +458,7 @@ namespace insur {
 
     bool result = site.makeSite(false);
     stopTaskClock();
+    std::cerr << "done cerr" << std::endl;
     return result;
   }
 
@@ -496,32 +500,28 @@ namespace insur {
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool trackingResolution, bool triggerResolution) {
+  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
     if (mb) {
-      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
-      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, trackingResolution);
+//      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
+      // TODO: insert the creation of sample tracks here, to compute intersections only once
+      startTaskClock("Analyzing material budget" );
+      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
       stopTaskClock();
       if (pm) {
         startTaskClock("Analyzing pixel material budget");
-        pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
+        pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL);
         stopTaskClock();
       }
+      startTaskClock("Computing the weight summary");
       a.computeWeightSummary(*mb);
+      stopTaskClock();
       if (triggerResolution) {
-        startTaskClock("Estimating tracking resolution of track-trigger");
-#ifdef NO_TAGGED_TRACKING
-        a.analyzeTrigger(*mb,
-                         mainConfiguration.getMomenta(),
-                         mainConfiguration.getTriggerMomenta(),
-                         mainConfiguration.getThresholdProbabilities(),
-                         tracks, pm);
-#else
+        startTaskClock("Estimating tracking resolutions");
         a.analyzeTaggedTracking(*mb,
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
                                 mainConfiguration.getThresholdProbabilities(),
                                 tracks, pm);
-#endif
         stopTaskClock();
       }
       return true;
