@@ -79,6 +79,7 @@ namespace materialRouting {
      */
     class Section {
     public:
+      Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing);
       virtual ~Section();
@@ -103,6 +104,8 @@ namespace materialRouting {
       //Section* appendNewSection
 
       virtual void route(const Train& train);
+
+      bool debug_;
     private:
       int minZ_, minR_, maxZ_, maxR_;
       Section* nextSection_;
@@ -147,15 +150,15 @@ namespace materialRouting {
       void minR(int minR);
       void maxZ(int maxZ);
       void maxR(int maxR);
-      void outgoingSectionRight(Section* outgoingSectionRight);
+      void outgoingSection(Section* outgoingSection);
       int minZ() const;
       int minR() const;
       int maxZ() const;
       int maxR() const;
-      Section* outgoingSectionRight();
+      Section* outgoingSection();
     private:
       int minZ_, minR_, maxZ_, maxR_;
-      Section* outgoingSectionRight_;
+      Section* outgoingSection_;
       const Visitable* containedElement_;
     }; //class Boundary
 
@@ -253,6 +256,7 @@ namespace materialRouting {
     void buildInactiveElements();
     void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
+    InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);
 
 
     BarrelBoundaryMap barrelBoundaryAssociations_;

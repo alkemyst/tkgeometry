@@ -1130,7 +1130,7 @@ namespace insur {
 
     /**
      * This is a convenience function that converts an amount of material from one of the units available to the
-     * config file to the internal unit ofgrammes. Since this normally requires additional information about the
+     * config file to the internal unit of grams. Since this normally requires additional information about the
      * geometry of the volume or about the material, those parameters must be supplied as well. If the caller
      * attempts to convert from an unknown unit, an exception is thrown.
      * @param value The amount of material that is to be converted

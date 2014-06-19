@@ -57,7 +57,7 @@ namespace insur {
      * Get the distance of this object's leftmost point to the xy-plane.
      * @return The offset from the origin along the z-axis
      */
-    double InactiveElement::getZOffset() { return z_offset; }
+    double InactiveElement::getZOffset() const { return z_offset; }
     
     /**
      * Set the distance of this object's leftmost point to the xy-plane.
@@ -69,7 +69,7 @@ namespace insur {
      * Get the length of the element.
      * @return The total length of the element along the z-axis
      */
-    double InactiveElement::getZLength() { return z_length; }
+    double InactiveElement::getZLength() const { return z_length; }
     
     /**
      * Set the length of the element.
@@ -81,7 +81,7 @@ namespace insur {
      * Get the inner radius of the element.
      * @return The distance from the z-axis to the innermost point of the element
      */
-    double InactiveElement::getInnerRadius() { return i_radius; }
+    double InactiveElement::getInnerRadius() const { return i_radius; }
     
     /**
      * Set the inner radius of the element.
@@ -93,7 +93,7 @@ namespace insur {
      * Get the width of the element.
      * @return The distance from the innermost to the outermost point of the element in the xy-plane
      */
-    double InactiveElement::getRWidth() { return w_radius; }
+    double InactiveElement::getRWidth() const { return w_radius; }
     
     /**
      * Set the width of the element.
@@ -216,8 +216,8 @@ namespace insur {
             }
         }
         // convert angle theta to pseudorapidity eta
-        res.first = -1 * log(tan(theta0 / 2.0));
-        res.second = -1 * log(tan(theta1 / 2.0));
+        res.first = -1 * log(tan(theta0 / 2.0));    // TODO change to the default converters
+        res.second = -1 * log(tan(theta1 / 2.0));   // TODO change to the default converters
         return res;
     }
     
