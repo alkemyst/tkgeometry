@@ -1,0 +1,541 @@
+// Default sensor:
+nStripsAcross = 1016;
+nSegments = 2;
+
+Materials module {
+  // Sensor and hybrid stuff
+  // Sensor
+  Component Sensor {
+    Element SenSi {
+      Destination exiting
+      Scale false
+      Quantity 0.2
+      Unit mm
+    }
+  }
+
+  // Sensor
+  Component Sensor {
+    Element SenSi {
+      Destination exiting
+      Scale false
+      Quantity 0.2
+      Unit mm
+    }
+  }
+
+  // Two hybrids
+  Component Hybrid {
+    Element G10 {
+      Destination local
+      Scale true
+      Quantity 1.60
+      Unit g
+    }
+    Element Cu {
+      Destination local
+      Scale true
+      Quantity 0.90
+      Unit g
+    }
+  }
+
+  // ASICs
+  Component ASICs {
+    Element Si {
+      Destination local
+      Scale true
+      Quantity 0.46
+      Unit g
+    }
+  }
+
+  // One pairs (male+female)
+  Component NaIS {
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.0976
+      Unit g
+    }
+    Element G10 {
+      Destination local
+      Scale false
+      Quantity 0.1967
+      Unit g
+    }
+  }
+
+  // One pairs (male+female)
+  Component NaIS {
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.0976
+      Unit g
+    }
+    Element G10 {
+      Destination local
+      Scale false
+      Quantity 0.1967
+      Unit g
+    }
+  }
+
+  // LP-GBT with its fiber pair
+  // 1 LP-GBT
+  Component GBTs {
+    // Service board PCB
+    Element G10 {
+      Destination local
+      Scale false
+      Quantity 0.25
+      Unit g
+    }
+    // Service board PCB
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.15
+      Unit g
+    }
+    // Packaging
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 2.50
+      Unit g
+    }
+  }
+
+  // 2 Optical fibers
+  Component Fibers {
+    Element PE {
+      Destination exiting
+      Scale false
+      Quantity 1.51390639
+      Unit g/m
+    }
+  }
+
+  // LP-GBT with its fiber pair
+  // DC/DC converter
+  Component DC/DC {
+    // Service board PCB
+    Element G10 {
+      Destination local
+      Scale false
+      Quantity 0.25
+      Unit g
+    }
+    // Service board PCB
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.15
+      Unit g
+    }
+    // AMIS
+    Element Si {
+      Destination local
+      Scale false
+      Quantity 0.0699
+      Unit g
+    }
+    // Add. Voltage Chip
+    Element Si {
+      Destination local
+      Scale false
+      Quantity 0.01048
+      Unit g
+    }
+    // Coil Windings
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.5967
+      Unit g
+    }
+    // Coil Core
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 0.1038
+      Unit g
+    }
+    // Pi-Filter Coil
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.04659
+      Unit g
+    }
+    // Shielding Alu
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 0.1377
+      Unit g
+    }
+    // Nickel Coating
+    Element Ni {
+      Destination local
+      Scale false
+      Quantity 0.07456
+      Unit g
+    }
+    // Solder
+    Element Sn {
+      Destination local
+      Scale false
+      Quantity 0.02412
+      Unit g
+    }
+    // Heat Conducting Paste
+    Element Silicone {
+      Destination local
+      Scale false
+      Quantity 0.1408
+      Unit g
+    }
+    // Cap/Res Ceramic
+    Element Al2O3 {
+      Destination local
+      Scale false
+      Quantity 0.3505
+      Unit g
+    }
+    // Cap/Res Cu
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.06182
+      Unit g
+    }
+    // Cap/Res Ni
+    Element Ni {
+      Destination local
+      Scale false
+      Quantity 0.02574
+      Unit g
+    }
+    // Converter Connector
+    Element ConCon {
+      Destination local
+      Scale false
+      Quantity 0.2168
+      Unit g
+    }
+    // Solder Paste
+    Element BGA {
+      Destination local
+      Scale false
+      Quantity 0.1411
+      Unit g
+    }
+  }
+  // Power for the converter (10V)
+  // 2 wires
+  Component Power lines {
+    Element Cu_MV {
+      Destination exiting
+      Scale true
+      Quantity 2.36
+      Unit g/m
+    }
+    Element PE {
+      Destination exiting
+      Scale true
+      Quantity 1.92
+      Unit g/m
+    }
+  }
+
+  // Kapton tail for the HV of one sensor
+  Component HV lines {
+    Element Kapton {
+      Destination local
+      Scale false
+      Quantity 0.085
+      Unit g
+    }
+  }
+
+  // TODO: RC filter missing here
+  // Kapton tail for the HV of one sensor
+  Component HV lines {
+    Element Kapton {
+      Destination local
+      Scale false
+      Quantity 0.085
+      Unit g
+    }
+  }
+
+  // TODO: RC filter missing here
+  // Module mechanics (for 10 cm-long modules)
+  Component Mechanics {
+    // Module frame
+    Element CF {
+      Destination local
+      Scale false
+      Quantity 5.35
+      Unit g
+    }
+    // Sensors supports
+    Element CF {
+      Destination local
+      Scale false
+      Quantity 3.28
+      Unit g
+    }
+    // PGS Thermal conductor
+    Element CF {
+      Destination local
+      Scale false
+      Quantity 0.69
+      Unit g
+    }
+    // Cooling blocks
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 2.41
+      Unit g
+    }
+    // Screws
+    Element Steel {
+      Destination local
+      Scale false
+      Quantity 0.48
+      Unit g
+    }
+  }
+  
+  // HV: 1 wire
+  Component HV lines {
+    Element Cu_HV {
+      Destination exiting
+      Scale false
+      Quantity 1.18
+      Unit g/m
+    }
+    Element PE {
+      Destination exiting
+      Scale false
+      Quantity 0.96
+      Unit g/m
+    }
+  }
+  
+  // Support mechanics
+  //Mechanics
+  Component Mechanics {
+    Element CF {
+      Destination local
+      Scale false
+      Quantity 81.12
+      Unit g/m
+    }
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 6.05895727
+      Unit g/m
+    }
+  }
+}
+
+
+
+
+
+
+
+  // ROD material
+  //  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
+Materials rod {
+  // Cooling for the module
+  Component Cooling {
+    Element Steel {
+      Destination local
+      Scale false
+      Quantity 7.860696517
+      Unit g/m
+    }
+    Element CO2 {
+      Destination local
+      Scale false
+      Quantity 1.791044776
+      Unit g/m
+    }
+  }
+
+  // 6 TWP/Rod
+  // (4 for sensors and 2 for converters)
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component Twisted pairs {
+    // Two conductors and a drain
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.339
+      Unit g/m
+    }
+    // Two insulations
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 0.194
+      Unit g/m
+    }
+    // Aluminium polyester foil
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 0.330
+      Unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component Twisted pairs {
+    // Two conductors and a drain
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.339
+      Unit g/m
+    }
+    // Two insulations
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 0.194
+      Unit g/m
+    }
+    // Aluminium polyester foil
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 0.330
+      Unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component Twisted pairs {
+    // Two conductors and a drain
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.339
+      Unit g/m
+    }
+    // Two insulations
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 0.194
+      Unit g/m
+    }
+    // Aluminium polyester foil
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 0.330
+      Unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component Twisted pairs {
+    // Two conductors and a drain
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.339
+      Unit g/m
+    }
+    // Two insulations
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 0.194
+      Unit g/m
+    }
+    // Aluminium polyester foil
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 0.330
+      Unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component Twisted pairs {
+    // Two conductors and a drain
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.339
+      Unit g/m
+    }
+    // Two insulations
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 0.194
+      Unit g/m
+    }
+    // Aluminium polyester foil
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 0.330
+      Unit g/m
+    }
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  }
+
+  Component Twisted pairs {
+    // Two conductors and a drain
+    Element Cu {
+      Destination local
+      Scale false
+      Quantity 0.339
+      Unit g/m
+    }
+    // Two insulations
+    Element PE {
+      Destination local
+      Scale false
+      Quantity 0.194
+      Unit g/m
+    }
+    // Aluminium polyester foil
+    Element Al {
+      Destination local
+      Scale false
+      Quantity 0.330
+      Unit g/m
+    }
+  }
+
+  // I acknowledge that there are no GBTs at the end of the rod
+  Component Twisted pairs {
+    Element Cu_twp {
+      Destination local
+      Scale true
+      Quantity 0
+      Unit g
+    }
+  }
+}
