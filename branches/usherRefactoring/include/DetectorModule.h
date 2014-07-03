@@ -32,10 +32,13 @@ class ModuleCap;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
+  PropertyNode<std::string> materialsNode;
+
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 protected:
+  MaterialObject materialObject_;
   Sensors sensors_;
   std::string cntName_;
   int16_t cntId_;
@@ -93,6 +96,7 @@ public:
   DetectorModule(Decorated* decorated) : 
       Decorator<GeometricModule>(decorated),
       sensorNode               ("Sensor"                   , parsedOnly()),
+      materialsNode            ("Materials"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
