@@ -8,6 +8,7 @@
 #include "GeometricModule.h"
 #include "CoordinateOperations.h"
 #include "Visitable.h"
+#include "MaterialObject.h"
 
 
 //
@@ -32,7 +33,6 @@ class ModuleCap;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
-  PropertyNode<std::string> materialsNode;
 
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
@@ -96,7 +96,6 @@ public:
   DetectorModule(Decorated* decorated) : 
       Decorator<GeometricModule>(decorated),
       sensorNode               ("Sensor"                   , parsedOnly()),
-      materialsNode            ("Materials"                , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),

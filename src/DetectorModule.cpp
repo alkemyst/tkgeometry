@@ -47,10 +47,8 @@ void DetectorModule::build() {
     sensors_.push_back(s);
   }
 
-  //TODO: fare store e build su MaterialObject; passare property object solo di Materials module (non importa passare tutto il tree, non serve ereditarietà proprietà); su MaterialObject popolare i materiali; fare stessa cosa di qui detectormodule sul layer.
-
-
-  std::cout << "pippero " << materialsNode.size() << std::endl;
+  materialObject_.store(propertyTree());
+  materialObject_.build();
 }
 
 
