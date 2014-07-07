@@ -11,19 +11,24 @@
 #include "Property.h"
 
 class MaterialObject : public PropertyObject{
-public:
-  MaterialObject();
-  virtual ~MaterialObject();
-
-  void buildMaterials();
-
 private:
+  PropertyNode<std::string> materialsNode;
+
   struct Materials {
     std::string destination;
     bool scale;
     double quantity;
     std::string unit;
   };
+
+  Materials materials;
+
+public:
+  MaterialObject() :
+    materialsNode ("Materials", parsedOnly()) {}
+  virtual ~MaterialObject();
+
+  virtual void build();
 };
 
 #endif /* MATERIALOBJECT_H_ */

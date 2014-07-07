@@ -1,16 +1,21 @@
-// pt-2S module 10x10 for the outer region
+// Formula A(nxm)(p-1) + B(nxm) + C(p-1) + D
+// Material A B C D
+// Final label: L = Local material, E = service Exiting the detector
+
+// pt-PS module 10x5 for the inner region
 // GBT on the module
 
 // Default sensor:
-nStripsAcross = 1016;
+nStripsAcross = 960;
 nSegments = 2;
+
 
 Materials module {
   // Sensor and hybrid stuff
   // Sensor
   Component Sensor {
     Element SenSi {
-      Exiting true
+      Exiting false
       Scale false
       Quantity 0.2
       Unit mm
@@ -20,7 +25,7 @@ Materials module {
   // Sensor
   Component Sensor {
     Element SenSi {
-      Exiting true
+      Exiting false
       Scale false
       Quantity 0.2
       Unit mm
@@ -32,24 +37,35 @@ Materials module {
     Element G10 {
       Exiting false
       Scale true
-      Quantity 1.60
+      Quantity 1.3952
       Unit g
     }
     Element Cu {
       Exiting false
       Scale true
-      Quantity 0.90
+      Quantity 0.7848
       Unit g
     }
   }
 
   // ASICs
+  // For a 100 um pitch, scales with strips
   Component ASICs {
     Element Si {
       Exiting false
       Scale true
-      Quantity 0.46
+      Quantity 0.45
       Unit g
+    }
+  }
+
+  // 200 um thick pixel readout chip and correlator
+  Component ASICs {
+    Element Si {
+      Exiting false
+      Scale false
+      Quantity 0.2
+      Unit mm
     }
   }
 
@@ -237,6 +253,7 @@ Materials module {
       Unit g
     }
   }
+
   // Power for the converter (10V)
   // 2 wires
   Component Power lines {
@@ -254,6 +271,122 @@ Materials module {
     }
   }
 
+  // DC/DC converter
+  Component DC/DC {
+    // Service board PCB
+    Element G10 {
+      Exiting false
+      Scale false
+      Quantity 0.25
+      Unit g
+    }
+    // Service board PCB
+    Element Cu {
+      Exiting false
+      Scale false
+      Quantity 0.15
+      Unit g
+    }
+    // AMIS
+    Element Si {
+      Exiting false
+      Scale false
+      Quantity 0.0699
+      Unit g
+    }
+    // Add. Voltage Chip
+    Element Si {
+      Exiting false
+      Scale false
+      Quantity 0.01048
+      Unit g
+    }
+    // Coil Windings
+    Element Cu {
+      Exiting false
+      Scale false
+      Quantity 0.5967
+      Unit g
+    }
+    // Coil Core
+    Element PE {
+      Exiting false
+      Scale false
+      Quantity 0.1038
+      Unit g
+    }
+    // Pi-Filter Coil
+    Element Cu {
+      Exiting false
+      Scale false
+      Quantity 0.04659
+      Unit g
+    }
+    // Shielding Alu
+    Element Al {
+      Exiting false
+      Scale false
+      Quantity 0.1377
+      Unit g
+    }
+    // Nickel Coating
+    Element Ni {
+      Exiting false
+      Scale false
+      Quantity 0.07456
+      Unit g
+    }
+    // Solder
+    Element Sn {
+      Exiting false
+      Scale false
+      Quantity 0.02412
+      Unit g
+    }
+    // Heat Conducting Paste
+    Element Silicone {
+      Exiting false
+      Scale false
+      Quantity 0.1408
+      Unit g
+    }
+    // Cap/Res Ceramic
+    Element Al2O3 {
+      Exiting false
+      Scale false
+      Quantity 0.3505
+      Unit g
+    }
+    // Cap/Res Cu
+    Element Cu {
+      Exiting false
+      Scale false
+      Quantity 0.06182
+      Unit g
+    }
+    // Cap/Res Ni
+    Element Ni {
+      Exiting false
+      Scale false
+      Quantity 0.02574
+      Unit g
+    }
+    // Converter Connector
+    Element ConCon {
+      Exiting false
+      Scale false
+      Quantity 0.2168
+      Unit g
+    }
+    // Solder Paste
+    Element BGA {
+      Exiting false
+      Scale false
+      Quantity 0.1411
+      Unit g
+    }
+  }
+
   // Kapton tail for the HV of one sensor
   Component HV lines {
     Element Kapton {
@@ -276,34 +409,34 @@ Materials module {
   }
 
   // TODO: RC filter missing here
-  // Module mechanics (for 10 cm-long modules)
+  // Module mechanics
   Component Mechanics {
     // Module frame
     Element CF {
       Exiting false
       Scale false
-      Quantity 5.35
+      Quantity 4.28
       Unit g
     }
     // Sensors supports
     Element CF {
       Exiting false
       Scale false
-      Quantity 3.28
+      Quantity 3.31
       Unit g
     }
-    // PGS Thermal conductor
+    // PGS + Pyroid Thermal conductor in CF equivalent TODO: split into real materials
     Element CF {
       Exiting false
       Scale false
-      Quantity 0.69
+      Quantity 3.67
       Unit g
     }
     // Cooling blocks
     Element Al {
       Exiting false
       Scale false
-      Quantity 2.41
+      Quantity 2.44
       Unit g
     }
     // Screws
@@ -314,7 +447,7 @@ Materials module {
       Unit g
     }
   }
-  
+
   // HV: 1 wire
   Component HV lines {
     Element Cu_HV {
@@ -331,6 +464,14 @@ Materials module {
     }
   }
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -468,7 +609,7 @@ Materials rod {
     // Two conductors and a drain
     Element Cu {
       Exiting true
-      Scale false
+      scale false
       Quantity 0.339
       Unit g/m
     }
@@ -486,10 +627,10 @@ Materials rod {
       Quantity 0.330
       Unit g/m
     }
-  // 1 TWP/rod
-  // (This is a bus line: service does not accumulate)
   }
 
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
   Component Twisted pairs {
     // Two conductors and a drain
     Element Cu {
@@ -518,7 +659,7 @@ Materials rod {
   Component Twisted pairs {
     Element Cu_twp {
       Exiting true
-      Scale true
+      Scale false
       Quantity 0
       Unit g
     }
@@ -541,3 +682,4 @@ Materials rod {
     }
   }
 }
+ 
