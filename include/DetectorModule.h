@@ -95,6 +95,7 @@ public:
 
   DetectorModule(Decorated* decorated) : 
       Decorator<GeometricModule>(decorated),
+      materialObject_(MaterialObject::MODULE),
       sensorNode               ("Sensor"                   , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
