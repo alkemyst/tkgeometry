@@ -486,10 +486,10 @@ Materials rod {
       Quantity 0.330
       Unit g/m
     }
-  // 1 TWP/rod
-  // (This is a bus line: service does not accumulate)
   }
 
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
   Component Twisted pairs {
     // Two conductors and a drain
     Element Cu {

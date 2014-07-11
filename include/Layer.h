@@ -10,6 +10,7 @@
 #include "Module.h"
 #include "RodPair.h"
 #include "Visitable.h"
+#include "MaterialObject.h"
 
 using std::string;
 using std::vector;
@@ -22,6 +23,7 @@ public:
   typedef PtrVector<RodPair> Container;
 private:
   Container rods_;
+  MaterialObject materialObject_;
 
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
@@ -56,6 +58,7 @@ public:
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
   Layer() :
+            materialObject_(MaterialObject::ROD),
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
