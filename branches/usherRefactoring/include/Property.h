@@ -358,6 +358,7 @@ public:
   }
 
   virtual void cleanup() { pt_.clear(); parsedCheckedProperties_.clear(); parsedProperties_.clear(); }
+  virtual void cleanupTree() { pt_.clear(); }
 
   static std::set<string> reportUnmatchedProperties() {
     std::set<string> unmatched;

@@ -16,23 +16,28 @@ public:
 
   MaterialObject(Type type) :
     type_ (type),
-    materialsNode_ ("Materials", parsedOnly()) {}
+    materialsNode_ ("Materials", parsedOnly()),
+    componentsNode_ ("Component", parsedOnly()) {}
   virtual ~MaterialObject() {};
 
   virtual void build();
 
 private:
   static const std::map<Type, const std::string> typeString;
+  //static const std::string componentString;
   Type type_;
   PropertyNode<std::string> materialsNode_;
+  PropertyNode<std::string> componentsNode_;
   const std::string getTypeString() const;
+
+  void buildComponents();
 
   class Component : public PropertyObject {
   public:
     ReadonlyProperty<std::string, NoDefault> component;
     PropertyNode<std::string> elementNode_;
     Component() :
-      component ("Component", parsedOnly()),
+      //component ("Component", parsedOnly()),
       elementNode_ ("Element", parsedOnly()) {}
     virtual ~Component() {}
     //std::string name();
@@ -40,6 +45,7 @@ private:
 
     class Element : public PropertyObject {
     public:
+      ReadonlyProperty<std::string, NoDefault> element;
       ReadonlyProperty<bool, NoDefault> exiting;
       ReadonlyProperty<bool, NoDefault> scale;
       ReadonlyProperty<std::string, NoDefault> quantity;
