@@ -17,6 +17,7 @@ public:
   typedef PtrVector<Ring> Container;
 private:
   Container rings_;
+  MaterialObject materialObject_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -42,6 +43,7 @@ public:
   ReadonlyProperty<double, Computable> maxRingThickness;
 
   Disk() :
+    materialObject_(MaterialObject::ROD),
     numRings("numRings", parsedAndChecked()),
     innerRadius("innerRadius", parsedAndChecked()),
     outerRadius("outerRadius", parsedAndChecked()),

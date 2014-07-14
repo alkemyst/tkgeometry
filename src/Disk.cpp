@@ -79,6 +79,9 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
 }
 
 void Disk::build(const vector<double>& buildDsDistances) {
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     if (numRings.state()) buildTopDown(buildDsDistances);
