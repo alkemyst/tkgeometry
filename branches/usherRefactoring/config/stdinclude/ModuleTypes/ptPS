@@ -33,5 +33,3 @@ Sensor 2 {
 //resolutionLocalY 0.433013
 
 plotColor 1
-
-@includestd Materials/ptPS

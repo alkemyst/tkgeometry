@@ -22,6 +22,8 @@ public:
 
   virtual void build();
 
+  //TODO: do methods for interrogate/get materials
+
 private:
   static const std::map<Type, const std::string> typeString;
   //static const std::string componentString;
