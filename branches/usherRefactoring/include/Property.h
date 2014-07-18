@@ -24,6 +24,7 @@
 using std::string;
 using std::vector;
 using std::map;
+using std::pair;
 using std::list;
 using std::shared_ptr;
 
@@ -292,6 +293,20 @@ public:
   }
   void fromString(const string& s) { this->insert(make_pair(str2any<int>(s), ptree())); }
 };
+
+template<typename T>
+class PropertyNodeUnique : public Parsable, public vector<pair<T, ptree> > {
+  const string& name_;
+public:
+  PropertyNodeUnique(const string& name, PropertyMap& registrar) : name_(StringSet::ref(name)) { registrar[name] = this; }
+  PropertyNodeUnique(const string& name) : name_(StringSet::ref(name)) {}
+  bool state() const { return !this->empty(); }
+  void clear() { vector<pair<T, ptree> >::clear(); }
+  string name() const { return name_; }
+  void fromPtree(const ptree& pt) { this->push_back(make_pair(pt.data(), pt)); }
+  void fromString(const string& s) { this->push_back(make_pair(str2any<T>(s), ptree())); }
+};
+
 
 
 typedef ptree PropertyTree;

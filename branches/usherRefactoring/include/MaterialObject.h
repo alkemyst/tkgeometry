@@ -26,42 +26,49 @@ public:
 
 private:
   static const std::map<Type, const std::string> typeString;
-  //static const std::string componentString;
   Type type_;
-  PropertyNode<std::string> materialsNode_;
-  PropertyNode<std::string> componentsNode_;
+  PropertyNodeUnique<std::string> materialsNode_;
+  PropertyNodeUnique<std::string> componentsNode_;
   const std::string getTypeString() const;
 
   void buildComponents();
 
   class Component : public PropertyObject {
   public:
-    ReadonlyProperty<std::string, NoDefault> component;
-    PropertyNode<std::string> elementNode_;
+    ReadonlyProperty<std::string, NoDefault> componentName;
+    PropertyNodeUnique<std::string> componentsNode_;
+    PropertyNodeUnique<std::string> elementNode_;
     Component() :
-      //component ("Component", parsedOnly()),
+      componentName ("componentName", parsedAndChecked()),
+      componentsNode_ ("Component", parsedOnly()),
       elementNode_ ("Element", parsedOnly()) {}
     virtual ~Component() {}
-    //std::string name();
     void build();
 
     class Element : public PropertyObject {
     public:
-      ReadonlyProperty<std::string, NoDefault> element;
-      ReadonlyProperty<bool, NoDefault> exiting;
+      ReadonlyProperty<std::string, NoDefault> componentName; //only the inner component's name
+      ReadonlyProperty<long, NoDefault> nStripAcross;
+      ReadonlyProperty<long, NoDefault> nSegments;
+      ReadonlyProperty<std::string, NoDefault> elementName;
+      ReadonlyProperty<bool, NoDefault> service;
       ReadonlyProperty<bool, NoDefault> scale;
       ReadonlyProperty<std::string, NoDefault> quantity;
       ReadonlyProperty<std::string, NoDefault> unit;
       Element() :
-        exiting ("Exiting", parsedAndChecked()),
-        scale ("Scale", parsedAndChecked()),
-        quantity ("Quantity", parsedAndChecked()),
-        unit ("Unit", parsedAndChecked()) {}
+        componentName ("componentName", parsedOnly()),
+        nStripAcross("nStripAcross", parsedOnly()),
+        nSegments("nSegments", parsedOnly()),
+        elementName ("elementName", parsedAndChecked()),
+        service ("service", parsedAndChecked()),
+        scale ("scale", parsedAndChecked()),
+        quantity ("quantity", parsedAndChecked()),
+        unit ("unit", parsedAndChecked()) {}
       virtual ~Element() {}
-      //std::string name();
       void build();
     };
 
+    PtrVector<Component> components;
     PtrVector<Element> elements;
   };
 

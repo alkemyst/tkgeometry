@@ -21,26 +21,11 @@ const std::string MaterialObject::getTypeString() const {
   }
 }
 
-//const std::string MaterialObject::componentString = "Component";
-
 void MaterialObject::build() {
   //std::cout << "Materials " << materialsNode_.size() << std::endl;
   for (auto& currentMaterialNode : materialsNode_) {
     if (currentMaterialNode.first.compare(getTypeString()) == 0) {
-      /*
-      for (auto& currentComponentNode : currentMaterialNode.second) {
-        if (currentComponentNode.first.compare(componentString)) {
-          Component* newComponent = new Component();
-          newComponent->store(currentComponentNode.second);
-          newComponent->build();
-
-          components.push_back(newComponent);
-        } else {
-        }
-      }
-      */
-
-      cleanupTree();
+      //cleanupTree();
       store(currentMaterialNode.second);
       buildComponents();
     }
@@ -48,22 +33,25 @@ void MaterialObject::build() {
 }
 
 void MaterialObject::buildComponents() {
-  //TODO: ATTENTION COMPONENTS ARE COLLAPSED if have the same name (correct it or name Components univocally in Materials property)
   for (auto& currentComponentNode : componentsNode_) {
-    //std::cout << "COMPONENT " << currentComponentNode.first << std::endl;
     Component* newComponent = new Component();
+    newComponent->store(propertyTree());
     newComponent->store(currentComponentNode.second);
     newComponent->build();
   }
 }
 
 void MaterialObject::Component::build() {
-  //set property 'component' from data of the property tree
-  component.fromPtree(propertyTree());
-
+  std::cout << "COMPONENT " << componentName() << std::endl;
+  for (auto& currentComponentNode : componentsNode_) {
+    Component* newComponent = new Component();
+    newComponent->store(propertyTree());
+    newComponent->store(currentComponentNode.second);
+    newComponent->build();
+  }
   for  (auto& currentElementNode : elementNode_) {
-    //std::cout << "  ELEMENT " << currentElementNode.first << std::endl;
     Element* newElement = new Element();
+    newElement->store(propertyTree());
     newElement->store(currentElementNode.second);
     newElement->build();
 
@@ -72,13 +60,12 @@ void MaterialObject::Component::build() {
 }
 
 void MaterialObject::Component::Element::build() {
-  element.fromPtree(propertyTree());
-  /*
+  std::cout << "  ELEMENT " << elementName() << std::endl;
   std::cout << "    DATA "
-      << " exiting " << exiting()
+      << " nSegments " << (nSegments.state() ? std::to_string(nSegments()) : "NOT_SET")
+      << " exiting " << service()
       << " scale " << scale()
       << " quantity " << quantity()
       << " unit " << unit()
       << std::endl;
-   */
 }
