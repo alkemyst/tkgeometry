@@ -3,18 +3,19 @@
 
 Materials rod {
   // Cooling for the module
-  Component Cooling {
-    Element Steel {
-      Exiting true
-      Scale false
-      Quantity 7.860696517
-      Unit g/m
+  Component {
+    componentName Cooling
+    service true
+    scale false
+    Element {
+      elementName Steel
+      quantity 7.860696517
+      unit g/m
     }
-    Element CO2 {
-      Exiting true
-      Scale false
-      Quantity 1.791044776
-      Unit g/m
+    Element {
+      elementName CO2
+      quantity 1.791044776
+      unit g/m
     }
   }
 
@@ -22,184 +23,187 @@ Materials rod {
   // (4 for sensors and 2 for converters)
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
-  Component "Twisted pairs" {
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
     // Two conductors and a drain
-    Element Cu {
-      Exiting true
-      Scale false
-      Quantity 0.339
-      Unit g/m
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
     }
     // Two insulations
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 0.194
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
     }
     // Aluminium polyester foil
-    Element Al {
-      Exiting true
-      Scale false
-      Quantity 0.330
-      Unit g/m
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
     }
   }
 
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
-  Component "Twisted pairs" {
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
     // Two conductors and a drain
-    Element Cu {
-      Exiting true
-      Scale false
-      Quantity 0.339
-      Unit g/m
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
     }
     // Two insulations
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 0.194
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
     }
     // Aluminium polyester foil
-    Element Al {
-      Exiting true
-      Scale false
-      Quantity 0.330
-      Unit g/m
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
     }
   }
 
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
-  Component "Twisted pairs" {
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
     // Two conductors and a drain
-    Element Cu {
-      Exiting true
-      Scale false
-      Quantity 0.339
-      Unit g/m
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
     }
     // Two insulations
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 0.194
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
     }
     // Aluminium polyester foil
-    Element Al {
-      Exiting true
-      Scale false
-      Quantity 0.330
-      Unit g/m
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
     }
   }
 
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
-  Component "Twisted pairs" {
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
     // Two conductors and a drain
-    Element Cu {
-      Exiting true
-      Scale false
-      Quantity 0.339
-      Unit g/m
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
     }
     // Two insulations
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 0.194
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
     }
     // Aluminium polyester foil
-    Element Al {
-      Exiting true
-      Scale false
-      Quantity 0.330
-      Unit g/m
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
     }
   }
 
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
-  Component "Twisted pairs" {
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
     // Two conductors and a drain
-    Element Cu {
-      Exiting true
-      Scale false
-      Quantity 0.339
-      Unit g/m
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
     }
     // Two insulations
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 0.194
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
     }
     // Aluminium polyester foil
-    Element Al {
-      Exiting true
-      Scale false
-      Quantity 0.330
-      Unit g/m
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
     }
   }
 
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
-  Component "Twisted pairs" {
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
     // Two conductors and a drain
-    Element Cu {
-      Exiting true
-      Scale false
-      Quantity 0.339
-      Unit g/m
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
     }
     // Two insulations
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 0.194
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
     }
     // Aluminium polyester foil
-    Element Al {
-      Exiting true
-      Scale false
-      Quantity 0.330
-      Unit g/m
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
     }
   }
 
   // I acknowledge that there are no GBTs at the end of the rod
-  Component "Twisted pairs" {
-    Element Cu_twp {
-      Exiting true
-      Scale false
-      Quantity 0
-      Unit g
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    Element {
+      elementName Cu_twp
+      quantity 0
+      unit g
     }
   }
 
   // Support mechanics
   //Mechanics
-  Component Mechanics {
-    Element CF {
-      Exiting false
-      Scale false
-      Quantity 81.12
-      Unit g/m
+  Component {
+    componentName Mechanics
+    service false
+    scale false
+    Element {
+      elementName CF
+      quantity 81.12
+      unit g/m
     }
-    Element PE {
-      Exiting false
-      Scale false
-      Quantity 6.05895727
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 6.05895727
+      unit g/m
     }
   }
 }

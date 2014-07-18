@@ -3,331 +3,333 @@
 
 Materials module {
   // Default sensor:
-  nStripsAcross = 1016;
-  nSegments = 2;
+  nStripsAcross 1016
+  nSegments 2
 
   // Sensor and hybrid stuff
   // Sensor
-  Component Sensor {
-    Element SenSi {
-      Exiting true
-      Scale false
-      Quantity 0.2
-      Unit mm
+  Component {
+    componentName Sensor
+    service true
+    scale false
+    Element {
+      elementName SenSi
+      quantity 0.2
+      unit mm
     }
   }
 
   // Sensor
-  Component Sensor {
-    Element SenSi {
-      Exiting true
-      Scale false
-      Quantity 0.2
-      Unit mm
+  Component {
+    componentName Sensor
+    service true
+    scale false
+    Element {
+      elementName SenSi
+      quantity 0.2
+      unit mm
     }
   }
 
   // Two hybrids
-  Component Hybrid {
-    Element G10 {
-      Exiting false
-      Scale true
-      Quantity 1.60
-      Unit g
+  Component {
+    componentName Hybrid
+    service false
+    scale true
+    Element {
+      elementName G10
+      quantity 1.60
+      unit g
     }
-    Element Cu {
-      Exiting false
-      Scale true
-      Quantity 0.90
-      Unit g
+    Element {
+      elementName Cu
+      quantity 0.90
+      unit g
     }
   }
 
   // ASICs
-  Component ASICs {
-    Element Si {
-      Exiting false
-      Scale true
-      Quantity 0.46
-      Unit g
+  Component {
+    componentName ASICs
+    service false
+    scale true
+    Element {
+      elementName Si
+      quantity 0.46
+      unit g
     }
   }
 
   // One pairs (male+female)
-  Component NaIS {
-    Element Cu {
-      Exiting false
-      Scale false
-      Quantity 0.0976
-      Unit g
+  Component {
+    componentName NaIS
+    service false
+    scale false
+    Element {
+      elementName Cu
+      quantity 0.0976
+      unit g
     }
-    Element G10 {
-      Exiting false
-      Scale false
-      Quantity 0.1967
-      Unit g
+    Element {
+      elementName G10
+      quantity 0.1967
+      unit g
     }
   }
 
   // One pairs (male+female)
-  Component NaIS {
-    Element Cu {
-      Exiting false
-      Scale false
-      Quantity 0.0976
-      Unit g
+  Component {
+    componentName NaIS
+    service false
+    scale false
+    Element {
+      elementName Cu
+      quantity 0.0976
+      unit g
     }
-    Element G10 {
-      Exiting false
-      Scale false
-      Quantity 0.1967
-      Unit g
+    Element {
+      elementName G10
+      quantity 0.1967
+      unit g
     }
   }
 
   // LP-GBT with its fiber pair
   // 1 LP-GBT
-  Component GBTs {
+  Component {
+    componentName GBTs
+    service false
+    scale false
     // Service board PCB
-    Element G10 {
-      Exiting false
-      Scale false
-      Quantity 0.25
-      Unit g
+    Element {
+      elementName G10
+      quantity 0.25
+      unit g
     }
     // Service board PCB
-    Element Cu {
-      Exiting false
-      Scale false
-      Quantity 0.15
-      Unit g
+    Element {
+      elementName Cu
+      quantity 0.15
+      unit g
     }
     // Packaging
-    Element PE {
-      Exiting false
-      Scale false
-      Quantity 2.50
-      Unit g
+    Element {
+      elementName PE
+      quantity 2.50
+      unit g
     }
   }
 
   // 2 Optical fibers
-  Component Fibers {
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 1.51390639
-      Unit g/m
+  Component {
+    componentName Fibers
+    service true
+    scale false
+    Element {
+      elementName PE
+      quantity 1.51390639
+      unit g/m
     }
   }
 
   // LP-GBT with its fiber pair
   // DC/DC converter
-  Component DC/DC {
+  Component {
+    componentName DC/DC
+    service false
+    scale false
     // Service board PCB
-    Element G10 {
-      Exiting false
-      Scale false
-      Quantity 0.25
-      Unit g
+    Element {
+      elementName G10
+      quantity 0.25
+      unit g
     }
     // Service board PCB
-    Element Cu {
-      Exiting false
-      Scale false
-      Quantity 0.15
-      Unit g
+    Element {
+      elementName Cu
+      quantity 0.15
+      unit g
     }
     // AMIS
-    Element Si {
-      Exiting false
-      Scale false
-      Quantity 0.0699
-      Unit g
+    Element {
+      elementName Si
+      quantity 0.0699
+      unit g
     }
     // Add. Voltage Chip
-    Element Si {
-      Exiting false
-      Scale false
-      Quantity 0.01048
-      Unit g
+    Element {
+      elementName Si
+      quantity 0.01048
+      unit g
     }
     // Coil Windings
-    Element Cu {
-      Exiting false
-      Scale false
-      Quantity 0.5967
-      Unit g
+    Element {
+      elementName Cu
+      quantity 0.5967
+      unit g
     }
     // Coil Core
-    Element PE {
-      Exiting false
-      Scale false
-      Quantity 0.1038
-      Unit g
+    Element {
+      elementName PE
+      quantity 0.1038
+      unit g
     }
     // Pi-Filter Coil
-    Element Cu {
-      Exiting false
-      Scale false
-      Quantity 0.04659
-      Unit g
+    Element {
+      elementName Cu
+      quantity 0.04659
+      unit g
     }
     // Shielding Alu
-    Element Al {
-      Exiting false
-      Scale false
-      Quantity 0.1377
-      Unit g
+    Element {
+      elementName Al
+      quantity 0.1377
+      unit g
     }
     // Nickel Coating
-    Element Ni {
-      Exiting false
-      Scale false
-      Quantity 0.07456
-      Unit g
+    Element {
+      elementName Ni
+      quantity 0.07456
+      unit g
     }
     // Solder
-    Element Sn {
-      Exiting false
-      Scale false
-      Quantity 0.02412
-      Unit g
+    Element {
+      elementName Sn
+      quantity 0.02412
+      unit g
     }
     // Heat Conducting Paste
-    Element Silicone {
-      Exiting false
-      Scale false
-      Quantity 0.1408
-      Unit g
+    Element {
+      elementName Silicone
+      quantity 0.1408
+      unit g
     }
     // Cap/Res Ceramic
-    Element Al2O3 {
-      Exiting false
-      Scale false
-      Quantity 0.3505
-      Unit g
+    Element {
+      elementName Al2O3
+      quantity 0.3505
+      unit g
     }
     // Cap/Res Cu
-    Element Cu {
-      Exiting false
-      Scale false
-      Quantity 0.06182
-      Unit g
+    Element {
+      elementName Cu
+      quantity 0.06182
+      unit g
     }
     // Cap/Res Ni
-    Element Ni {
-      Exiting false
-      Scale false
-      Quantity 0.02574
-      Unit g
+    Element {
+      elementName Ni
+      quantity 0.02574
+      unit g
     }
     // Converter Connector
-    Element ConCon {
-      Exiting false
-      Scale false
-      Quantity 0.2168
-      Unit g
+    Element {
+      elementName ConCon
+      quantity 0.2168
+      unit g
     }
     // Solder Paste
-    Element BGA {
-      Exiting false
-      Scale false
-      Quantity 0.1411
-      Unit g
+    Element {
+      elementName BGA
+      quantity 0.1411
+      unit g
     }
   }
   // Power for the converter (10V)
   // 2 wires
-  Component Power lines {
-    Element Cu_MV {
-      Exiting true
-      Scale true
-      Quantity 2.36
-      Unit g/m
+  Component {
+    componentName Power lines
+    service true
+    scale true
+    Element {
+      elementName Cu_MV
+      quantity 2.36
+      unit g/m
     }
-    Element PE {
-      Exiting true
-      Scale true
-      Quantity 1.92
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 1.92
+      unit g/m
     }
   }
 
   // Kapton tail for the HV of one sensor
-  Component HV lines {
-    Element Kapton {
-      Exiting false
-      Scale false
-      Quantity 0.085
-      Unit g
+  Component {
+    componentName HV lines
+    service false
+    scale false
+    Element {
+      elementName Kapton
+      quantity 0.085
+      unit g
     }
   }
 
   // TODO: RC filter missing here
   // Kapton tail for the HV of one sensor
-  Component HV lines {
-    Element Kapton {
-      Exiting false
-      Scale false
-      Quantity 0.085
-      Unit g
+  Component {
+    componentName HV lines
+    service false
+    scale false
+    Element {
+      elementName Kapton
+      quantity 0.085
+      unit g
     }
   }
 
   // TODO: RC filter missing here
   // Module mechanics (for 10 cm-long modules)
-  Component Mechanics {
+  Component {
+    componentName Mechanics
+    service false
+    scale false
     // Module frame
-    Element CF {
-      Exiting false
-      Scale false
-      Quantity 5.35
-      Unit g
+    Element {
+      elementName CF
+      quantity 5.35
+      unit g
     }
     // Sensors supports
-    Element CF {
-      Exiting false
-      Scale false
-      Quantity 3.28
-      Unit g
+    Element {
+      elementName CF
+      quantity 3.28
+      unit g
     }
     // PGS Thermal conductor
-    Element CF {
-      Exiting false
-      Scale false
-      Quantity 0.69
-      Unit g
+    Element {
+      elementName CF
+      quantity 0.69
+      unit g
     }
     // Cooling blocks
-    Element Al {
-      Exiting false
-      Scale false
-      Quantity 2.41
-      Unit g
+    Element {
+      elementName Al
+      quantity 2.41
+      unit g
     }
     // Screws
-    Element Steel {
-      Exiting false
-      Scale false
-      Quantity 0.48
-      Unit g
+    Element {
+      elementName Steel
+      quantity 0.48
+      unit g
     }
   }
   
   // HV: 1 wire
-  Component HV lines {
-    Element Cu_HV {
-      Exiting true
-      Scale false
-      Quantity 1.18
-      Unit g/m
+  Component {
+    componentName HV lines
+    service true
+    scale false
+    Element {
+      elementName Cu_HV
+      quantity 1.18
+      unit g/m
     }
-    Element PE {
-      Exiting true
-      Scale false
-      Quantity 0.96
-      Unit g/m
+    Element {
+      elementName PE
+      quantity 0.96
+      unit g/m
     }
   }
 }
