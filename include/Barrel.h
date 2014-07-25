@@ -11,15 +11,19 @@
 #include "Property.h"
 #include "Layer.h"
 #include "Visitable.h"
+#include "ConversionStation.h"
 
 using std::string;
 using std::vector;
+using material::ConversionStation;
 
 class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
 public:
   typedef PtrVector<Layer> Container;
 private:
   Container layers_;
+
+  ConversionStation conversionStation_;
 
   Property<int, NoDefault> innerRadius;
   Property<int, NoDefault> outerRadius;
@@ -34,6 +38,7 @@ public:
   ReadonlyProperty<bool, Default> skipServices;
 
   Barrel() : 
+      conversionStation_ (ConversionStation::FLANGE),
       numLayers("numLayers", parsedAndChecked()),
       innerRadius("innerRadius", parsedAndChecked()),
       outerRadius("outerRadius", parsedAndChecked()),

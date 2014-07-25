@@ -16,7 +16,7 @@ using std::string;
 using std::vector;
 using std::pair;
 using std::unique_ptr;
-
+using material::MaterialObject;
 
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:

@@ -8,7 +8,7 @@
 #ifndef CHAUFFEUR_H_
 #define CHAUFFEUR_H_
 
-namespace materialRouting {
+namespace material {
 
   class Chauffeur {
   public:
@@ -20,6 +20,6 @@ namespace materialRouting {
 
   };
 
-} /* namespace materialRouting */
+} /* namespace material */
 
 #endif /* CHAUFFEUR_H_ */

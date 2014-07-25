@@ -8,7 +8,7 @@
 #include "Materialway.h"
 #include <ctime>
 
-namespace materialRouting {
+namespace material {
 
   //=====================================================================================================================
   //START Materialway::Boundary
@@ -957,5 +957,5 @@ namespace materialRouting {
 
   //END Materialway
 
-} /* namespace materialRouting */
+} /* namespace material */
 

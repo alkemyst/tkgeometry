@@ -7,65 +7,96 @@
 
 #include "MaterialObject.h"
 
-const std::map<MaterialObject::Type, const std::string> MaterialObject::typeString = {
-    {MODULE, "module"},
-    {ROD, "rod"}
-};
+namespace material {
 
-const std::string MaterialObject::getTypeString() const {
-  auto mapIter = typeString.find(type_);
-  if (mapIter != typeString.end()) {
-    return mapIter->second;
-  } else {
-    return "";
-  }
-}
+  const std::map<MaterialObject::Type, const std::string> MaterialObject::typeString = {
+      {MODULE, "module"},
+      {ROD, "rod"}
+  };
 
-void MaterialObject::build() {
-  //std::cout << "Materials " << materialsNode_.size() << std::endl;
-  for (auto& currentMaterialNode : materialsNode_) {
-    if (currentMaterialNode.first.compare(getTypeString()) == 0) {
-      //cleanupTree();
-      store(currentMaterialNode.second);
-      buildComponents();
+  const std::string MaterialObject::getTypeString() const {
+    auto mapIter = typeString.find(materialType_);
+    if (mapIter != typeString.end()) {
+      return mapIter->second;
+    } else {
+      return "";
     }
   }
-}
 
-void MaterialObject::buildComponents() {
-  for (auto& currentComponentNode : componentsNode_) {
-    Component* newComponent = new Component();
-    newComponent->store(propertyTree());
-    newComponent->store(currentComponentNode.second);
-    newComponent->build();
+  void MaterialObject::build() {
+    static std::map<std::string, Materials*> materialsMap_; //for saving memory
+
+    //std::cout << "Materials " << materialsNode_.size() << std::endl;
+
+    for (auto& currentMaterialNode : materialsNode_) {
+      store(currentMaterialNode.second);
+      check();
+      if (type_().compare(getTypeString()) == 0) {
+        if (materialsMap_.count(currentMaterialNode.first) == 0) {
+          Materials * newMaterials  = new Materials();
+          newMaterials->store(currentMaterialNode.second);
+          newMaterials->build();
+          materialsMap_[currentMaterialNode.first] = newMaterials;
+        }
+        materials = materialsMap_[currentMaterialNode.first];
+
+        break;
+      }
+    }
+
+    cleanup();
   }
-}
 
-void MaterialObject::Component::build() {
-  std::cout << "COMPONENT " << componentName() << std::endl;
-  for (auto& currentComponentNode : componentsNode_) {
-    Component* newComponent = new Component();
-    newComponent->store(propertyTree());
-    newComponent->store(currentComponentNode.second);
-    newComponent->build();
+  void MaterialObject::Materials::build() {
+    for (auto& currentComponentNode : componentsNode_) {
+      Component* newComponent = new Component();
+      newComponent->store(propertyTree());
+      newComponent->store(currentComponentNode.second);
+      newComponent->check();
+      newComponent->build();
+
+      components.push_back(newComponent);
+    }
+    cleanup();
   }
-  for  (auto& currentElementNode : elementNode_) {
-    Element* newElement = new Element();
-    newElement->store(propertyTree());
-    newElement->store(currentElementNode.second);
-    newElement->build();
 
-    elements.push_back(newElement);
+  void MaterialObject::Materials::Component::build() {
+    //std::cout << "COMPONENT " << componentName() << std::endl;
+
+    //sub components
+    for (auto& currentComponentNode : componentsNode_) {
+      Component* newComponent = new Component();
+      newComponent->store(propertyTree());
+      newComponent->store(currentComponentNode.second);
+      newComponent->check();
+      newComponent->build();
+
+      components.push_back(newComponent);
+    }
+    //elements
+    for  (auto& currentElementNode : elementsNode_) {
+      Element* newElement = new Element();
+      newElement->store(propertyTree());
+      newElement->store(currentElementNode.second);
+      newElement->check();
+      newElement->cleanup();
+      //newElement->build();
+
+      elements.push_back(newElement);
+    }
+    cleanup();
   }
-}
 
-void MaterialObject::Component::Element::build() {
-  std::cout << "  ELEMENT " << elementName() << std::endl;
-  std::cout << "    DATA "
-      << " nSegments " << (nSegments.state() ? std::to_string(nSegments()) : "NOT_SET")
-      << " exiting " << service()
-      << " scale " << scale()
-      << " quantity " << quantity()
-      << " unit " << unit()
-      << std::endl;
-}
+  /*
+  void MaterialObject::Materials::Component::Element::build() {
+    std::cout << "  ELEMENT " << elementName() << std::endl;
+    std::cout << "    DATA "
+        << " nSegments " << (nSegments.state() ? std::to_string(nSegments()) : "NOT_SET")
+        << " exiting " << service()
+        << " scale " << scale()
+        << " quantity " << quantity()
+        << " unit " << unit()
+        << std::endl;
+  }
+  */
+} /* namespace material */

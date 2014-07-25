@@ -28,7 +28,7 @@ using insur::InactiveRing;
 using insur::InactiveElement;
 using insur::MatCalc;
 
-namespace materialRouting {
+namespace material {
 
   /**
    * @class Materialway
@@ -265,6 +265,6 @@ namespace materialRouting {
     //std::map<Boundary&, Section*> boundarySectionAssociations;         /**< Map that associate each boundary with the outgoing section (for the construction) */
   };
 
-} /* namespace materialRouting */
+} /* namespace material */
 
 #endif /* MATERIALWAY_H_ */

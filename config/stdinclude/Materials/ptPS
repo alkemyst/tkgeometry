@@ -1,7 +1,9 @@
 // pt-PS module 10x5 for the inner region
 // GBT on the module
 
-Materials module {
+Materials module-ptPS {
+  type module
+
   // Default sensor:
   nStripsAcross 960
   nSegments 2
