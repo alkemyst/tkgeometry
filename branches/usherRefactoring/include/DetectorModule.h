@@ -10,6 +10,7 @@
 #include "Visitable.h"
 #include "MaterialObject.h"
 
+using material::MaterialObject;
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================

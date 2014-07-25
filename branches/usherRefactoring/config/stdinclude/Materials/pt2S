@@ -1,7 +1,9 @@
 // pt-2S module 10x10 for the outer region
 // GBT on the module
 
-Materials module {
+Materials module-pt2S {
+  type module
+
   // Default sensor:
   nStripsAcross 1016
   nSegments 2

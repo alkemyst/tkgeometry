@@ -37,7 +37,7 @@
 #include <Support.h>
 #include "Materialway.h"
 
-using materialRouting::Materialway;
+using material::Materialway;
 
 namespace po = boost::program_options;
 /**

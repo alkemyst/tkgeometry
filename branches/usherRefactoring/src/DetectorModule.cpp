@@ -24,6 +24,9 @@ DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m
 */
 
 void DetectorModule::build() {
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
   check();
   if (!decorated().builtok()) {
     decorated().store(propertyTree());
@@ -46,9 +49,6 @@ void DetectorModule::build() {
     s->build();
     sensors_.push_back(s);
   }
-
-  materialObject_.store(propertyTree());
-  materialObject_.build();
 }
 
 

@@ -36,6 +36,9 @@ void Barrel::build() {
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
+  conversionStation_.store(propertyTree());
+  conversionStation_.build();
+
   cleanup();
   builtok(true);
 }

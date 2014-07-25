@@ -1,7 +1,9 @@
 // ROD material
 //  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
 
-Materials rod {
+Materials rod1 {
+  type rod
+
   // Cooling for the module
   Component {
     componentName Cooling

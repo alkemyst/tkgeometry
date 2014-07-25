@@ -12,6 +12,8 @@
 #include "Ring.h"
 #include "Visitable.h"
 
+using material::MaterialObject;
+
 class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
   typedef PtrVector<Ring> Container;

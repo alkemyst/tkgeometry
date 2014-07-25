@@ -7,7 +7,7 @@
 
 #include "Chauffeur.h"
 
-namespace materialRouting {
+namespace material {
 
   Chauffeur::Chauffeur() {
     // TODO Auto-generated constructor stub
@@ -18,4 +18,4 @@ namespace materialRouting {
     // TODO Auto-generated destructor stub
   }
 
-} /* namespace materialRouting */
+} /* namespace material */
