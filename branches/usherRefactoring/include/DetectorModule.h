@@ -201,6 +201,7 @@ public:
   double thetaAperture() const { return maxTheta() - minTheta(); }
 
   const Sensors& sensors() const { return sensors_; }
+  const MaterialObject& materialObject() const { return materialObject_; }
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
   int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())

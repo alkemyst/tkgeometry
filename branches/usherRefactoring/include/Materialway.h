@@ -12,15 +12,22 @@
 #include <vector>
 #include <utility>
 #include <set>
-#include "DetectorModule.h"
-#include "global_constants.h"
-#include "Tracker.h"
-#include "Visitable.h"
-#include "InactiveSurfaces.h"
-#include "InactiveTube.h"
-#include "InactiveRing.h"
-#include "InactiveElement.h"
-#include "MatCalc.h"
+#include <string>
+//#include "global_constants.h"
+
+class DetectorModule;
+class Tracker;
+class Barrel;
+class Endcap;
+class Visitable;
+
+namespace insur {
+  class InactiveSurfaces;
+  class InactiveTube;
+  class InactiveRing;
+  class InactiveElement;
+  class MatCalc;
+}
 
 using insur::InactiveSurfaces;
 using insur::InactiveTube;
@@ -28,7 +35,10 @@ using insur::InactiveRing;
 using insur::InactiveElement;
 using insur::MatCalc;
 
+
 namespace material {
+
+  class MaterialObject;
 
   /**
    * @class Materialway
@@ -52,26 +62,29 @@ namespace material {
     class Section;
     class Station;      //because Train need to use Station and Section, and Station and Section need to use Train
 
+  public:
     class Train {
     public:
-      enum WagonType { GRAMS, GRAMS_METERS, MILLIMITERS };
+      enum UnitType { GRAMS, GRAMS_METERS, MILLIMITERS };
 
       Train();
       virtual ~Train();
 
       void relaseMaterial(Section* section) const;
-      void addWagon(WagonType type, std::string massTag, double value);
+      void addWagon(std::string massName, double massQuantity, UnitType massUnit);
     private:
       struct Wagon {
         std::string material;
         double droppingGramsMeter;
-        Wagon(std::string newMassTag, double newDroppingGramsMeter) :
-          material(newMassTag),
+        Wagon(std::string newMassName, double newDroppingGramsMeter) :
+          material(newMassName),
           droppingGramsMeter(newDroppingGramsMeter) {}
       };
       Station* destination;
       std::vector<Wagon> wagons;
     };
+
+  private:
 
     /**
      * @class Section
@@ -99,17 +112,20 @@ namespace material {
       Direction bearing() const;
       Section* nextSection() const;
       bool hasNextSection() const;
+      MaterialObject& materialObject();
       void inactiveElement(InactiveElement* inactiveElement);
       InactiveElement* inactiveElement() const;
       //Section* appendNewSection
 
       virtual void route(const Train& train);
+      virtual void route();
 
       bool debug_;
     private:
       int minZ_, minR_, maxZ_, maxR_;
       Section* nextSection_;
       Direction bearing_;
+      MaterialObject materialObject_;
       InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */
     }; //class Section
 
@@ -254,6 +270,7 @@ namespace material {
     void buildExternalSections(const Tracker& tracker);       /**< build the sections outside the boundaries */
     void buildInternalSections(const Tracker& tracker);                             /**< build the sections inside the boundaries */
     void buildInactiveElements();
+    void routeModuleServices();
     void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
     InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);

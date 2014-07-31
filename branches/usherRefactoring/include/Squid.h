@@ -130,7 +130,7 @@ namespace insur {
     Analyzer pixelAnalyzer;
     Vizard v;
     tk2CMSSW t2c;
-    mainConfigHandler mainConfiguration;
+    mainConfigHandler& mainConfiguration;
     bool fileExists(std::string filename);
     std::string extractFileName(const std::string& full);
     Squid(const Squid& s);
