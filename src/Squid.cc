@@ -12,7 +12,9 @@ namespace insur {
   /**
    * The constructor sets the internal pointers to <i>NULL</i>.
    */
-  Squid::Squid() : t2c(mainConfiguration) {
+  Squid::Squid() :
+      mainConfiguration(mainConfigHandler::instance()),
+      t2c(mainConfiguration) {
     tr = NULL;
     is = NULL;
     mb = NULL;

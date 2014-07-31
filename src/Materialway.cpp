@@ -6,6 +6,16 @@
  */
 
 #include "Materialway.h"
+#include "DetectorModule.h"
+#include "Tracker.h"
+#include "Visitable.h"
+#include "InactiveSurfaces.h"
+#include "InactiveTube.h"
+#include "InactiveRing.h"
+#include "InactiveElement.h"
+#include "MatCalc.h"
+#include "MaterialObject.h"
+
 #include <ctime>
 
 namespace material {
@@ -86,10 +96,10 @@ namespace material {
     }
   }
 
-  void Materialway::Train::addWagon(WagonType type, std::string material, double value) {
-    switch(type) {
+  void Materialway::Train::addWagon(std::string massName, double massQuantity, UnitType massUnit) {
+    switch (massUnit) {
     case GRAMS_METERS:
-      Wagon newWagon(material, value); //TODO:control if base unit is cm or mm
+      Wagon newWagon(massName, massQuantity); //TODO:control if base unit is cm or mm
       wagons.push_back(newWagon);
     }
   }
@@ -97,7 +107,14 @@ namespace material {
   //=====================================================================================================================
   //START Materialway::Section
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug) :
-    minZ_(minZ), minR_(minR), maxZ_(maxZ), maxR_(maxR), bearing_(bearing), nextSection_(nextSection), inactiveElement_(nullptr), debug_(debug) {}
+    minZ_(minZ),
+    minR_(minR),
+    maxZ_(maxZ),
+    maxR_(maxR),
+    bearing_(bearing),
+    nextSection_(nextSection),
+    inactiveElement_(nullptr),
+    debug_(debug) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
     Section(minZ, minR, maxZ, maxR, bearing, nextSection, false) {}
@@ -178,6 +195,11 @@ namespace material {
   bool Materialway::Section::hasNextSection() const {
     return (nextSection_ == nullptr)? false : true;
   }
+
+  MaterialObject& Materialway::Section::materialObject() {
+    return materialObject_;
+  }
+
   void Materialway::Section::inactiveElement(InactiveElement* inactiveElement) {
     inactiveElement_ = inactiveElement;
   }
@@ -188,6 +210,11 @@ namespace material {
     train.relaseMaterial(this);
     if(hasNextSection()) {
       nextSection()->route(train);
+    }
+  }
+  void Materialway::Section::route() {
+    if(hasNextSection()) {
+      materialObject().routeServicesTo(nextSection()->materialObject());
     }
   }
   //END Materialway::Section
@@ -915,12 +942,19 @@ namespace material {
     }
   }
 
+  void Materialway::routeModuleServices() {
+    for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
+      pair.first->materialObject_.routeServicesTo(pair.second->materialObject());
+      pair.second->route();
+    }
+  }
+
   void Materialway::testTrains() {
     //TODO:erase counter
     std::map<Section*, int> counter;
     for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
       Train train;
-      train.addWagon(Train::GRAMS_METERS, "Cu_HV", 10);
+      //train.addWagon(Train::GRAMS_METERS, "Cu_HV", 10);
       pair.second->route(train);
       counter[pair.second] ++;
     }
