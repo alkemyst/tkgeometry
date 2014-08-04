@@ -141,6 +141,7 @@ namespace material {
       };
 
       virtual void route(const Train& train);
+      virtual void route();
 
     private:
       size_t labelHash;
@@ -271,6 +272,7 @@ namespace material {
     void buildInternalSections(const Tracker& tracker);                             /**< build the sections inside the boundaries */
     void buildInactiveElements();
     void routeModuleServices();
+    void populateInactiveElements();
     void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
     InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);

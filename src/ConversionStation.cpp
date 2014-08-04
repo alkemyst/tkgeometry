@@ -37,6 +37,10 @@ namespace material {
     cleanup();
   }
 
+  void ConversionStation::routeServicesTo(MaterialObject& outputObject) const {
+
+  }
+
   void ConversionStation::buildConversions() {
     //std::cout << "STATION" << std::endl;
 

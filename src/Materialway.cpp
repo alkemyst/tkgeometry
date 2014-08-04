@@ -232,6 +232,11 @@ namespace material {
     Section::route(train);
     //inactiveElement()->addLocalMass("Steel", 10000.0); //TODO:cancel
   }
+
+  void Materialway::Station::route() {
+    //do nothing
+  }
+
   //END Materialway::Station
   //=====================================================================================================================
   //START Materialway::OuterUsher
@@ -836,7 +841,10 @@ namespace material {
 
     buildInactiveElements();
     //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveElements" << endl;
-    testTrains();
+    //testTrains();
+    routeModuleServices();
+    //TODO: route also rod materials, and do conversion stations
+    populateInactiveElements();
     //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << endl;
     buildInactiveSurface(inactiveSurface);
     //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << endl;
@@ -946,6 +954,16 @@ namespace material {
     for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
       pair.first->materialObject_.routeServicesTo(pair.second->materialObject());
       pair.second->route();
+    }
+  }
+
+  void Materialway::populateInactiveElements() {
+    //TODO: popolate also the modules (and delete the old part)
+
+    for(Section* section : sectionsList_) {
+      if(section->inactiveElement() != nullptr) {
+        section->materialObject_.populateInactiveElement(*section->inactiveElement());
+      }
     }
   }
 

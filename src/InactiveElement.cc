@@ -101,6 +101,14 @@ namespace insur {
      */
     void InactiveElement::setRWidth(double rwidth) { w_radius = rwidth; }
     
+    double InactiveElement::getLength() const {
+      if(is_vertical) {
+        return getRWidth();
+      } else {
+        return getZLength();
+      }
+    }
+
     double InactiveElement::getVolume() const {
       return M_PI * w_radius * (w_radius + 2*i_radius) * z_length;
     }
