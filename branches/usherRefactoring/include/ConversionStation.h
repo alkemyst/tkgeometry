@@ -12,7 +12,7 @@
 
 namespace material {
 
-  class ConversionStation :public PropertyObject {
+  class ConversionStation :public PropertyObject { //MaterialObject {
   public:
     enum Type {FLANGE, ENDCAP};
 
@@ -23,7 +23,8 @@ namespace material {
       conversionsNode_ ("Conversion", parsedOnly()) {} ;
     virtual ~ConversionStation() {};
 
-    void build();
+    virtual void build();
+    virtual void routeServicesTo(MaterialObject& outputObject) const;
 
   private:
     static const std::map<Type, const std::string> typeString;

@@ -8,12 +8,15 @@
 #include "MaterialObject.h"
 #include "global_constants.h"
 #include "MaterialTab.h"
+#include "InactiveElement.h"
+#include <messageLogger.h>
+#include <stdexcept>
+
 
 
 
 
 namespace material {
-
   const std::map<MaterialObject::Type, const std::string> MaterialObject::typeString = {
       {MODULE, "module"},
       {ROD, "rod"}
@@ -23,7 +26,6 @@ namespace material {
       materialType_ (materialType),
       type_ ("type", parsedAndChecked()),
       materialsNode_ ("Materials", parsedOnly()),
-      materialTab_ (MaterialTab::instance()),
       materials (nullptr) {}
 
   const std::string MaterialObject::getTypeString() const {
@@ -75,10 +77,25 @@ namespace material {
     }
   }
 
+  void MaterialObject::populateInactiveElement(InactiveElement& inactiveElement) {
+    for (Element& currElement : serviceElements) {
+      //currElement.populateInactiveElement(inactiveElement);
+      //populate directly because need to skip the control if is a service
+      inactiveElement.addLocalMass(currElement.elementName(), currElement.componentName(), currElement.quantityInGrams(inactiveElement));
+    }
+
+    if (materials != nullptr) {
+      materials->populateInactiveElement(inactiveElement);
+    }
+  }
+
 
   //void MaterialObject::chargeTrain(Materialway::Train& train) const {
   //  materials->chargeTrain(train);
   //}
+
+  MaterialObject::Materials::Materials() :
+          componentsNode_ ("Component", parsedOnly()) {};
 
   void MaterialObject::Materials::build() {
     for (auto& currentComponentNode : componentsNode_) {
@@ -108,6 +125,17 @@ namespace material {
 //      currComp.chargeTrain(train);
 //    }
 //  }
+
+  void MaterialObject::Materials::populateInactiveElement(InactiveElement& inactiveElement) {
+    for (Component & currComponent : components) {
+      currComponent.populateInactiveElement(inactiveElement);
+    }
+  }
+
+  MaterialObject::Component::Component() :
+          componentName ("componentName", parsedAndChecked()),
+          componentsNode_ ("Component", parsedOnly()),
+          elementsNode_ ("Element", parsedOnly()) {};
 
   void MaterialObject::Component::build() {
     //std::cout << "COMPONENT " << componentName() << std::endl;
@@ -154,11 +182,64 @@ namespace material {
 //    }
 //  }
 
-  const std::map<std::string, Materialway::Train::UnitType> MaterialObject::Element::unitTypeMap = {
-      {"g", Materialway::Train::GRAMS},
-      {"mm", Materialway::Train::MILLIMITERS},
-      {"g/m", Materialway::Train::GRAMS_METERS}
+  void MaterialObject::Component::populateInactiveElement(InactiveElement& inactiveElement) {
+    for (Component & currComponent : components) {
+      currComponent.populateInactiveElement(inactiveElement);
+    }
+    for (Element & currElement : elements) {
+      currElement.populateInactiveElement(inactiveElement);
+    }
+  }
+
+  /*
+  const std::map<MaterialObject::Type, const std::string> MaterialObject::Element::unitString = {
+      {GRAMS, "g"},
+      {MILLIMETERS, "mm"},
+      {GRAMS_METER, "gm"}
   };
+  */
+
+  MaterialObject::Element::Element() :
+          componentName ("componentName", parsedOnly()),
+          nStripAcross("nStripAcross", parsedOnly()),
+          nSegments("nSegments", parsedOnly()),
+          elementName ("elementName", parsedAndChecked()),
+          service ("service", parsedAndChecked()),
+          scale ("scale", parsedAndChecked()),
+          quantity ("quantity", parsedAndChecked()),
+          unit ("unit", parsedAndChecked()),
+          materialTab_ (MaterialTab::instance()) {};
+
+  const std::string MaterialObject::Element::msg_no_valid_unit = "No valid unit: ";
+
+  const std::map<std::string, MaterialObject::Element::Unit> MaterialObject::Element::unitStringMap = {
+      {"g", GRAMS},
+      {"mm", MILLIMETERS},
+      {"g/m", GRAMS_METER}
+  };
+
+  double MaterialObject::Element::quantityInGrams(InactiveElement& inactiveElement) {
+    double returnVal;
+    try {
+      switch (unitStringMap.at(unit())) {
+      case Element::GRAMS:
+        returnVal = quantity();
+        break;
+
+      case Element::GRAMS_METER:
+        returnVal = inactiveElement.getLength() * quantity() / 1000.0;
+        break;
+
+      case Element::MILLIMETERS:
+        returnVal = materialTab_.density(elementName()) * inactiveElement.getSurface() * quantity() / 1000.0;
+        break;
+      }
+    } catch (const std::out_of_range& ex) {
+      logERROR(msg_no_valid_unit + unit());
+    }
+
+    return returnVal;
+  }
 
   /*
   void MaterialObject::Element::build() {
@@ -177,5 +258,11 @@ namespace material {
 //    if (service()) {
 //      train.addWagon(elementName(), )
 //  }
+
+  void MaterialObject::Element::populateInactiveElement(InactiveElement& inactiveElement) {
+    if(service() == false) {
+      inactiveElement.addLocalMass(elementName(), componentName(), quantityInGrams(inactiveElement));
+    }
+  }
 
 } /* namespace material */

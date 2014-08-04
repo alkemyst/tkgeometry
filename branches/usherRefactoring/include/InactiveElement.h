@@ -46,6 +46,7 @@ namespace insur {
     void setInnerRadius(double iradius);
     double getRWidth() const;
     void setRWidth(double width);
+    double getLength() const;
     double getVolume() const;
     int getFeederIndex();
     void setFeederIndex(int layer);

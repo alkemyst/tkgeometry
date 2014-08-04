@@ -16,7 +16,7 @@ namespace material {
   class MaterialTab;
 
   class MaterialObject : public PropertyObject {
-  private:
+  protected:
     class Element; //forward declaration for getElementIfService(Element& inputElement)
   public:
     enum Type {MODULE, ROD};
@@ -26,15 +26,16 @@ namespace material {
 
     virtual void build();
 
-    void routeServicesTo(MaterialObject& outputObject) const;
+    virtual void routeServicesTo(MaterialObject& outputObject) const;
     void addElementIfService(Element& inputElement);
+    void populateInactiveElement(InactiveElement& inactiveElement);
+
 
     //void chargeTrain(Materialway::Train& train) const;
 
     //TODO: do methods for interrogate/get materials
 
-  private:
-    const MaterialTab& materialTab_;
+  protected:
     static const std::map<Type, const std::string> typeString;
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
@@ -44,6 +45,10 @@ namespace material {
 
     class Element : public PropertyObject {
     public:
+      enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
+      //static const std::map<Unit, const std::string> unitString;
+      static const std::map<std::string, Unit> unitStringMap;
+
       ReadonlyProperty<std::string, NoDefault> componentName; //only the inner component's name
       ReadonlyProperty<long, NoDefault> nStripAcross;
       ReadonlyProperty<long, NoDefault> nSegments;
@@ -52,35 +57,32 @@ namespace material {
       ReadonlyProperty<bool, NoDefault> scale;
       ReadonlyProperty<double, NoDefault> quantity;
       ReadonlyProperty<std::string, NoDefault> unit;
-      Element() :
-        componentName ("componentName", parsedOnly()),
-        nStripAcross("nStripAcross", parsedOnly()),
-        nSegments("nSegments", parsedOnly()),
-        elementName ("elementName", parsedAndChecked()),
-        service ("service", parsedAndChecked()),
-        scale ("scale", parsedAndChecked()),
-        quantity ("quantity", parsedAndChecked()),
-        unit ("unit", parsedAndChecked()) {};
+
+      Element();
       virtual ~Element() {};
       //void build();
       //void chargeTrain(Materialway::Train& train) const;
+      double quantityInGrams(InactiveElement& inactiveElement);
+      void populateInactiveElement(InactiveElement& inactiveElement);
     private:
-      static const std::map<std::string, Materialway::Train::UnitType> unitTypeMap;
+      const MaterialTab& materialTab_;
+      static const std::string msg_no_valid_unit;
+      //static const std::map<std::string, Materialway::Train::UnitType> unitTypeMap;
     };
+
+  private:
 
     class Component : public PropertyObject {
     public:
       ReadonlyProperty<std::string, NoDefault> componentName;
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
-      Component() :
-        componentName ("componentName", parsedAndChecked()),
-        componentsNode_ ("Component", parsedOnly()),
-        elementsNode_ ("Element", parsedOnly()) {};
+      Component();
       virtual ~Component() {};
       void build();
       void routeServicesTo(MaterialObject& outputObject);
       //void chargeTrain(Materialway::Train& train) const;
+      void populateInactiveElement(InactiveElement& inactiveElement);
 
       PtrVector<Component> components;
       PtrVector<Element> elements;
@@ -90,13 +92,13 @@ namespace material {
     public:
       PropertyNodeUnique<std::string> componentsNode_;
       //Property<double, Computable> radiationLength, interactionLenght;
-      Materials() :
-        componentsNode_ ("Component", parsedOnly()) {};
+      Materials();
       virtual ~Materials() {};
       void build();
       void setup();
       void routeServicesTo(MaterialObject& outputObject);
       //void chargeTrain(Materialway::Train& train) const;
+      void populateInactiveElement(InactiveElement& inactiveElement);
 
       PtrVector<Component> components;
     };
