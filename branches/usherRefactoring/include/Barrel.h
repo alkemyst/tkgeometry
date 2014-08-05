@@ -68,6 +68,8 @@ public:
     v.visit(*this); 
     for (const auto& l : layers_) { l.accept(v); }
   }
+
+  ConversionStation* conversionStation();
 };
 
 #endif

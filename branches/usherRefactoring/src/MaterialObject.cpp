@@ -7,6 +7,7 @@
 
 //#include "Materialway.h"
 #include "MaterialObject.h"
+#include "ConversionStation.h"
 #include "global_constants.h"
 #include "MaterialTab.h"
 #include "InactiveElement.h"
@@ -63,6 +64,15 @@ namespace material {
   }
 
   void MaterialObject::routeServicesTo(MaterialObject& outputObject) const {
+    for(const Element * currElement : serviceElements) {
+      outputObject.addElementIfService(currElement);
+    }
+    if (materials != nullptr) {
+      materials->routeServicesTo(outputObject);
+    }
+  }
+
+  void MaterialObject::routeServicesTo(ConversionStation& outputObject) const {
     for(const Element * currElement : serviceElements) {
       outputObject.addElementIfService(currElement);
     }
@@ -128,6 +138,12 @@ namespace material {
     }
   }
 
+  void MaterialObject::Materials::routeServicesTo(ConversionStation& outputObject) const {
+    for (const Component* currComponent : components) {
+      currComponent->routeServicesTo(outputObject);
+    }
+  }
+
 //  void MaterialObject::Materials::chargeTrain(Materialway::Train& train) const {
 //    for (const Component& currComp : components) {
 //      currComp.chargeTrain(train);
@@ -174,6 +190,15 @@ namespace material {
   }
 
   void MaterialObject::Component::routeServicesTo(MaterialObject& outputObject) const {
+    for(const Element* currElement : elements) {
+      outputObject.addElementIfService(currElement);
+    }
+    for (const Component* currComponent : components) {
+      currComponent->routeServicesTo(outputObject);
+    }
+  }
+
+  void MaterialObject::Component::routeServicesTo(ConversionStation& outputObject) const {
     for(const Element* currElement : elements) {
       outputObject.addElementIfService(currElement);
     }

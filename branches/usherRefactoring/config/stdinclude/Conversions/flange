@@ -20,7 +20,7 @@ Station flange {
         elementName Cu
         quantity 10
         unit g/m
-        exiting true
+        service true
       }
     }
   }
@@ -37,7 +37,7 @@ Station flange {
         elementName Cu
         quantity 10
         unit g/m
-        exiting true
+        service true
       }
     }
   }
@@ -54,7 +54,7 @@ Station flange {
         elementName Cu
         quantity 10
         unit g/m
-        exiting true
+        service true
       }
     }
   }
@@ -71,7 +71,7 @@ Station flange {
         elementName PE
         quantity 10
         unit g/m
-        exiting true
+        service true
       }
     }
   }
@@ -88,7 +88,7 @@ Station flange {
         elementName Al
         quantity 10
         unit g/m
-        exiting true
+        service true
       }
     }
   }
@@ -101,6 +101,25 @@ Station flange {
         quantity 0.79
         unit g
       }
+    }
+    Output {
+      Element {
+        elementName Steel
+        quantity 4.2
+        unit g
+        service false
+      }
+      Element {
+        elementName Steel
+        quantity 17.2
+        unit g/m
+        service true
+      }
+    }
+  }
+
+  Conversion {
+    Input {
       Element {
         elementName CO2
         quantity 0.18
@@ -109,28 +128,16 @@ Station flange {
     }
     Output {
       Element {
-        elementName Steel
-        quantity 4.2
-        unit g
-        exiting false
-      }
-      Element {
         elementName CO2
         quantity 1.4
         unit g
-        exiting false
-      }
-      Element {
-        elementName Steel
-        quantity 17.2
-        unit g/m
-        exiting true
+        service false
       }
       Element {
         elementName CO2
         quantity 3.7
         unit g/m
-        exiting true
+        service true
       }
     }
   }
@@ -149,7 +156,7 @@ Station flange {
         elementName Al
         quantity 7.4
         unit g
-        exiting false
+        service false
       }
     }
   }
@@ -170,83 +177,83 @@ Station flange {
         elementName G10
         quantity 8.19
         unit g
-        exiting false
+        service false
       }
       // GBT's PCB
       Element {
         elementName Cu
         quantity 1.65
         unit g
-        exiting false
+        service false
       }
       // Packaging
       Element {
         elementName PE
         quantity 8.25
         unit g
-        exiting false
+        service false
       }
       // 3 Coils (DC/DC)
       Element {
         elementName Cu
         quantity 1.14
         unit g
-        exiting false
+        service false
       }
       // Cooling
       Element {
         elementName Al
         quantity 6.81
         unit g
-        exiting false
+        service false
       }
       // Data NaIS
       Element {
         elementName Cu
         quantity 0.72
         unit g
-        exiting false
+        service false
       }
       // Data NaIS
       Element {
         elementName PE
         quantity 1.14
         unit g
-        exiting false
+        service false
       }
       // LV NaIS
       Element {
         elementName Cu
         quantity 1.47
         unit g
-        exiting false
+        service false
       }
       // LV NaIS
       Element {
         elementName PE
         quantity 2.19
         unit g
-        exiting false
+        service false
       }
       // 6 fibers / 3 GBT (see above)
       Element {
         elementName PE
         quantity 4.5
         unit g/m
-        exiting true
+        service true
       }
       // GBT power - 6 wires/ 3 GBT
       Element {
         elementName Cu
         quantity 7.08
         unit g/m
-        exiting true
+        service true
       }
       Element {
         elementName PE
         quantity 5.76
         unit g/m
-        exiting true
+        service true
       }
     }
   }
@@ -268,13 +275,13 @@ Station flange {
         elementName Cu
         quantity 2.20
         unit g
-        exiting false
+        service false
       }
       Element {
         elementName PE
         quantity 1.93
         unit g
-        exiting false
+        service false
       }
     }
   }
@@ -292,13 +299,13 @@ Station flange {
         elementName Cu
         quantity 2.20
         unit g
-        exiting false
+        service false
       }
       Element {
         elementName PE
         quantity 1.93
         unit g
-        exiting false
+        service false
       }
     }
   }
