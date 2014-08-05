@@ -11,6 +11,7 @@
 #include "Property.h"
 
 namespace material {
+  class MaterialObject;
 
   class ConversionStation :public PropertyObject { //MaterialObject {
   public:

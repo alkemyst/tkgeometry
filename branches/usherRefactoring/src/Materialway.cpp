@@ -114,7 +114,8 @@ namespace material {
     bearing_(bearing),
     nextSection_(nextSection),
     inactiveElement_(nullptr),
-    debug_(debug) {}
+    debug_(debug),
+    materialObject_ (MaterialObject::SERVICE) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
     Section(minZ, minR, maxZ, maxR, bearing, nextSection, false) {}
@@ -212,9 +213,10 @@ namespace material {
       nextSection()->route(train);
     }
   }
-  void Materialway::Section::route() {
+  void Materialway::Section::getServicesAndPass(const MaterialObject& source) {
+    source.routeServicesTo(materialObject());
     if(hasNextSection()) {
-      materialObject().routeServicesTo(nextSection()->materialObject());
+      nextSection()->getServicesAndPass(source);
     }
   }
   //END Materialway::Section
@@ -233,7 +235,7 @@ namespace material {
     //inactiveElement()->addLocalMass("Steel", 10000.0); //TODO:cancel
   }
 
-  void Materialway::Station::route() {
+  void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
     //do nothing
   }
 
@@ -830,24 +832,26 @@ namespace material {
 
     bool retValue = false;
 
-    //int startTime = time(0);
+    int startTime = time(0);
     if (buildBoundaries(tracker)) {
-      //std::cout << "TIME " << difftime(time(0), startTime) << " end buildBoundaries" << endl;
+      std::cout << "TIME " << difftime(time(0), startTime) << " end buildBoundaries" << std::endl;
       buildExternalSections(tracker);
-      //std::cout << "TIME " << difftime(time(0), startTime) << " end buildExternalSections" << endl;
+      std::cout << "TIME " << difftime(time(0), startTime) << " end buildExternalSections" << std::endl;
       buildInternalSections(tracker);
-      //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInternalSections" << endl;
+      std::cout << "TIME " << difftime(time(0), startTime) << " end buildInternalSections" << std::endl;
     }
 
     buildInactiveElements();
-    //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveElements" << endl;
+    std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveElements" << std::endl;
     //testTrains();
+    //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << std::endl;
     routeModuleServices();
+    std::cout << "TIME " << difftime(time(0), startTime) << " end routeModuleServices" << std::endl;
     //TODO: route also rod materials, and do conversion stations
     populateInactiveElements();
-    //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << endl;
+    std::cout << "TIME " << difftime(time(0), startTime) << " end populateInactiveElements" << std::endl;
     buildInactiveSurface(inactiveSurface);
-    //std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << endl;
+    std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << std::endl;
 
     return retValue;
   }
@@ -952,8 +956,8 @@ namespace material {
 
   void Materialway::routeModuleServices() {
     for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
-      pair.first->materialObject_.routeServicesTo(pair.second->materialObject());
-      pair.second->route();
+      //pair.first->materialObject().routeServicesTo(pair.second->materialObject());
+      pair.second->getServicesAndPass(pair.first->materialObject());
     }
   }
 
@@ -962,7 +966,7 @@ namespace material {
 
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
-        section->materialObject_.populateInactiveElement(*section->inactiveElement());
+        section->materialObject().populateInactiveElement(*section->inactiveElement());
       }
     }
   }

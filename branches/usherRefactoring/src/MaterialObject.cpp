@@ -5,6 +5,7 @@
  * @author Stefano Martina
  */
 
+//#include "Materialway.h"
 #include "MaterialObject.h"
 #include "global_constants.h"
 #include "MaterialTab.h"
@@ -44,7 +45,6 @@ namespace material {
 
     for (auto& currentMaterialNode : materialsNode_) {
       store(currentMaterialNode.second);
-      //MaterialTab::instance(); //CANCELLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       check();
       if (type_().compare(getTypeString()) == 0) {
         if (materialsMap_.count(currentMaterialNode.first) == 0) {
@@ -63,7 +63,7 @@ namespace material {
   }
 
   void MaterialObject::routeServicesTo(MaterialObject& outputObject) const {
-    for(Element & currElement : serviceElements) {
+    for(const Element * currElement : serviceElements) {
       outputObject.addElementIfService(currElement);
     }
     if (materials != nullptr) {
@@ -71,17 +71,25 @@ namespace material {
     }
   }
 
-  void MaterialObject::addElementIfService(Element& inputElement) {
-    if (inputElement.service() == true) {
-      serviceElements.push_back(&inputElement);
+  void MaterialObject::addElementIfService(const Element* inputElement) {
+    if (inputElement->service() == true) {
+      //std::cout << "ADDING " << inputElement->elementName() << std::endl;
+      //std::cout << "COMP " << inputElement->componentName() << std::endl;
+      //bool test = (inputElement->elementName().compare("SenSi") == 0);
+      serviceElements.push_back(inputElement);
     }
   }
 
-  void MaterialObject::populateInactiveElement(InactiveElement& inactiveElement) {
-    for (Element& currElement : serviceElements) {
+  void MaterialObject::populateInactiveElement(InactiveElement& inactiveElement) const {
+    for (const Element* currElement : serviceElements) {
       //currElement.populateInactiveElement(inactiveElement);
       //populate directly because need to skip the control if is a service
-      inactiveElement.addLocalMass(currElement.elementName(), currElement.componentName(), currElement.quantityInGrams(inactiveElement));
+      //TODO: check why componentName is not present in no Element
+      if (currElement->componentName.state()) {
+        inactiveElement.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(inactiveElement));
+      } else {
+        inactiveElement.addLocalMass(currElement->elementName(), currElement->quantityInGrams(inactiveElement));
+      }
     }
 
     if (materials != nullptr) {
@@ -114,9 +122,9 @@ namespace material {
 
   }
 
-  void MaterialObject::Materials::routeServicesTo(MaterialObject& outputObject) {
-    for (Component& currComponent : components) {
-      currComponent.routeServicesTo(outputObject);
+  void MaterialObject::Materials::routeServicesTo(MaterialObject& outputObject) const {
+    for (const Component* currComponent : components) {
+      currComponent->routeServicesTo(outputObject);
     }
   }
 
@@ -126,9 +134,9 @@ namespace material {
 //    }
 //  }
 
-  void MaterialObject::Materials::populateInactiveElement(InactiveElement& inactiveElement) {
-    for (Component & currComponent : components) {
-      currComponent.populateInactiveElement(inactiveElement);
+  void MaterialObject::Materials::populateInactiveElement(InactiveElement& inactiveElement) const {
+    for (const Component* currComponent : components) {
+      currComponent->populateInactiveElement(inactiveElement);
     }
   }
 
@@ -157,19 +165,20 @@ namespace material {
       newElement->store(currentElementNode.second);
       newElement->check();
       newElement->cleanup();
-      //newElement->build();
-
+      newElement->build();
+      //bool test1 = newElement->componentName.state();
+      //bool test2 = newElement->nSegments.state();
       elements.push_back(newElement);
     }
     cleanup();
   }
 
-  void MaterialObject::Component::routeServicesTo(MaterialObject& outputObject) {
-    for(Element & currElement : elements) {
+  void MaterialObject::Component::routeServicesTo(MaterialObject& outputObject) const {
+    for(const Element* currElement : elements) {
       outputObject.addElementIfService(currElement);
     }
-    for (Component& currComponent : components) {
-      currComponent.routeServicesTo(outputObject);
+    for (const Component* currComponent : components) {
+      currComponent->routeServicesTo(outputObject);
     }
   }
 
@@ -182,12 +191,12 @@ namespace material {
 //    }
 //  }
 
-  void MaterialObject::Component::populateInactiveElement(InactiveElement& inactiveElement) {
-    for (Component & currComponent : components) {
-      currComponent.populateInactiveElement(inactiveElement);
+  void MaterialObject::Component::populateInactiveElement(InactiveElement& inactiveElement) const {
+    for (const Component* currComponent : components) {
+      currComponent->populateInactiveElement(inactiveElement);
     }
-    for (Element & currElement : elements) {
-      currElement.populateInactiveElement(inactiveElement);
+    for (const Element* currElement : elements) {
+      currElement->populateInactiveElement(inactiveElement);
     }
   }
 
@@ -218,7 +227,7 @@ namespace material {
       {"g/m", GRAMS_METER}
   };
 
-  double MaterialObject::Element::quantityInGrams(InactiveElement& inactiveElement) {
+  double MaterialObject::Element::quantityInGrams(InactiveElement& inactiveElement) const {
     double returnVal;
     try {
       switch (unitStringMap.at(unit())) {
@@ -241,25 +250,26 @@ namespace material {
     return returnVal;
   }
 
-  /*
   void MaterialObject::Element::build() {
+    /*
     std::cout << "  ELEMENT " << elementName() << std::endl;
     std::cout << "    DATA "
+        << " componentName " << (componentName.state() ? componentName() : "NOT_SET")
         << " nSegments " << (nSegments.state() ? std::to_string(nSegments()) : "NOT_SET")
         << " exiting " << service()
         << " scale " << scale()
         << " quantity " << quantity()
         << " unit " << unit()
         << std::endl;
+        */
   }
-  */
 
 //  void MaterialObject::Element::chargeTrain(Materialway::Train& train) const {
 //    if (service()) {
 //      train.addWagon(elementName(), )
 //  }
 
-  void MaterialObject::Element::populateInactiveElement(InactiveElement& inactiveElement) {
+  void MaterialObject::Element::populateInactiveElement(InactiveElement& inactiveElement) const {
     if(service() == false) {
       inactiveElement.addLocalMass(elementName(), componentName(), quantityInGrams(inactiveElement));
     }
