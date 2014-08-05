@@ -42,3 +42,7 @@ void Barrel::build() {
   cleanup();
   builtok(true);
 }
+
+ConversionStation* Barrel::conversionStation() {
+  return &conversionStation_;
+}

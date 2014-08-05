@@ -20,9 +20,10 @@ using insur::InactiveElement;
 namespace material {
 
   class MaterialTab;
+  class ConversionStation;
 
   class MaterialObject : public PropertyObject {
-  protected:
+  public:
     class Element; //forward declaration for getElementIfService(Element& inputElement)
   public:
     enum Type {MODULE, ROD, SERVICE};
@@ -33,6 +34,7 @@ namespace material {
     virtual void build();
 
     virtual void routeServicesTo(MaterialObject& outputObject) const;
+    virtual void routeServicesTo(ConversionStation& outputObject) const;
     void addElementIfService(const Element* inputElement);
     void populateInactiveElement(InactiveElement& inactiveElement) const;
 
@@ -41,7 +43,7 @@ namespace material {
 
     //TODO: do methods for interrogate/get materials
 
-  protected:
+  private:
     static const std::map<Type, const std::string> typeString;
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
@@ -49,6 +51,7 @@ namespace material {
 
     const std::string getTypeString() const;
 
+  public:
     class Element : public PropertyObject {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
@@ -87,6 +90,7 @@ namespace material {
       virtual ~Component() {};
       void build();
       void routeServicesTo(MaterialObject& outputObject) const;
+      void routeServicesTo(ConversionStation& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateInactiveElement(InactiveElement& inactiveElement) const;
 
@@ -103,6 +107,7 @@ namespace material {
       void build();
       void setup();
       void routeServicesTo(MaterialObject& outputObject) const;
+      void routeServicesTo(ConversionStation& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateInactiveElement(InactiveElement& inactiveElement) const;
 

@@ -15,6 +15,7 @@
 #include "InactiveElement.h"
 #include "MatCalc.h"
 #include "MaterialObject.h"
+#include "ConversionStation.h"
 
 #include <ctime>
 
@@ -223,11 +224,12 @@ namespace material {
   //=====================================================================================================================
   //START Materialway::Station
 
-  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
-      Section(minZ, minR, maxZ, maxR, bearing, nextSection) {}
+  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, const ConversionStation& conversionStation, Section* nextSection) :
+      Section(minZ, minR, maxZ, maxR, bearing, nextSection),
+      conversionStation_ (conversionStation) {}
 
-  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing) :
-      Station(minZ, minR, maxZ, maxR, bearing, nullptr) {}
+  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, const ConversionStation& conversionStation) :
+      Station(minZ, minR, maxZ, maxR, bearing, conversionStation, nullptr) {}
   Materialway::Station::~Station() {}
 
   void Materialway::Station::route(const Train& train) {
@@ -236,7 +238,8 @@ namespace material {
   }
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
-    //do nothing
+    source.routeServicesTo(conversionStation_);
+    //dont pass
   }
 
   //END Materialway::Station
@@ -499,7 +502,8 @@ namespace material {
         //startLayerZMinus(nullptr),
         startBarrel(nullptr),
         startEndcap(nullptr),
-        startDisk(nullptr) {}
+        startDisk(nullptr),
+        barrelConversionStation_(nullptr) {}
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
 
@@ -514,6 +518,8 @@ namespace material {
         int maxR = boundary->maxR() - safetySpace;
 
         startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection()); //TODO:build other segment in other direction?
+
+        barrelConversionStation_ = barrel.conversionStation();
       }
 
       void visit(const Layer& layer) {
@@ -546,7 +552,7 @@ namespace material {
         int stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
         int stationMaxR = sectionMinR + (layerStationWidth/2);
 
-        Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, section); //TODO: check if is ok VERTICAL
+        Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *barrelConversionStation_, section); //TODO: check if is ok VERTICAL
         sectionsList_.push_back(station);
         startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
         sectionsList_.push_back(startLayer);
@@ -696,6 +702,7 @@ namespace material {
       Section* startBarrel;
       Section* startEndcap;
       //ZPosition currEndcapPosition;
+      const ConversionStation* barrelConversionStation_;
 
 
       //Section* findAttachPoint(Section* section, )
@@ -728,7 +735,8 @@ namespace material {
         }
         return newSection;
       }
-    };
+    }; //END class MultipleVisitor
+
     MultipleVisitor visitor (sectionsList_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_);
     tracker.accept(visitor);
   }

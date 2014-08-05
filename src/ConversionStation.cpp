@@ -56,6 +56,12 @@ namespace material {
     }
   }
 
+  void ConversionStation::addElementIfService(const MaterialObject::Element* inputElement) {
+      if (inputElement->service() == true) {
+        inputElements.push_back(inputElement);
+      }
+    }
+
   void ConversionStation::Conversion::build() {
     //std::cout << "  CONVERSION" << std::endl;
 
@@ -81,7 +87,7 @@ namespace material {
     cleanup();
   }
 
-  void ConversionStation::Conversion::Inoutput::build() {
+  void ConversionStation::Inoutput::build() {
     //std::cout << "    INPUT/OUTPUT" << std::endl;
 
     for  (auto& currentElementNode : elementsNode_) {
@@ -98,12 +104,12 @@ namespace material {
   }
 
   /*
-  void ConversionStation::Conversion::Inoutput::Element::build() {
+  void ConversionStation::Element::build() {
     std::cout << "      ELEMENT -> "
         << " elementName " << elementName()
         << "; quantity " << quantity()
         << "; unit " << unit()
-        << "; exiting " << (exiting.state() ? std::to_string(exiting()) : "NOT_SET" )
+        << "; service " << (service.state() ? std::to_string(service()) : "NOT_SET" )
         << std::endl;
   }
   */

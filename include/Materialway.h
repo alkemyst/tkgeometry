@@ -40,6 +40,7 @@ using insur::MatCalc;
 namespace material {
 
   class MaterialObject;
+  class ConversionStation;
 
   /**
    * @class Materialway
@@ -132,8 +133,8 @@ namespace material {
 
     class Station : public Section {
     public:
-      Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
-      Station(int minZ, int minR, int maxZ, int maxR, Direction bearing);
+      Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation, Section* nextSection);
+      Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation);
       virtual ~Station();
 
       enum Type { LAYER, TERMINUS };
@@ -146,7 +147,7 @@ namespace material {
 
     private:
       size_t labelHash;
-
+      ConversionStation& conversionStation_;
     };
 
     typedef std::vector<Section*> SectionVector;
