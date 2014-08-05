@@ -6,6 +6,7 @@
  */
 
 #include "ConversionStation.h"
+#include "MaterialObject.h"
 
 namespace material {
 

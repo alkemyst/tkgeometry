@@ -37,6 +37,7 @@ namespace material {
         //check if is a comment
         if (material[0] != '#') {
           lineStream >> density >> radiationLength >> interactionLength;
+          insert(make_pair(material, make_tuple(density, radiationLength, interactionLength)));
         }
 
         lineStream.clear();

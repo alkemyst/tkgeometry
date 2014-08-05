@@ -13,6 +13,7 @@
 #include <utility>
 #include <set>
 #include <string>
+#include "MaterialObject.h"
 //#include "global_constants.h"
 
 class DetectorModule;
@@ -118,7 +119,7 @@ namespace material {
       //Section* appendNewSection
 
       virtual void route(const Train& train);
-      virtual void route();
+      virtual void getServicesAndPass(const MaterialObject& source);
 
       bool debug_;
     private:
@@ -141,7 +142,7 @@ namespace material {
       };
 
       virtual void route(const Train& train);
-      virtual void route();
+      virtual void getServicesAndPass(const MaterialObject& source);
 
     private:
       size_t labelHash;

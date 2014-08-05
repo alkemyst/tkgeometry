@@ -9,7 +9,13 @@
 #define MATERIALOBJECT_H_
 
 #include "Property.h"
-#include "Materialway.h"
+//#include "Materialway.h"
+
+namespace insur {
+  class InactiveElement;
+}
+
+using insur::InactiveElement;
 
 namespace material {
 
@@ -19,7 +25,7 @@ namespace material {
   protected:
     class Element; //forward declaration for getElementIfService(Element& inputElement)
   public:
-    enum Type {MODULE, ROD};
+    enum Type {MODULE, ROD, SERVICE};
 
     MaterialObject(Type materialType);
     virtual ~MaterialObject() {};
@@ -27,8 +33,8 @@ namespace material {
     virtual void build();
 
     virtual void routeServicesTo(MaterialObject& outputObject) const;
-    void addElementIfService(Element& inputElement);
-    void populateInactiveElement(InactiveElement& inactiveElement);
+    void addElementIfService(const Element* inputElement);
+    void populateInactiveElement(InactiveElement& inactiveElement) const;
 
 
     //void chargeTrain(Materialway::Train& train) const;
@@ -60,10 +66,10 @@ namespace material {
 
       Element();
       virtual ~Element() {};
-      //void build();
+      void build();
       //void chargeTrain(Materialway::Train& train) const;
-      double quantityInGrams(InactiveElement& inactiveElement);
-      void populateInactiveElement(InactiveElement& inactiveElement);
+      double quantityInGrams(InactiveElement& inactiveElement) const;
+      void populateInactiveElement(InactiveElement& inactiveElement) const;
     private:
       const MaterialTab& materialTab_;
       static const std::string msg_no_valid_unit;
@@ -80,12 +86,12 @@ namespace material {
       Component();
       virtual ~Component() {};
       void build();
-      void routeServicesTo(MaterialObject& outputObject);
+      void routeServicesTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
-      void populateInactiveElement(InactiveElement& inactiveElement);
+      void populateInactiveElement(InactiveElement& inactiveElement) const;
 
-      PtrVector<Component> components;
-      PtrVector<Element> elements;
+      std::vector<const Component*> components;
+      std::vector<const Element*> elements;
     };
 
     class Materials : public PropertyObject {
@@ -96,11 +102,11 @@ namespace material {
       virtual ~Materials() {};
       void build();
       void setup();
-      void routeServicesTo(MaterialObject& outputObject);
+      void routeServicesTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
-      void populateInactiveElement(InactiveElement& inactiveElement);
+      void populateInactiveElement(InactiveElement& inactiveElement) const;
 
-      PtrVector<Component> components;
+      std::vector<const Component*> components;
     };
 
     //ATTENTION: Materials objects of the same structure are shared between MaterialObject objects
@@ -108,7 +114,7 @@ namespace material {
     //   This is not for service routing objects.
     Materials * materials;
 
-    PtrVector<Element> serviceElements; //used for MaterialObject not from config file (service routing)
+    std::vector<const Element*> serviceElements; //used for MaterialObject not from config file (service routing)
   };
 } /* namespace material */
 

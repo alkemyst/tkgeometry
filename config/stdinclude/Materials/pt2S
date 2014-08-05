@@ -12,7 +12,9 @@ Materials module-pt2S {
   // Sensor
   Component {
     componentName Sensor
-    service true
+    //service true
+    //CHECK WHY WAS TRUE
+    service false
     scale false
     Element {
       elementName SenSi
@@ -24,7 +26,9 @@ Materials module-pt2S {
   // Sensor
   Component {
     componentName Sensor
-    service true
+    //service true
+    //CHECK WHY WAS TRUE
+    service false
     scale false
     Element {
       elementName SenSi
