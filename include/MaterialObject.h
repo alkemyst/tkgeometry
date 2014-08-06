@@ -36,6 +36,7 @@ namespace material {
     virtual void routeServicesTo(MaterialObject& outputObject) const;
     virtual void routeServicesTo(ConversionStation& outputObject) const;
     void addElementIfService(const Element* inputElement);
+    void addElement(const Element* inputElement);
     void populateInactiveElement(InactiveElement& inactiveElement) const;
 
 
@@ -58,16 +59,18 @@ namespace material {
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
 
-      ReadonlyProperty<std::string, NoDefault> componentName; //only the inner component's name
-      ReadonlyProperty<long, NoDefault> nStripAcross;
-      ReadonlyProperty<long, NoDefault> nSegments;
-      ReadonlyProperty<std::string, NoDefault> elementName;
-      ReadonlyProperty<bool, NoDefault> service;
-      ReadonlyProperty<bool, NoDefault> scale;
-      ReadonlyProperty<double, NoDefault> quantity;
-      ReadonlyProperty<std::string, NoDefault> unit;
+      Property<std::string, NoDefault> componentName; //only the inner component's name
+      Property<long, NoDefault> nStripAcross;
+      Property<long, NoDefault> nSegments;
+      Property<std::string, NoDefault> elementName;
+      Property<bool, Default> service;
+      Property<bool, Default> scale;
+      Property<double, NoDefault> quantity;
+      Property<std::string, NoDefault> unit;
 
       Element();
+      //Element(const Element& originElement, double multiplier = 1.0);
+
       virtual ~Element() {};
       void build();
       //void chargeTrain(Materialway::Train& train) const;

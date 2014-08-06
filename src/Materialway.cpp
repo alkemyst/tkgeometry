@@ -863,8 +863,10 @@ namespace material {
     //testTrains();
     //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << std::endl;
     routeModuleServices();
+    //TODO: route also rod materials
     std::cout << "TIME " << difftime(time(0), startTime) << " end routeModuleServices" << std::endl;
-    //TODO: route also rod materials, and do conversion stations
+    firstStepConversions();
+    std::cout << "TIME " << difftime(time(0), startTime) << " end firstStepConversions" << std::endl;
     populateInactiveElements();
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateInactiveElements" << std::endl;
     buildInactiveSurface(inactiveSurface);
@@ -980,9 +982,31 @@ namespace material {
 
   void Materialway::firstStepConversions() {
     for (Station* station : stationListFirst_) {
-      //station->conversionStation().;
-      //TODO: put local (converted) materials from conversionStation to MaterialObject (of the station)
-      //TODO: route service (converted) materials from conversionStation to succSection (like before)
+      if ((station->nextSection() != nullptr) && (station->inactiveElement() != nullptr)) {
+        //put local materials in the materialObject of the station
+        //put exiting services in the materialObject of the adiacent section of station
+        station->conversionStation().routeConvertedElements(station->materialObject(), station->nextSection()->materialObject(), *station->inactiveElement());
+        if (station->nextSection()->nextSection() != nullptr) {
+          //route from the adiacent section of the adiacent section of the station the materials of the adiacent section of the station
+          station->nextSection()->nextSection()->getServicesAndPass(station->nextSection()->materialObject());
+        }
+      }
+      /*
+      if (station->materialObject() != nullptr) {
+        station->conversionStation().routeConvertedLocalsTo(station->materialObject());
+      }
+
+      if (station->nextSection() != nullptr) {
+        if (station->nextSection()->materialObject() != nullptr) {
+          //put exiting services in the materialObject of the adiacent section of station
+          station->conversionStation().routeConvertedServicesTo(station->nextSection()->materialObject());
+          if (station->nextSection()->nextSection() != nullptr) {
+            //route from the adiacent section of the adiacent section of the station the materials of the adiacent section of the station
+            station->nextSection()->nextSection()->getServicesAndPass(station->nextSection()->materialObject());
+          }
+        }
+      }
+      */
     }
   }
 

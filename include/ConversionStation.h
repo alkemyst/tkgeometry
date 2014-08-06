@@ -26,8 +26,10 @@ namespace material {
       conversionsNode_ ("Conversion", parsedOnly()) {} ;
     virtual ~ConversionStation() {};
 
-    virtual void build();
-    virtual void routeServicesTo(MaterialObject& outputObject) const;
+    void build();
+    void routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement);
+    //void routeConvertedServicesTo(MaterialObject& outputObject) const;
+    //void routeConvertedLocalsTo(MaterialObject& outputObject) const;
     void addElementIfService(const MaterialObject::Element* inputElement);
 
   private:
@@ -40,6 +42,7 @@ namespace material {
     const std::string getTypeString() const;
     void buildConversions();
 
+    /*
     class Element : public PropertyObject {
     public:
       ReadonlyProperty<std::string, NoDefault> elementName;
@@ -56,6 +59,7 @@ namespace material {
 
       //void build();
     };
+    */
 
     class Inoutput : public PropertyObject {
     public:
@@ -67,9 +71,7 @@ namespace material {
 
       void build();
 
-
-
-      PtrVector<Element> elements;
+      std::vector<MaterialObject::Element*> elements;
     };
 
     class Conversion : public PropertyObject {
@@ -84,12 +86,11 @@ namespace material {
 
       void build();
 
-
-      PtrVector<Inoutput> inputs;
-      PtrVector<Inoutput> outputs;
+      Inoutput* input;
+      Inoutput* outputs;
     };
 
-    PtrVector<Conversion> conversions;
+    std::vector<Conversion *> conversions;
     std::vector<const MaterialObject::Element *> inputElements;
   };
 
