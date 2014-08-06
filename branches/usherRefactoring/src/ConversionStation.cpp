@@ -6,7 +6,7 @@
  */
 
 #include "ConversionStation.h"
-#include "MaterialObject.h"
+//#include "MaterialObject.h"
 
 namespace material {
 
@@ -42,6 +42,12 @@ namespace material {
 
   }
 
+  void ConversionStation::addElementIfService(const MaterialObject::Element* inputElement) {
+    if (inputElement->service() == true) {
+      inputElements.push_back(inputElement);
+    }
+  }
+
   void ConversionStation::buildConversions() {
     //std::cout << "STATION" << std::endl;
 
@@ -55,12 +61,6 @@ namespace material {
       conversions.push_back(newConversion);
     }
   }
-
-  void ConversionStation::addElementIfService(const MaterialObject::Element* inputElement) {
-      if (inputElement->service() == true) {
-        inputElements.push_back(inputElement);
-      }
-    }
 
   void ConversionStation::Conversion::build() {
     //std::cout << "  CONVERSION" << std::endl;

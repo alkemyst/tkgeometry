@@ -145,12 +145,15 @@ namespace material {
       virtual void route(const Train& train);
       virtual void getServicesAndPass(const MaterialObject& source);
 
+      ConversionStation& conversionStation();
+
     private:
       size_t labelHash;
       ConversionStation& conversionStation_;
     };
 
     typedef std::vector<Section*> SectionVector;
+    typedef std::vector<Station*> StationVector;
     typedef std::map<const DetectorModule*, Section*> ModuleSectionMap;
 
     /**
@@ -222,12 +225,13 @@ namespace material {
      */
     class InnerUsher {
     public:
-      InnerUsher(SectionVector& sectionsList, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations);
+      InnerUsher(SectionVector& sectionsList, StationVector& stationListFirst, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations);
       virtual ~InnerUsher();
 
-      void go(const Tracker& tracker);
+      void go(Tracker& tracker);
     private:
       SectionVector& sectionsList_;
+      StationVector& stationListFirst_;
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
@@ -237,11 +241,12 @@ namespace material {
     Materialway();
     virtual ~Materialway();
 
-    bool build(const Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc);
+    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc);
 
   private:
     BoundariesSet boundariesList_;       /**< Vector for storing all the boundaries */
-    SectionVector sectionsList_;          /**< Vector for storing all the sections */
+    SectionVector sectionsList_;         /**< Vector for storing all the sections (also stations)*/
+    StationVector stationListFirst_;         /**< Pointers to first step stations*/
 
     OuterUsher outerUsher;
     InnerUsher innerUsher;
@@ -271,9 +276,10 @@ namespace material {
 
     bool buildBoundaries(const Tracker& tracker);             /**< build the boundaries around barrels and endcaps */
     void buildExternalSections(const Tracker& tracker);       /**< build the sections outside the boundaries */
-    void buildInternalSections(const Tracker& tracker);                             /**< build the sections inside the boundaries */
+    void buildInternalSections(Tracker& tracker);                             /**< build the sections inside the boundaries */
     void buildInactiveElements();
     void routeModuleServices();
+    void firstStepConversions();
     void populateInactiveElements();
     void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
