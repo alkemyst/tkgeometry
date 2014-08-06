@@ -90,6 +90,10 @@ namespace material {
     }
   }
 
+  void MaterialObject::addElement(const Element* inputElement) {
+    serviceElements.push_back(inputElement);
+  }
+
   void MaterialObject::populateInactiveElement(InactiveElement& inactiveElement) const {
     for (const Element* currElement : serviceElements) {
       //currElement.populateInactiveElement(inactiveElement);
@@ -238,11 +242,24 @@ namespace material {
           nStripAcross("nStripAcross", parsedOnly()),
           nSegments("nSegments", parsedOnly()),
           elementName ("elementName", parsedAndChecked()),
-          service ("service", parsedAndChecked()),
-          scale ("scale", parsedAndChecked()),
+          service ("service", parsedOnly(), false),
+          scale ("scale", parsedOnly(), false),
           quantity ("quantity", parsedAndChecked()),
           unit ("unit", parsedAndChecked()),
           materialTab_ (MaterialTab::instance()) {};
+
+  /*
+  MaterialObject::Element::Element(const MaterialObject::Element& originElement, double multiplier) : materialTab_ (MaterialTab::instance()) {
+    componentName(originElement.componentName());
+    nStripAcross(originElement.nStripAcross());
+    nSegments(originElement.nSegments());
+    elementName(originElement.elementName());
+    service(originElement.service());
+    scale(originElement.scale());
+    quantity(originElement.quantity() * multiplier);
+    unit(originElement.unit());
+  }
+  */
 
   const std::string MaterialObject::Element::msg_no_valid_unit = "No valid unit: ";
 

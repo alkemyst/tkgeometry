@@ -38,9 +38,52 @@ namespace material {
     cleanup();
   }
 
-  void ConversionStation::routeServicesTo(MaterialObject& outputObject) const {
+  void ConversionStation::routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement) {
+    MaterialObject::Element* inputElement;
+    double totalGrams = 0.0;
+    double multiplier = 0.0;
+
+    for (const Conversion* currConversion : conversions) {
+      inputElement = currConversion->input->elements[0];
+      totalGrams = 0.0;
+
+      for (const MaterialObject::Element* currElement : inputElements) {
+        if (inputElement->elementName().compare(currElement->elementName()) == 0) {
+          totalGrams += currElement->quantityInGrams(inactiveElement);
+        }
+      }
+
+      multiplier = totalGrams / inputElement->quantityInGrams(inactiveElement);
+
+      for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
+        //MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+        //MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement);
+        //newElement->quantity(newElement->quantity() * multiplier);
+
+        MaterialObject::Element * newElement = new MaterialObject::Element();
+        newElement->elementName(outputElement->elementName());
+        newElement->service(outputElement->service());
+        newElement->quantity(outputElement->quantity() * multiplier);
+        newElement->unit(outputElement->unit());
+
+        if (newElement->service()) {
+          serviceOutput.addElement(newElement);
+        } else {
+          localOutput.addElement(newElement);
+        }
+      }
+    }
+  }
+
+  /*
+  void ConversionStation::routeConvertedServicesTo(MaterialObject& outputObject) const {
 
   }
+
+  void ConversionStation::routeConvertedLocalsTo(MaterialObject& outputObject) const {
+
+  }
+  */
 
   void ConversionStation::addElementIfService(const MaterialObject::Element* inputElement) {
     if (inputElement->service() == true) {
@@ -66,23 +109,19 @@ namespace material {
     //std::cout << "  CONVERSION" << std::endl;
 
     if (inputNode_.size() > 0) {
-      Inoutput* newInput = new Inoutput();
-      newInput->store(propertyTree());
-      newInput->store(inputNode_.begin()->second);
-      newInput->check();
-      newInput->build();
-
-      inputs.push_back(newInput);
+      input = new Inoutput();
+      input->store(propertyTree());
+      input->store(inputNode_.begin()->second);
+      input->check();
+      input->build();
     }
 
     if (outputNode_.size() > 0) {
-      Inoutput* newOutput = new Inoutput();
-      newOutput->store(propertyTree());
-      newOutput->store(outputNode_.begin()->second);
-      newOutput->check();
-      newOutput->build();
-
-      outputs.push_back(newOutput);
+      outputs = new Inoutput();
+      outputs->store(propertyTree());
+      outputs->store(outputNode_.begin()->second);
+      outputs->check();
+      outputs->build();
     }
     cleanup();
   }
@@ -91,7 +130,7 @@ namespace material {
     //std::cout << "    INPUT/OUTPUT" << std::endl;
 
     for  (auto& currentElementNode : elementsNode_) {
-      Element* newElement = new Element();
+      MaterialObject::Element* newElement = new MaterialObject::Element();
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
