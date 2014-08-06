@@ -224,11 +224,11 @@ namespace material {
   //=====================================================================================================================
   //START Materialway::Station
 
-  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, const ConversionStation& conversionStation, Section* nextSection) :
+  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation, Section* nextSection) :
       Section(minZ, minR, maxZ, maxR, bearing, nextSection),
       conversionStation_ (conversionStation) {}
 
-  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, const ConversionStation& conversionStation) :
+  Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation) :
       Station(minZ, minR, maxZ, maxR, bearing, conversionStation, nullptr) {}
   Materialway::Station::~Station() {}
 
@@ -241,6 +241,11 @@ namespace material {
     source.routeServicesTo(conversionStation_);
     //dont pass
   }
+
+  ConversionStation& Materialway::Station::conversionStation() {
+    return conversionStation_;
+  }
+
 
   //END Materialway::Station
   //=====================================================================================================================
@@ -482,19 +487,21 @@ namespace material {
   //END Materialway::OuterUsher
   //=====================================================================================================================
   //START Materialway::InnerUsher
-  Materialway::InnerUsher::InnerUsher(SectionVector& sectionsList, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations) :
+  Materialway::InnerUsher::InnerUsher(SectionVector& sectionsList, StationVector& stationListFirst, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations) :
         sectionsList_(sectionsList),
+        stationListFirst_(stationListFirst),
         barrelBoundaryAssociations_(barrelBoundaryAssociations),
         endcapBoundaryAssociations_(endcapBoundaryAssociations),
         moduleSectionAssociations_(moduleSectionAssociations)  {}
   Materialway::InnerUsher::~InnerUsher() {}
 
-  void Materialway::InnerUsher::go(const Tracker& tracker) {
+  void Materialway::InnerUsher::go(Tracker& tracker) {
     //Visitor for the barrel layers
-    class MultipleVisitor : public ConstGeometryVisitor {
+    class MultipleVisitor : public GeometryVisitor {
     public:
-      MultipleVisitor(SectionVector& sectionsList, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations) :
+      MultipleVisitor(SectionVector& sectionsList, StationVector& stationListFirst, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations) :
         sectionsList_(sectionsList),
+        stationListFirst_(stationListFirst),
         barrelBoundaryAssociations_(barrelBoundaryAssociations),
         endcapBoundaryAssociations_(endcapBoundaryAssociations),
         moduleSectionAssociations_(moduleSectionAssociations),
@@ -508,7 +515,7 @@ namespace material {
       virtual ~MultipleVisitor() {}
 
       //For the barrels ----------------------------------------------------
-      void visit(const Barrel& barrel) {
+      void visit(Barrel& barrel) {
         //build section right to layers
         Boundary* boundary = barrelBoundaryAssociations_[&barrel];
 
@@ -522,7 +529,7 @@ namespace material {
         barrelConversionStation_ = barrel.conversionStation();
       }
 
-      void visit(const Layer& layer) {
+      void visit(Layer& layer) {
         //split the right section
         Section* section = startBarrel;
         int attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
@@ -554,6 +561,7 @@ namespace material {
 
         Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *barrelConversionStation_, section); //TODO: check if is ok VERTICAL
         sectionsList_.push_back(station);
+        stationListFirst_.push_back(station);
         startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
         sectionsList_.push_back(startLayer);
 
@@ -574,7 +582,7 @@ namespace material {
         //TODO:aggiungi riferimento della rod a startZ...
       }
 
-      void visit(const BarrelModule& module) {
+      void visit(BarrelModule& module) {
         Section* section;
         int attachPoint;
 
@@ -614,7 +622,7 @@ namespace material {
       }
 
       //For the endcaps ----------------------------------------------------
-      void visit(const Endcap& endcap) {
+      void visit(Endcap& endcap) {
         if (endcap.minZ() >= 0) {
           //currEndcapPosition = POSITIVE;
 
@@ -631,7 +639,7 @@ namespace material {
         //}
       }
 
-      void visit(const Disk& disk) {
+      void visit(Disk& disk) {
         //if(currEndcapPosition == POSITIVE) {
         if (disk.minZ() >= 0) {
           //split the right section
@@ -666,7 +674,7 @@ namespace material {
         }
       }
 
-      void visit(const EndcapModule& module) {
+      void visit(EndcapModule& module) {
         //if(currEndcapPosition == POSITIVE) {
         if (module.minZ() >= 0) {
           Section* section;
@@ -693,6 +701,7 @@ namespace material {
       enum ZPosition {POSITIVE, NEGATIVE};
       //int splitCounter;
       SectionVector& sectionsList_;
+      StationVector& stationListFirst_;
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
@@ -702,7 +711,7 @@ namespace material {
       Section* startBarrel;
       Section* startEndcap;
       //ZPosition currEndcapPosition;
-      const ConversionStation* barrelConversionStation_;
+      ConversionStation* barrelConversionStation_;
 
 
       //Section* findAttachPoint(Section* section, )
@@ -737,7 +746,7 @@ namespace material {
       }
     }; //END class MultipleVisitor
 
-    MultipleVisitor visitor (sectionsList_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_);
+    MultipleVisitor visitor (sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_);
     tracker.accept(visitor);
   }
 
@@ -768,7 +777,7 @@ namespace material {
 
   Materialway::Materialway() :
     outerUsher(sectionsList_, boundariesList_),
-    innerUsher(sectionsList_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_),
+    innerUsher(sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_),
     boundariesList_() {}
   Materialway::~Materialway() {}
 
@@ -779,7 +788,7 @@ namespace material {
     return double(input / gridFactor);
   }
 
-  bool Materialway::build(const Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc) {
+  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc) {
     /*
     std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
     std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;
@@ -922,7 +931,7 @@ namespace material {
     }
   }
 
-  void Materialway::buildInternalSections(const Tracker& tracker) {
+  void Materialway::buildInternalSections(Tracker& tracker) {
     innerUsher.go(tracker);
   }
 
@@ -968,6 +977,15 @@ namespace material {
       pair.second->getServicesAndPass(pair.first->materialObject());
     }
   }
+
+  void Materialway::firstStepConversions() {
+    for (Station* station : stationListFirst_) {
+      //station->conversionStation().;
+      //TODO: put local (converted) materials from conversionStation to MaterialObject (of the station)
+      //TODO: route service (converted) materials from conversionStation to succSection (like before)
+    }
+  }
+
 
   void Materialway::populateInactiveElements() {
     //TODO: popolate also the modules (and delete the old part)

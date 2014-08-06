@@ -9,9 +9,11 @@
 #define CONVERSIONSTATION_H_
 
 #include "Property.h"
+#include "MaterialObject.h"
+
 
 namespace material {
-  class MaterialObject;
+  //class MaterialObject;
 
   class ConversionStation :public PropertyObject { //MaterialObject {
   public:
@@ -26,6 +28,7 @@ namespace material {
 
     virtual void build();
     virtual void routeServicesTo(MaterialObject& outputObject) const;
+    void addElementIfService(const MaterialObject::Element* inputElement);
 
   private:
     static const std::map<Type, const std::string> typeString;
@@ -36,7 +39,6 @@ namespace material {
 
     const std::string getTypeString() const;
     void buildConversions();
-    void addElementIfService(const MaterialObject::Element* inputElement);
 
     class Element : public PropertyObject {
     public:
