@@ -255,7 +255,7 @@ namespace material {
     Materialway();
     virtual ~Materialway();
 
-    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc);
+    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface);
 
   private:
     BoundariesSet boundariesList_;       /**< Vector for storing all the boundaries */
