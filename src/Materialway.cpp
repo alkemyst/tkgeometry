@@ -16,6 +16,10 @@
 #include "MatCalc.h"
 #include "MaterialObject.h"
 #include "ConversionStation.h"
+#include "Barrel.h"
+#include "Endcap.h"
+#include "Disk.h"
+#include "Layer.h"
 
 #include <ctime>
 
@@ -215,7 +219,7 @@ namespace material {
     }
   }
   void Materialway::Section::getServicesAndPass(const MaterialObject& source) {
-    source.routeServicesTo(materialObject());
+    source.copyServicesTo(materialObject());
     if(hasNextSection()) {
       nextSection()->getServicesAndPass(source);
     }
@@ -238,7 +242,7 @@ namespace material {
   }
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
-    source.routeServicesTo(conversionStation_);
+    source.copyServicesTo(conversionStation_);
     //dont pass
   }
 
@@ -487,30 +491,50 @@ namespace material {
   //END Materialway::OuterUsher
   //=====================================================================================================================
   //START Materialway::InnerUsher
-  Materialway::InnerUsher::InnerUsher(SectionVector& sectionsList, StationVector& stationListFirst, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations) :
+  Materialway::InnerUsher::InnerUsher(
+      SectionVector& sectionsList,
+      StationVector& stationListFirst,
+      BarrelBoundaryMap& barrelBoundaryAssociations,
+      EndcapBoundaryMap& endcapBoundaryAssociations,
+      ModuleSectionMap& moduleSectionAssociations,
+      LayerRodSectionsMap& layerRodSections,
+      DiskRodSectionsMap& diskRodSections) :
         sectionsList_(sectionsList),
         stationListFirst_(stationListFirst),
         barrelBoundaryAssociations_(barrelBoundaryAssociations),
         endcapBoundaryAssociations_(endcapBoundaryAssociations),
-        moduleSectionAssociations_(moduleSectionAssociations)  {}
+        moduleSectionAssociations_(moduleSectionAssociations),
+        layerRodSections_(layerRodSections),
+        diskRodSections_(diskRodSections) {}
   Materialway::InnerUsher::~InnerUsher() {}
 
   void Materialway::InnerUsher::go(Tracker& tracker) {
     //Visitor for the barrel layers
     class MultipleVisitor : public GeometryVisitor {
     public:
-      MultipleVisitor(SectionVector& sectionsList, StationVector& stationListFirst, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations) :
+      MultipleVisitor(
+          SectionVector& sectionsList,
+          StationVector& stationListFirst,
+          BarrelBoundaryMap& barrelBoundaryAssociations,
+          EndcapBoundaryMap& endcapBoundaryAssociations,
+          ModuleSectionMap& moduleSectionAssociations,
+          LayerRodSectionsMap& layerRodSections,
+          DiskRodSectionsMap& diskRodSections) :
         sectionsList_(sectionsList),
         stationListFirst_(stationListFirst),
         barrelBoundaryAssociations_(barrelBoundaryAssociations),
         endcapBoundaryAssociations_(endcapBoundaryAssociations),
         moduleSectionAssociations_(moduleSectionAssociations),
+        layerRodSections_(layerRodSections),
+        diskRodSections_(diskRodSections),
         startLayer(nullptr),
         //startLayerZMinus(nullptr),
         startBarrel(nullptr),
         startEndcap(nullptr),
         startDisk(nullptr),
-        barrelConversionStation_(nullptr) {}
+        barrelConversionStation_(nullptr),
+        currLayer_(nullptr),
+        currDisk_(nullptr) {}
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
       virtual ~MultipleVisitor() {}
 
@@ -530,6 +554,7 @@ namespace material {
       }
 
       void visit(Layer& layer) {
+        currLayer_ = &layer;
         //split the right section
         Section* section = startBarrel;
         int attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
@@ -564,6 +589,8 @@ namespace material {
         stationListFirst_.push_back(station);
         startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
         sectionsList_.push_back(startLayer);
+        layerRodSections_[currLayer_].first.push_back(startLayer);
+        layerRodSections_[currLayer_].second = station;
 
         /*
         //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;
@@ -599,6 +626,7 @@ namespace material {
           }
           if (section->minZ() < attachPoint - sectionTolerance) {
             section = splitSection(section, attachPoint);
+            layerRodSections_[currLayer_].first.push_back(section);
           }
           moduleSectionAssociations_[&module] = section;
         }
@@ -640,6 +668,7 @@ namespace material {
       }
 
       void visit(Disk& disk) {
+        currDisk_ = &disk;
         //if(currEndcapPosition == POSITIVE) {
         if (disk.minZ() >= 0) {
           //split the right section
@@ -669,6 +698,8 @@ namespace material {
           startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL, section);
           //startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL);
           sectionsList_.push_back(startDisk);
+          diskRodSections_[currDisk_].first.push_back(startDisk);
+          diskRodSections_[currDisk_].second = section;
 
           //TODO:aggiungi riferimento della rod a startZ...
         }
@@ -691,6 +722,7 @@ namespace material {
           }
           if (section->minR() < attachPoint - sectionTolerance) {
             section = splitSection(section, attachPoint);
+            diskRodSections_[currDisk_].first.push_back(section);
           }
 
           moduleSectionAssociations_[&module] = section;
@@ -705,6 +737,8 @@ namespace material {
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
+      LayerRodSectionsMap& layerRodSections_;
+      DiskRodSectionsMap& diskRodSections_;
       Section* startLayer;
       //Section* startLayerZMinus;
       Section* startDisk;
@@ -712,6 +746,8 @@ namespace material {
       Section* startEndcap;
       //ZPosition currEndcapPosition;
       ConversionStation* barrelConversionStation_;
+      Layer* currLayer_;
+      Disk* currDisk_;
 
 
       //Section* findAttachPoint(Section* section, )
@@ -746,7 +782,7 @@ namespace material {
       }
     }; //END class MultipleVisitor
 
-    MultipleVisitor visitor (sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_);
+    MultipleVisitor visitor (sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_);
     tracker.accept(visitor);
   }
 
@@ -777,7 +813,7 @@ namespace material {
 
   Materialway::Materialway() :
     outerUsher(sectionsList_, boundariesList_),
-    innerUsher(sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_),
+    innerUsher(sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_),
     boundariesList_() {}
   Materialway::~Materialway() {}
 
@@ -863,8 +899,9 @@ namespace material {
     //testTrains();
     //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << std::endl;
     routeModuleServices();
-    //TODO: route also rod materials
     std::cout << "TIME " << difftime(time(0), startTime) << " end routeModuleServices" << std::endl;
+    routeRodMaterials();
+    std::cout << "TIME " << difftime(time(0), startTime) << " end routeRodMaterials" << std::endl;
     firstStepConversions();
     std::cout << "TIME " << difftime(time(0), startTime) << " end firstStepConversions" << std::endl;
     populateInactiveElements();
@@ -977,6 +1014,24 @@ namespace material {
     for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
       //pair.first->materialObject().routeServicesTo(pair.second->materialObject());
       pair.second->getServicesAndPass(pair.first->materialObject());
+    }
+  }
+
+  void Materialway::routeRodMaterials() {
+    for (std::pair<const Layer* const, std::pair<std::vector<Section*>, Section*> > pair : layerRodSections_) {
+      for (Section* currSection : pair.second.first) {
+        pair.first->materialObject().copyServicesTo(currSection->materialObject());
+        pair.first->materialObject().copyLocalsTo(currSection->materialObject());
+      }
+      pair.second.second->getServicesAndPass(pair.first->materialObject());
+    }
+
+    for (std::pair<const Disk* const, std::pair<std::vector<Section*>, Section*> > pair : diskRodSections_) {
+      for (Section* currSection : pair.second.first) {
+        pair.first->materialObject().copyServicesTo(currSection->materialObject());
+        pair.first->materialObject().copyLocalsTo(currSection->materialObject());
+      }
+      pair.second.second->getServicesAndPass(pair.first->materialObject());
     }
   }
 

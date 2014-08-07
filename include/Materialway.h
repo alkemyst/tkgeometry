@@ -21,6 +21,8 @@ class Tracker;
 class Barrel;
 class Endcap;
 class Visitable;
+class Disk;
+class Layer;
 
 namespace insur {
   class InactiveSurfaces;
@@ -63,6 +65,9 @@ namespace material {
 
     class Section;
     class Station;      //because Train need to use Station and Section, and Station and Section need to use Train
+
+    typedef std::map<const Layer*, std::pair<std::vector<Section*>, Section*> > LayerRodSectionsMap;
+    typedef std::map<const Disk*, std::pair<std::vector<Section*>, Section*> > DiskRodSectionsMap;
 
   public:
     class Train {
@@ -225,7 +230,14 @@ namespace material {
      */
     class InnerUsher {
     public:
-      InnerUsher(SectionVector& sectionsList, StationVector& stationListFirst, BarrelBoundaryMap& barrelBoundaryAssociations, EndcapBoundaryMap& endcapBoundaryAssociations, ModuleSectionMap& moduleSectionAssociations);
+      InnerUsher(
+          SectionVector& sectionsList,
+          StationVector& stationListFirst,
+          BarrelBoundaryMap& barrelBoundaryAssociations,
+          EndcapBoundaryMap& endcapBoundaryAssociations,
+          ModuleSectionMap& moduleSectionAssociations,
+          LayerRodSectionsMap& layerRodSections,
+          DiskRodSectionsMap& diskRodSections);
       virtual ~InnerUsher();
 
       void go(Tracker& tracker);
@@ -235,6 +247,8 @@ namespace material {
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
+      LayerRodSectionsMap& layerRodSections_;
+      DiskRodSectionsMap& diskRodSections_;
     }; //class InnerUsher
 
   public:
@@ -279,6 +293,7 @@ namespace material {
     void buildInternalSections(Tracker& tracker);                             /**< build the sections inside the boundaries */
     void buildInactiveElements();
     void routeModuleServices();
+    void routeRodMaterials();
     void firstStepConversions();
     void populateInactiveElements();
     void testTrains();
@@ -289,6 +304,8 @@ namespace material {
     BarrelBoundaryMap barrelBoundaryAssociations_;
     EndcapBoundaryMap endcapBoundaryAssociations_;
     ModuleSectionMap moduleSectionAssociations_; /**< Map that associate each module with the section that it feeds */
+    LayerRodSectionsMap layerRodSections_;      /**< maps for sections of the rods */
+    DiskRodSectionsMap diskRodSections_;
     //std::map<Boundary&, Section*> boundarySectionAssociations;         /**< Map that associate each boundary with the outgoing section (for the construction) */
   };
 

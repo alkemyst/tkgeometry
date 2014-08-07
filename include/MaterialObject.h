@@ -33,9 +33,11 @@ namespace material {
 
     virtual void build();
 
-    virtual void routeServicesTo(MaterialObject& outputObject) const;
-    virtual void routeServicesTo(ConversionStation& outputObject) const;
+    virtual void copyServicesTo(MaterialObject& outputObject) const;
+    virtual void copyServicesTo(ConversionStation& outputObject) const;
+    void copyLocalsTo(MaterialObject& outputObject) const;
     void addElementIfService(const Element* inputElement);
+    void addElementIfLocal(const Element* inputElement);
     void addElement(const Element* inputElement);
     void populateInactiveElement(InactiveElement& inactiveElement) const;
 
@@ -92,8 +94,9 @@ namespace material {
       Component();
       virtual ~Component() {};
       void build();
-      void routeServicesTo(MaterialObject& outputObject) const;
-      void routeServicesTo(ConversionStation& outputObject) const;
+      void copyServicesTo(MaterialObject& outputObject) const;
+      void copyServicesTo(ConversionStation& outputObject) const;
+      void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateInactiveElement(InactiveElement& inactiveElement) const;
 
@@ -109,8 +112,9 @@ namespace material {
       virtual ~Materials() {};
       void build();
       void setup();
-      void routeServicesTo(MaterialObject& outputObject) const;
-      void routeServicesTo(ConversionStation& outputObject) const;
+      void copyServicesTo(MaterialObject& outputObject) const;
+      void copyServicesTo(ConversionStation& outputObject) const;
+      void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateInactiveElement(InactiveElement& inactiveElement) const;
 
