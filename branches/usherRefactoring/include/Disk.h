@@ -86,6 +86,7 @@ public:
     v.visit(*this); 
     for (const auto& r : rings_) { r.accept(v); }
   }
+  const MaterialObject& materialObject() const;
 };
 
 #endif

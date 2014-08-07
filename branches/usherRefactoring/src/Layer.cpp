@@ -220,4 +220,8 @@ void Layer::build() {
   }
 }
 
+const MaterialObject& Layer::materialObject() const{
+  return materialObject_;
+}
+
 define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };

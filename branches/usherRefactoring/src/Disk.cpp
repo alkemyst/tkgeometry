@@ -100,3 +100,7 @@ void Disk::mirrorZ() {
   for (auto& r : rings_) r.mirrorZ();
 }
 
+const MaterialObject& Disk::materialObject() const{
+  return materialObject_;
+}
+

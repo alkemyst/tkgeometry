@@ -63,21 +63,30 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::routeServicesTo(MaterialObject& outputObject) const {
+  void MaterialObject::copyServicesTo(MaterialObject& outputObject) const {
     for(const Element * currElement : serviceElements) {
       outputObject.addElementIfService(currElement);
     }
     if (materials != nullptr) {
-      materials->routeServicesTo(outputObject);
+      materials->copyServicesTo(outputObject);
     }
   }
 
-  void MaterialObject::routeServicesTo(ConversionStation& outputObject) const {
+  void MaterialObject::copyServicesTo(ConversionStation& outputObject) const {
     for(const Element * currElement : serviceElements) {
       outputObject.addElementIfService(currElement);
     }
     if (materials != nullptr) {
-      materials->routeServicesTo(outputObject);
+      materials->copyServicesTo(outputObject);
+    }
+  }
+
+  void MaterialObject::copyLocalsTo(MaterialObject& outputObject) const {
+    for(const Element * currElement : serviceElements) {
+      outputObject.addElementIfLocal(currElement);
+    }
+    if (materials != nullptr) {
+      materials->copyLocalsTo(outputObject);
     }
   }
 
@@ -86,6 +95,12 @@ namespace material {
       //std::cout << "ADDING " << inputElement->elementName() << std::endl;
       //std::cout << "COMP " << inputElement->componentName() << std::endl;
       //bool test = (inputElement->elementName().compare("SenSi") == 0);
+      serviceElements.push_back(inputElement);
+    }
+  }
+
+  void MaterialObject::addElementIfLocal(const Element* inputElement) {
+    if (inputElement->service() == false) {
       serviceElements.push_back(inputElement);
     }
   }
@@ -136,15 +151,21 @@ namespace material {
 
   }
 
-  void MaterialObject::Materials::routeServicesTo(MaterialObject& outputObject) const {
+  void MaterialObject::Materials::copyServicesTo(MaterialObject& outputObject) const {
     for (const Component* currComponent : components) {
-      currComponent->routeServicesTo(outputObject);
+      currComponent->copyServicesTo(outputObject);
     }
   }
 
-  void MaterialObject::Materials::routeServicesTo(ConversionStation& outputObject) const {
+  void MaterialObject::Materials::copyServicesTo(ConversionStation& outputObject) const {
     for (const Component* currComponent : components) {
-      currComponent->routeServicesTo(outputObject);
+      currComponent->copyServicesTo(outputObject);
+    }
+  }
+
+  void MaterialObject::Materials::copyLocalsTo(MaterialObject& outputObject) const {
+    for (const Component* currComponent : components) {
+      currComponent->copyLocalsTo(outputObject);
     }
   }
 
@@ -193,21 +214,30 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Component::routeServicesTo(MaterialObject& outputObject) const {
+  void MaterialObject::Component::copyServicesTo(MaterialObject& outputObject) const {
     for(const Element* currElement : elements) {
       outputObject.addElementIfService(currElement);
     }
     for (const Component* currComponent : components) {
-      currComponent->routeServicesTo(outputObject);
+      currComponent->copyServicesTo(outputObject);
     }
   }
 
-  void MaterialObject::Component::routeServicesTo(ConversionStation& outputObject) const {
+  void MaterialObject::Component::copyServicesTo(ConversionStation& outputObject) const {
     for(const Element* currElement : elements) {
       outputObject.addElementIfService(currElement);
     }
     for (const Component* currComponent : components) {
-      currComponent->routeServicesTo(outputObject);
+      currComponent->copyServicesTo(outputObject);
+    }
+  }
+
+  void MaterialObject::Component::copyLocalsTo(MaterialObject& outputObject) const {
+    for(const Element* currElement : elements) {
+      outputObject.addElementIfLocal(currElement);
+    }
+    for (const Component* currComponent : components) {
+      currComponent->copyLocalsTo(outputObject);
     }
   }
 
