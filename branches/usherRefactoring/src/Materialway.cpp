@@ -824,7 +824,7 @@ namespace material {
     return double(input / gridFactor);
   }
 
-  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface, MatCalc& materialCalc) {
+  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface) {
     /*
     std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
     std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;

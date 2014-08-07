@@ -131,6 +131,7 @@ int main(int argc, char* argv[]) {
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
       //if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
       if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+      //if (squid.createMaterialBudget(verboseMaterial)) {
         if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
           if (!squid.pureAnalyzeMaterialBudget(mattracks, vm.count("all") || vm.count("resolution"))) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;

@@ -239,13 +239,13 @@ namespace insur {
         std::string trackm = getMaterialFile();
         if (trackm=="") return false;
         if (!is) is = new InactiveSurfaces();
-        if (mb) delete mb;
-        mb  = new MaterialBudget(*tr, *is);
+        //if (mb) delete mb;
+        //mb  = new MaterialBudget(*tr, *is);
         if (tkMaterialCalc.initDone()) tkMaterialCalc.reset(); // TODO: obsolete these
         if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
 
-        if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-          materialwayTracker.build(*tr, *is, tkMaterialCalc);
+        //if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+          materialwayTracker.build(*tr, *is);
 
           // mb->materialsAll(tkMaterialCalc);
           // if (verbose) mb->print();
@@ -255,9 +255,9 @@ namespace insur {
             if (pixm!="") {
               if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
                 if (!pi) pi = new InactiveSurfaces();
-                if (pm) delete pm;
-                pm = new MaterialBudget(*px, *pi);
-                materialwayPixel.build(*px, *pi, pxMaterialCalc);
+                //if (pm) delete pm;
+                //pm = new MaterialBudget(*px, *pi);
+                materialwayPixel.build(*px, *pi);
 
                 //pm->materialsAll(pxMaterialCalc);
                 //if (verbose) pm->print();
@@ -265,14 +265,16 @@ namespace insur {
             }
           }
 
+          /*
         } else {
-          if (mb) delete mb;
-          mb = NULL;
-          if (pm) delete pm;
-          pm = NULL;
+          //if (mb) delete mb;
+          //mb = NULL;
+          //if (pm) delete pm;
+          //pm = NULL;
           logERROR(err_init_failed);
           return false;
         }
+        */
       } else {
         logERROR(err_no_tracker);
         return false;
