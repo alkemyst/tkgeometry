@@ -241,8 +241,8 @@ namespace insur {
         if (!is) is = new InactiveSurfaces();
         //if (mb) delete mb;
         //mb  = new MaterialBudget(*tr, *is);
-        if (tkMaterialCalc.initDone()) tkMaterialCalc.reset(); // TODO: obsolete these
-        if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
+        //if (tkMaterialCalc.initDone()) tkMaterialCalc.reset(); // TODO: obsolete these
+        //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
 
         //if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
           materialwayTracker.build(*tr, *is);
