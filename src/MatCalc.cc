@@ -448,7 +448,7 @@ namespace insur {
                     B = B * stripseg_scalars.at(j);
                     // save converted and scaled material
                     if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D); // CUIDADO MIXED UP j and *first?? was j
-                    else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D); // was j
+                    //else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D); // was j
                   }
                   //accumulation of travelling parameters for outer rings
                   if (j > 0) {
@@ -493,8 +493,8 @@ namespace insur {
                           // parameter scaling
                           A = A * stripseg_scalars.at(k);
                           // save converted and scaled material
-                          if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C); // was j
-                          else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C); // was j
+                          //if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C); // was j
+                          //else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C); // was j
                         }
                       }
                     }
@@ -608,7 +608,7 @@ namespace insur {
                     B = B * stripseg_scalars.at(j);
                     // save converted and scaled material
                     if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D);
-                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D);
+                    //else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D);
                   }
                   // accumulation of travelling parameters for outer rings
                   if (j > 0) {
@@ -638,8 +638,8 @@ namespace insur {
                             A = A * (double)mods.at(k) / (double)mods.at(j) * stripseg_scalars.at(k);
                             C = C * (double)mods.at(k) / (double)mods.at(j);
                             // save converted and scaled material
-                            if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C);
-                            else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C);
+                            //if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C);
+                            //else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C);
                           }
                         }
                       }
