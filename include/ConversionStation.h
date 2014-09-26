@@ -11,6 +11,11 @@
 #include "Property.h"
 #include "MaterialObject.h"
 
+namespace insur {
+  class InactiveElement;
+}
+
+using insur::InactiveElement;
 
 namespace material {
   //class MaterialObject;

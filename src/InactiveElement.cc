@@ -24,7 +24,7 @@ namespace insur {
      * Get the surface of the element that is relevant for material budget calculation.
      * @return The average cylinder surface for a horizontal tube, the disc surface for a vertical disc
      */
-    double InactiveElement::getSurface() {
+    double InactiveElement::getSurface() const {
         if (isVertical()) return ((i_radius + w_radius) * (i_radius + w_radius) - i_radius * i_radius) * PI;
         else return 2 * PI * (i_radius + w_radius / 2.0) * z_length;
     }
@@ -33,7 +33,7 @@ namespace insur {
      * Get the orientation of the object.
      * @return True if the element points up or down, false if it points sideways
      */
-    bool InactiveElement::isVertical() { return is_vertical; }
+    bool InactiveElement::isVertical() const { return is_vertical; }
     
     /**
      * Set the orientation flag of the object.

@@ -32,9 +32,18 @@ namespace insur {
      * Get the module surface.
      * @return The module surface that is relevant for tracking
      */
-    double ModuleCap::getSurface() {
+    double ModuleCap::getSurface() const {
         return module->area();
     }
+
+    /**
+     * Get the module surface.
+     * @return The module surface that is relevant for tracking
+     */
+    double ModuleCap::getLength() const {
+        return module->length();
+    }
+
     
     /**
      * This function prints a summary of the object to <i>cout</i>
