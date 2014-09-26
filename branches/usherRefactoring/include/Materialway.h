@@ -251,6 +251,17 @@ namespace material {
       DiskRodSectionsMap& diskRodSections_;
     }; //class InnerUsher
 
+    /**
+     * @class ModuleUsher
+     * @brief Add materials to the modules
+     */
+    class ModuleUsher {
+    public:
+      ModuleUsher();
+      void go(Tracker& tracker);
+    }; //class ModuleUsher
+
+
   public:
     Materialway();
     virtual ~Materialway();
@@ -295,7 +306,8 @@ namespace material {
     void routeModuleServices();
     void routeRodMaterials();
     void firstStepConversions();
-    void populateInactiveElements();
+    void populateAllMaterialProperties(Tracker& tracker);
+    void calculateMaterialValues();
     void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
     InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);

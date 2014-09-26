@@ -10,7 +10,8 @@
 #include "ConversionStation.h"
 #include "global_constants.h"
 #include "MaterialTab.h"
-#include "InactiveElement.h"
+//#include "InactiveElement.h"
+#include "MaterialProperties.h"
 #include <messageLogger.h>
 #include <stdexcept>
 
@@ -109,20 +110,20 @@ namespace material {
     serviceElements.push_back(inputElement);
   }
 
-  void MaterialObject::populateInactiveElement(InactiveElement& inactiveElement) const {
+  void MaterialObject::populateMaterialProperties(MaterialProperties& materialProperties) const {
     for (const Element* currElement : serviceElements) {
-      //currElement.populateInactiveElement(inactiveElement);
+      //currElement.populateMaterialProperties(materialProperties);
       //populate directly because need to skip the control if is a service
       //TODO: check why componentName is not present in no Element
       if (currElement->componentName.state()) {
-        inactiveElement.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(inactiveElement));
+        materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(materialProperties));
       } else {
-        inactiveElement.addLocalMass(currElement->elementName(), currElement->quantityInGrams(inactiveElement));
+        materialProperties.addLocalMass(currElement->elementName(), currElement->quantityInGrams(materialProperties));
       }
     }
 
     if (materials != nullptr) {
-      materials->populateInactiveElement(inactiveElement);
+      materials->populateMaterialProperties(materialProperties);
     }
   }
 
@@ -175,9 +176,9 @@ namespace material {
 //    }
 //  }
 
-  void MaterialObject::Materials::populateInactiveElement(InactiveElement& inactiveElement) const {
+  void MaterialObject::Materials::populateMaterialProperties(MaterialProperties& materialProperties) const {
     for (const Component* currComponent : components) {
-      currComponent->populateInactiveElement(inactiveElement);
+      currComponent->populateMaterialProperties(materialProperties);
     }
   }
 
@@ -250,12 +251,12 @@ namespace material {
 //    }
 //  }
 
-  void MaterialObject::Component::populateInactiveElement(InactiveElement& inactiveElement) const {
+  void MaterialObject::Component::populateMaterialProperties(MaterialProperties& materialProperties) const {
     for (const Component* currComponent : components) {
-      currComponent->populateInactiveElement(inactiveElement);
+      currComponent->populateMaterialProperties(materialProperties);
     }
     for (const Element* currElement : elements) {
-      currElement->populateInactiveElement(inactiveElement);
+      currElement->populateMaterialProperties(materialProperties);
     }
   }
 
@@ -299,7 +300,7 @@ namespace material {
       {"g/m", GRAMS_METER}
   };
 
-  double MaterialObject::Element::quantityInGrams(InactiveElement& inactiveElement) const {
+  double MaterialObject::Element::quantityInGrams(MaterialProperties& materialProperties) const {
     double returnVal;
     try {
       switch (unitStringMap.at(unit())) {
@@ -308,11 +309,14 @@ namespace material {
         break;
 
       case Element::GRAMS_METER:
-        returnVal = inactiveElement.getLength() * quantity() / 1000.0;
+        returnVal = materialProperties.getLength() * quantity() / 1000.0;
         break;
 
       case Element::MILLIMETERS:
-        returnVal = materialTab_.density(elementName()) * inactiveElement.getSurface() * quantity() / 1000.0;
+        std::string elementNameString = elementName();
+        double elementDensity = materialTab_.density(elementNameString);
+        double elementSurface =  materialProperties.getSurface();
+        returnVal = elementDensity * elementSurface * quantity() / 1000.0;
         break;
       }
     } catch (const std::out_of_range& ex) {
@@ -341,9 +345,9 @@ namespace material {
 //      train.addWagon(elementName(), )
 //  }
 
-  void MaterialObject::Element::populateInactiveElement(InactiveElement& inactiveElement) const {
+  void MaterialObject::Element::populateMaterialProperties(MaterialProperties& materialProperties) const {
     if(service() == false) {
-      inactiveElement.addLocalMass(elementName(), componentName(), quantityInGrams(inactiveElement));
+      materialProperties.addLocalMass(elementName(), componentName(), quantityInGrams(materialProperties));
     }
   }
 

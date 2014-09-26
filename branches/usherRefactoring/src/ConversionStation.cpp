@@ -7,6 +7,7 @@
 
 #include "ConversionStation.h"
 //#include "MaterialObject.h"
+#include "InactiveElement.h"
 
 namespace material {
 

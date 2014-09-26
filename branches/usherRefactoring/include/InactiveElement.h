@@ -33,8 +33,8 @@ namespace insur {
     enum InType { no_in, tracker, barrel, endcap };
     InactiveElement();
     virtual ~InactiveElement() {}
-    virtual double getSurface();
-    bool isVertical();
+    virtual double getSurface() const;
+    bool isVertical() const;
     void setVertical(bool vertical);
     bool isFinal();
     void setFinal(bool final);
@@ -46,7 +46,7 @@ namespace insur {
     void setInnerRadius(double iradius);
     double getRWidth() const;
     void setRWidth(double width);
-    double getLength() const;
+    virtual double getLength() const;
     double getVolume() const;
     int getFeederIndex();
     void setFeederIndex(int layer);

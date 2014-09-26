@@ -12,10 +12,10 @@
 //#include "Materialway.h"
 
 namespace insur {
-  class InactiveElement;
+  class MaterialProperties;
 }
 
-using insur::InactiveElement;
+using insur::MaterialProperties;
 
 namespace material {
 
@@ -39,7 +39,7 @@ namespace material {
     void addElementIfService(const Element* inputElement);
     void addElementIfLocal(const Element* inputElement);
     void addElement(const Element* inputElement);
-    void populateInactiveElement(InactiveElement& inactiveElement) const;
+    void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
 
     //void chargeTrain(Materialway::Train& train) const;
@@ -76,8 +76,8 @@ namespace material {
       virtual ~Element() {};
       void build();
       //void chargeTrain(Materialway::Train& train) const;
-      double quantityInGrams(InactiveElement& inactiveElement) const;
-      void populateInactiveElement(InactiveElement& inactiveElement) const;
+      double quantityInGrams(MaterialProperties& materialProperties) const;
+      void populateMaterialProperties(MaterialProperties& materialProperties) const;
     private:
       const MaterialTab& materialTab_;
       static const std::string msg_no_valid_unit;
@@ -98,7 +98,7 @@ namespace material {
       void copyServicesTo(ConversionStation& outputObject) const;
       void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
-      void populateInactiveElement(InactiveElement& inactiveElement) const;
+      void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
       std::vector<const Component*> components;
       std::vector<const Element*> elements;
@@ -116,7 +116,7 @@ namespace material {
       void copyServicesTo(ConversionStation& outputObject) const;
       void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
-      void populateInactiveElement(InactiveElement& inactiveElement) const;
+      void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
       std::vector<const Component*> components;
     };

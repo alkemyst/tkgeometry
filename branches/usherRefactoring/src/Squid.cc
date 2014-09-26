@@ -4,8 +4,8 @@
  * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
 
-#include <SvnRevision.h>
-#include <Squid.h>
+#include "SvnRevision.h"
+#include "Squid.h"
 
 namespace insur {
   // public
@@ -673,7 +673,7 @@ namespace insur {
       v.additionalInfoSite(includeSet_, getSettingsFile(),
                            getMaterialFile(), getPixelMaterialFile(),
                            defaultMaterialFile, defaultPixelMaterialFile,
-                           a, *tr, *simParms_, site);
+                           a, pixelAnalyzer, *tr, *simParms_, site);
       stopTaskClock();
       return true;
     }

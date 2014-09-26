@@ -23,6 +23,7 @@
 
 #include <ctime>
 
+
 namespace material {
 
   //=====================================================================================================================
@@ -904,8 +905,10 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end routeRodMaterials" << std::endl;
     firstStepConversions();
     std::cout << "TIME " << difftime(time(0), startTime) << " end firstStepConversions" << std::endl;
-    populateInactiveElements();
-    std::cout << "TIME " << difftime(time(0), startTime) << " end populateInactiveElements" << std::endl;
+    populateAllMaterialProperties(tracker);
+    std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
+    calculateMaterialValues();
+    std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
     buildInactiveSurface(inactiveSurface);
     std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << std::endl;
 
@@ -1065,13 +1068,38 @@ namespace material {
     }
   }
 
-
-  void Materialway::populateInactiveElements() {
-    //TODO: popolate also the modules (and delete the old part)
-
+  void Materialway::populateAllMaterialProperties(Tracker& tracker) {
+    //sections
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
-        section->materialObject().populateInactiveElement(*section->inactiveElement());
+        section->materialObject().populateMaterialProperties(*section->inactiveElement());
+      }
+    }
+
+    //modules
+    class ModuleVisitor : public GeometryVisitor {
+    public:
+      ModuleVisitor() {}
+      virtual ~ModuleVisitor() {}
+
+      void visit(DetectorModule& module) {
+        //ModuleCap* moduleCap = module.getModuleCap();
+        //MaterialProperties* materialProperties = ModuleCap;
+        //module.materialObject().populateMaterialProperties(*materialProperties);
+        module.materialObject().populateMaterialProperties(*module.getModuleCap());
+      }
+    };
+
+    ModuleVisitor visitor;
+    tracker.accept(visitor);
+  }
+
+  void Materialway::calculateMaterialValues() {
+    for(Section* section : sectionsList_) {
+      if(section->inactiveElement() != nullptr) {
+        section->inactiveElement()->calculateTotalMass();
+        section->inactiveElement()->calculateRadiationLength();
+        section->inactiveElement()->calculateInteractionLength();
       }
     }
   }

@@ -30,7 +30,10 @@ struct PosRef { int cnt, z, rho, phi; };
 struct TableRef { string table; int row, col; };
 struct UniRef { string cnt; int layer, ring, phi, side; };
 
-class ModuleCap;
+namespace insur {
+  class ModuleCap;
+}
+using insur::ModuleCap;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
@@ -131,7 +134,12 @@ public:
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
-  double area() const { return decorated().area(); }
+  double area() const { 
+    //return decorated().area();
+    const GeometricModule& module = decorated();
+    double area = module.area(); 
+    return area;
+  }
   double dsDistance() const { return decorated().dsDistance(); }
   void dsDistance(double d) { decorated().dsDistance(d); }
   double thickness() const { return dsDistance() + sensorThickness(); }
