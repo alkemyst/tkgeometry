@@ -36,6 +36,7 @@ Materials module-pixel {
       quantity 0.5
       unit g
     }
+  }
 
   //Cooling blocks
   Component {
@@ -79,6 +80,7 @@ Materials module-pixel {
       quantity 0.0557
       unit g
     }
+  }
 
   // HV
   Component {
@@ -122,5 +124,6 @@ Materials module-pixel {
       quantity  0.0456
       unit g
     }
+  }
 }
 
