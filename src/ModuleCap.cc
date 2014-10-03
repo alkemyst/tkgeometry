@@ -11,8 +11,8 @@ namespace insur {
     /**
      * The constructor links the cap to an existing module.
      */
-    ModuleCap::ModuleCap(Module& mod) { 
-        module = &mod;
+    ModuleCap::ModuleCap(Module* mod) { 
+        module = mod;
     }
     
     /**

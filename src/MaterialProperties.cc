@@ -216,7 +216,7 @@ namespace insur {
      * @param mp The destination object
      */
     void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
-        mp.clearMassVectors();
+      mp.clearMassVectors(); //TODO: why?!?!?!?!?!
         //for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
         //for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i));
         //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));

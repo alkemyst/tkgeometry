@@ -30,7 +30,7 @@ namespace insur {
      */
     class ModuleCap : public MaterialProperties {
     public:
-        ModuleCap(Module& mod);
+        ModuleCap(Module* mod);
         virtual ~ModuleCap();
         Module& getModule();
         virtual double getSurface() const;

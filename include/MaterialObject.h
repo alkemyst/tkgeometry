@@ -61,7 +61,7 @@ namespace material {
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
 
-      Property<std::string, NoDefault> componentName; //only the inner component's name
+      ReadonlyProperty<std::string, NoDefault> componentName; //only the inner component's name
       Property<long, NoDefault> nStripAcross;
       Property<long, NoDefault> nSegments;
       Property<std::string, NoDefault> elementName;
@@ -88,7 +88,7 @@ namespace material {
 
     class Component : public PropertyObject {
     public:
-      ReadonlyProperty<std::string, NoDefault> componentName;
+      //Property<std::string, NoDefault> componentName;
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
       Component();

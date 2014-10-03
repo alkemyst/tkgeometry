@@ -905,9 +905,11 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end routeRodMaterials" << std::endl;
     firstStepConversions();
     std::cout << "TIME " << difftime(time(0), startTime) << " end firstStepConversions" << std::endl;
+    createEndCaps(tracker);
+    std::cout << "TIME " << difftime(time(0), startTime) << " end createEndCaps" << std::endl;
     populateAllMaterialProperties(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
-    calculateMaterialValues();
+    calculateMaterialValues(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
     buildInactiveSurface(inactiveSurface);
     std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << std::endl;
@@ -1068,6 +1070,37 @@ namespace material {
     }
   }
 
+  void Materialway::createEndCaps(Tracker& tracker) {
+
+    class CapsVisitor : public GeometryVisitor {
+    public:
+      //std::map<BarrelModule*, int> mappaB;
+      //std::map<EndcapModule*, int> mappaE;
+      //int totB = 0;
+      //int totE = 0;
+      CapsVisitor() {}
+      void visit(BarrelModule& m) {
+        ModuleCap* cap = new ModuleCap(&m);
+        cap->setCategory(MaterialProperties::b_mod);
+        m.setModuleCap(cap);
+        //mappaB[&m] = 0;
+        //totB ++;
+      }
+      void visit(EndcapModule& m) {
+        ModuleCap* cap = new ModuleCap(&m);
+        cap->setCategory(MaterialProperties::e_mod);
+        m.setModuleCap(cap);
+        //mappaE[&m] = 0;
+        //totE ++;
+      }
+    };
+
+    CapsVisitor v;
+    tracker.accept(v);
+    //std::cout << "Stocazzo Barrel " << v.mappaB.size() << " = " << v.totB << "  ----  Endcap " << v.mappaE.size() << " = " << v.totE << std::endl;
+  }
+ 
+
   void Materialway::populateAllMaterialProperties(Tracker& tracker) {
     //sections
     for(Section* section : sectionsList_) {
@@ -1094,7 +1127,8 @@ namespace material {
     tracker.accept(visitor);
   }
 
-  void Materialway::calculateMaterialValues() {
+  void Materialway::calculateMaterialValues(Tracker& tracker) {
+    //sections
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
         section->inactiveElement()->calculateTotalMass();
@@ -1102,6 +1136,23 @@ namespace material {
         section->inactiveElement()->calculateInteractionLength();
       }
     }
+
+    //modules
+    class ModuleVisitor : public GeometryVisitor {
+    public:
+      ModuleVisitor() {}
+      virtual ~ModuleVisitor() {}
+
+      void visit(DetectorModule& module) {
+        ModuleCap* moduleCap = module.getModuleCap();
+        moduleCap->calculateTotalMass();
+        moduleCap->calculateRadiationLength();
+        moduleCap->calculateInteractionLength();
+      }
+    };
+
+    ModuleVisitor visitor;
+    tracker.accept(visitor);
   }
 
   void Materialway::testTrains() {

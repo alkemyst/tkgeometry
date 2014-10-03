@@ -244,7 +244,7 @@ Materials module-pt2S {
   // Power for the converter (10V)
   // 2 wires
   Component {
-    componentName Power lines
+    componentName "Power lines"
     service true
     scale true
     Element {
@@ -261,7 +261,7 @@ Materials module-pt2S {
 
   // Kapton tail for the HV of one sensor
   Component {
-    componentName HV lines
+    componentName "HV lines"
     service false
     scale false
     Element {
@@ -274,7 +274,7 @@ Materials module-pt2S {
   // TODO: RC filter missing here
   // Kapton tail for the HV of one sensor
   Component {
-    componentName HV lines
+    componentName "HV lines"
     service false
     scale false
     Element {
@@ -324,7 +324,7 @@ Materials module-pt2S {
   
   // HV: 1 wire
   Component {
-    componentName HV lines
+    componentName "HV lines"
     service true
     scale false
     Element {

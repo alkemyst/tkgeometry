@@ -183,9 +183,9 @@ namespace material {
   }
 
   MaterialObject::Component::Component() :
-          componentName ("componentName", parsedAndChecked()),
-          componentsNode_ ("Component", parsedOnly()),
-          elementsNode_ ("Element", parsedOnly()) {};
+    //componentName ("componentName", parsedAndChecked()),
+    componentsNode_ ("Component", parsedOnly()),
+    elementsNode_ ("Element", parsedOnly()) {};
 
   void MaterialObject::Component::build() {
     //std::cout << "COMPONENT " << componentName() << std::endl;
@@ -337,7 +337,7 @@ namespace material {
         << " quantity " << quantity()
         << " unit " << unit()
         << std::endl;
-        */
+    */
   }
 
 //  void MaterialObject::Element::chargeTrain(Materialway::Train& train) const {

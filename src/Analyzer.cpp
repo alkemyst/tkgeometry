@@ -561,11 +561,13 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     iserfbarrel.Fill(eta, tmp.interaction);
     rbarrelall.Fill(eta, tmp.radiation);
     ibarrelall.Fill(eta, tmp.interaction);
+    /*
     if (eta<0.03) {
       std::cout << "eta = " << eta << std::endl;
       track.sort();
       track.print();
     }
+    */
     rserfall.Fill(eta, tmp.radiation);
     iserfall.Fill(eta, tmp.interaction);
     rglobal.Fill(eta, tmp.radiation);
@@ -1319,15 +1321,17 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
       // volume was hit
       if ((tmp.first < eta) && (tmp.second > eta)) {
         double r, z;
-	if (eta<0.01) {
-	  std::cout << "Hitting an inactive surface at z=("
-		    << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
-		    << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
-	  const std::map<std::string, double>& localMasses = iter->getLocalMasses();
-	  const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
-	  for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-	  for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-	}
+        /*
+        if (eta<0.01) {
+          std::cout << "Hitting an inactive surface at z=("
+                    << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
+                    << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
+          const std::map<std::string, double>& localMasses = iter->getLocalMasses();
+          const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
+          for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+          for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+        }
+        */
         // radiation and interaction lenth scaling for vertical volumes
         if (iter->isVertical()) {
           z = iter->getZOffset() + iter->getZLength() / 2.0;
