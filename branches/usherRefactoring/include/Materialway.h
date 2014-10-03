@@ -306,8 +306,9 @@ namespace material {
     void routeModuleServices();
     void routeRodMaterials();
     void firstStepConversions();
+    void createEndCaps(Tracker& tracker);
     void populateAllMaterialProperties(Tracker& tracker);
-    void calculateMaterialValues();
+    void calculateMaterialValues(Tracker& tracker);
     void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
     InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);

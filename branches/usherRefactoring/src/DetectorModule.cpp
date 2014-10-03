@@ -26,7 +26,7 @@ DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m
 */
 
 void DetectorModule::build() {
-  myModuleCap_ = new ModuleCap(*this);
+  //myModuleCap_ = new ModuleCap(this);
 
   materialObject_.store(propertyTree());
   materialObject_.build();
@@ -185,10 +185,17 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   return std::make_pair(gc, ht);
 };
 
+BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
+  setup();
+  
+  //myModuleCap_ = new ModuleCap(this);
+  //myModuleCap_->setCategory(MaterialProperties::b_mod);
+}
+
 void BarrelModule::build() {
   try {
     DetectorModule::build();
-    myModuleCap_->setCategory(MaterialProperties::b_mod);
+    //myModuleCap_->setCategory(MaterialProperties::b_mod);
     decorated().rotateY(M_PI/2);
     rAxis_ = normal();
     tiltAngle_ = 0.;
@@ -199,11 +206,17 @@ void BarrelModule::build() {
   builtok(true);
 }
 
+EndcapModule::EndcapModule(Decorated* decorated) : DetectorModule(decorated) { 
+  setup();
+  
+  //myModuleCap_ = new ModuleCap(this);
+  //myModuleCap_->setCategory(MaterialProperties::e_mod);
+} 
 
 void EndcapModule::build() {
   try {
     DetectorModule::build();
-    myModuleCap_->setCategory(MaterialProperties::e_mod);
+    //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
     tiltAngle_ = M_PI/2.;
     skewAngle_ = 0.;

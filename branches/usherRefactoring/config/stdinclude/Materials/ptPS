@@ -254,7 +254,7 @@ Materials module-ptPS {
   // Power for the converter (10V)
   // 2 wires
   Component {
-    componentName Power lines
+    componentName "Power lines"
     service true
     scale true
     Element {

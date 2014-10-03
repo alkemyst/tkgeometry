@@ -124,7 +124,7 @@ public:
       resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
       resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0)
-  {}
+  { }
 
   virtual void setup();
 
@@ -249,9 +249,6 @@ public:
 
 
 
-
-
-
 class BarrelModule : public DetectorModule, public Clonable<BarrelModule> {
 public:
   Property<int16_t, AutoDefault> layer;
@@ -259,7 +256,9 @@ public:
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
 
-  BarrelModule(Decorated* decorated) : DetectorModule(decorated) { setup(); }
+
+  BarrelModule(Decorated* decorated);
+
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     v.visit(*(DetectorModule*)this);
@@ -302,7 +301,7 @@ public:
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
 
-  EndcapModule(Decorated* decorated) : DetectorModule(decorated) { setup(); } 
+  EndcapModule(Decorated* decorated);
 
   void setup() override {
     DetectorModule::setup();

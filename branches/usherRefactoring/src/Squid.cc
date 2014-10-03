@@ -253,7 +253,7 @@ namespace insur {
           if (px) {
             std::string pixm = getPixelMaterialFile();
             if (pixm!="") {
-              if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+              //if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
                 if (!pi) pi = new InactiveSurfaces();
                 //if (pm) delete pm;
                 //pm = new MaterialBudget(*px, *pi);
@@ -261,7 +261,7 @@ namespace insur {
 
                 //pm->materialsAll(pxMaterialCalc);
                 //if (verbose) pm->print();
-              }
+                //}
             }
           }
 
