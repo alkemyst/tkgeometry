@@ -114,6 +114,8 @@ Materials module-pixel {
   // Mechanics 
   Component {
     componentName Mechanics
+    service false
+    scale false
     Element {
       elementName CF
       quantity  0.608
