@@ -1097,7 +1097,7 @@ namespace material {
 
     CapsVisitor v;
     tracker.accept(v);
-    //std::cout << "Stocazzo Barrel " << v.mappaB.size() << " = " << v.totB << "  ----  Endcap " << v.mappaE.size() << " = " << v.totE << std::endl;
+    //std::cout << "Barrel " << v.mappaB.size() << " = " << v.totB << "  ----  Endcap " << v.mappaE.size() << " = " << v.totE << std::endl;
   }
  
 
