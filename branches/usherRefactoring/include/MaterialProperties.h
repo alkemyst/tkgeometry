@@ -83,7 +83,7 @@ namespace insur {
 //        std::string getExitingTag(int index);
 //        std::string getExitingTagComp(int index);
         //void setLocalMass(std::string tag, std::string comp, double ms);
-        void addLocalMass(std::string tag, std::string comp, double ms);
+        void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
         void addLocalMass(std::string tag, double ms);
         //void setExitingMass(std::string tag, std::string comp, double ms);
         void addExitingMass(std::string tag, std::string comp, double ms);

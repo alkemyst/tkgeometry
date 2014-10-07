@@ -574,7 +574,7 @@ namespace material {
 
         //built two main sections above the layer (one for positive part, one for negative)
 
-        int sectionMinZ = 0;
+        int sectionMinZ = safetySpace;
         int sectionMinR = attachPoint;
         //int sectionMaxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
         int sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
@@ -588,7 +588,7 @@ namespace material {
         Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *barrelConversionStation_, section); //TODO: check if is ok VERTICAL
         sectionsList_.push_back(station);
         stationListFirst_.push_back(station);
-        startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station); //TODO:Togli la sezione inutile (o fai meglio)
+        startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
         sectionsList_.push_back(startLayer);
         layerRodSections_[currLayer_].first.push_back(startLayer);
         layerRodSections_[currLayer_].second = station;
@@ -909,10 +909,12 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end createEndCaps" << std::endl;
     populateAllMaterialProperties(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
-    calculateMaterialValues(tracker);
-    std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
+    //calculateMaterialValues(tracker);
+    //std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
     buildInactiveSurface(inactiveSurface);
     std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << std::endl;
+    calculateMaterialValues(inactiveSurface, tracker);
+    std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
 
     return retValue;
   }
@@ -1127,6 +1129,7 @@ namespace material {
     tracker.accept(visitor);
   }
 
+  /*
   void Materialway::calculateMaterialValues(Tracker& tracker) {
     //sections
     for(Section* section : sectionsList_) {
@@ -1154,6 +1157,7 @@ namespace material {
     ModuleVisitor visitor;
     tracker.accept(visitor);
   }
+  */
 
   void Materialway::testTrains() {
     //TODO:erase counter
@@ -1173,12 +1177,51 @@ namespace material {
   void Materialway::buildInactiveSurface(InactiveSurfaces& inactiveSurface) {
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
+        /*
+        if(section->inactiveElement()->getInteractionLength() < 0){
+          std::cout<<"ERRORE INT LEN"<<std::endl;
+        }
+        */
         if((section->inactiveElement()->localMassCount() > 0) && (section->minZ() > 0)) {
           inactiveSurface.addBarrelServicePart(*section->inactiveElement());
           inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
         }
       }
     }
+    /*
+    std::vector<InactiveElement>& elements = inactiveSurface.getBarrelServices();
+    for (InactiveElement& currElem : elements) {
+      if (currElem.getInteractionLength() < 0){
+        std::cout<<"ERRORE INT LEN"<<std::endl;
+      }
+    }
+    */
+  }
+
+  void Materialway::calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker) {
+    //sections
+    for (InactiveElement& currElem : inactiveSurface.getBarrelServices()) {
+      currElem.calculateTotalMass();
+      currElem.calculateRadiationLength();
+      currElem.calculateInteractionLength();
+    }
+
+    //modules
+    class ModuleVisitor : public GeometryVisitor {
+    public:
+      ModuleVisitor() {}
+      virtual ~ModuleVisitor() {}
+
+      void visit(DetectorModule& module) {
+        ModuleCap* moduleCap = module.getModuleCap();
+        moduleCap->calculateTotalMass();
+        moduleCap->calculateRadiationLength();
+        moduleCap->calculateInteractionLength();
+      }
+    };
+
+    ModuleVisitor visitor;
+    tracker.accept(visitor);
   }
 
   InactiveElement* Materialway::buildOppositeInactiveElement(InactiveElement* inactiveElement) {

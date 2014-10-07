@@ -1306,12 +1306,22 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
 
 Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
                                            double theta, Track& t, MaterialProperties::Category cat, bool isPixel) {
+
+  /*
+  for (InactiveElement& currElem : elements) {
+    currElem.calculateTotalMass();
+    currElem.calculateRadiationLength();
+    currElem.calculateInteractionLength();
+  }
+  */
+  
   std::vector<InactiveElement>::iterator iter = elements.begin();
   std::vector<InactiveElement>::iterator guard = elements.end();
   Material res, corr;
   std::pair<double, double> tmp;
   double s = 0.0;
-  while (iter != guard) {
+  while ((iter != guard)) {
+    //if  ((iter->getInteractionLength() > 0) && (iter->getRadiationLength() > 0)) {
     // collision detection: rays are in z+ only, so only volumes in z+ need to be considered
     // only volumes of the requested category, or those without one (which should not exist) are examined
     if (((iter->getZOffset() + iter->getZLength()) > 0)
@@ -1463,6 +1473,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
       }
     }
     iter++;
+    //}
   }
   return res;
 }
