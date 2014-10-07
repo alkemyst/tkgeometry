@@ -134,7 +134,7 @@ namespace insur {
      * @param comp The name of the component
      * @param ms The mass value
      */
-  void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms) {
+  void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms, int minZ) {
         msl_set = true;
         localmasses[tag] += ms;
         localmassesComp[getSubName(comp)] += ms;

@@ -308,9 +308,10 @@ namespace material {
     void firstStepConversions();
     void createEndCaps(Tracker& tracker);
     void populateAllMaterialProperties(Tracker& tracker);
-    void calculateMaterialValues(Tracker& tracker);
+    //void calculateMaterialValues(Tracker& tracker);
     void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
+    void calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker);
     InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);
 
 

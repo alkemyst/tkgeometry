@@ -39,7 +39,7 @@ namespace material {
     void addElementIfService(const Element* inputElement);
     void addElementIfLocal(const Element* inputElement);
     void addElement(const Element* inputElement);
-    void populateMaterialProperties(MaterialProperties& materialProperties) const;
+    void populateMaterialProperties(MaterialProperties& materialPropertiess) const;
 
 
     //void chargeTrain(Materialway::Train& train) const;
@@ -98,7 +98,7 @@ namespace material {
       void copyServicesTo(ConversionStation& outputObject) const;
       void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
-      void populateMaterialProperties(MaterialProperties& materialProperties) const;
+      void populateMaterialProperties(MaterialProperties& materialPropertie) const;
 
       std::vector<const Component*> components;
       std::vector<const Element*> elements;
