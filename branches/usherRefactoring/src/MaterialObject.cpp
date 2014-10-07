@@ -111,10 +111,16 @@ namespace material {
   }
 
   void MaterialObject::populateMaterialProperties(MaterialProperties& materialProperties) const {
+    double quantity;
+
     for (const Element* currElement : serviceElements) {
       //currElement.populateMaterialProperties(materialProperties);
       //populate directly because need to skip the control if is a service
       //TODO: check why componentName is not present in no Element
+      quantity = currElement->quantityInGrams(materialProperties);
+      if(currElement->scale() == true) {
+        quantity *= currElement->nStripAcross();
+      }
       if (currElement->componentName.state()) {
         materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(materialProperties));
       } else {
@@ -346,8 +352,14 @@ namespace material {
 //  }
 
   void MaterialObject::Element::populateMaterialProperties(MaterialProperties& materialProperties) const {
+    double quantity;
+
     if(service() == false) {
-      materialProperties.addLocalMass(elementName(), componentName(), quantityInGrams(materialProperties));
+      quantity = quantityInGrams(materialProperties);
+      if(scale() == true) {
+        quantity *= nStripAcross();
+      }
+      materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }
   }
 
