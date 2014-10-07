@@ -7,6 +7,8 @@
 Materials rod1 {
   type rod
 
+  nStripsAcross 1016
+
   // Cooling for the module
   Component {
     componentName Cooling

@@ -3,8 +3,8 @@ Materials module-pixel {
   type module
 
   // Default sensor:
-  nStripsAcross 1024;
-  nSegments 128;
+  nStripsAcross 1024
+  nSegments 128
 
   // Modules: masses taken from TOB modules / 2
   Component {
