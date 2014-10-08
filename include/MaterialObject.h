@@ -62,7 +62,7 @@ namespace material {
       static const std::map<std::string, Unit> unitStringMap;
 
       ReadonlyProperty<std::string, NoDefault> componentName; //only the inner component's name
-      Property<long, NoDefault> nStripAcross;
+      Property<long, NoDefault> nStripsAcross;
       Property<long, NoDefault> nSegments;
       Property<std::string, NoDefault> elementName;
       Property<bool, Default> service;

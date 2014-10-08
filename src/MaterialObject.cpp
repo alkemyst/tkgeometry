@@ -119,7 +119,7 @@ namespace material {
       //TODO: check why componentName is not present in no Element
       quantity = currElement->quantityInGrams(materialProperties);
       if(currElement->scale() == true) {
-        quantity *= currElement->nStripAcross();
+        quantity *= currElement->nStripsAcross();
       }
       if (currElement->componentName.state()) {
         materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(materialProperties));
@@ -276,7 +276,7 @@ namespace material {
 
   MaterialObject::Element::Element() :
           componentName ("componentName", parsedOnly()),
-          nStripAcross("nStripAcross", parsedOnly()),
+          nStripsAcross("nStripsAcross", parsedOnly()),
           nSegments("nSegments", parsedOnly()),
           elementName ("elementName", parsedAndChecked()),
           service ("service", parsedOnly(), false),
@@ -288,7 +288,7 @@ namespace material {
   /*
   MaterialObject::Element::Element(const MaterialObject::Element& originElement, double multiplier) : materialTab_ (MaterialTab::instance()) {
     componentName(originElement.componentName());
-    nStripAcross(originElement.nStripAcross());
+    nStripsAcross(originElement.nStripsAcross());
     nSegments(originElement.nSegments());
     elementName(originElement.elementName());
     service(originElement.service());
@@ -357,7 +357,7 @@ namespace material {
     if(service() == false) {
       quantity = quantityInGrams(materialProperties);
       if(scale() == true) {
-        quantity *= nStripAcross();
+        quantity *= nStripsAcross();
       }
       materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }
