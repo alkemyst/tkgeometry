@@ -4,7 +4,8 @@
 Materials rodPixel {
   type rod
 
-  nStripsAcross 1016
+  nStripsAcross 1024
+  nSegments 128
   
   // Interconnect BUS
   Component {

@@ -4,10 +4,22 @@
 
 //  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
 
-Materials rod1 {
-  type rod
+//Materials rodBase {
+//  type rod
 
-  nStripsAcross 1016
+  //DUMMY!!!!!!!!!!!!!
+  Component {
+    componentName Cooling
+    service true
+//    service false
+    scale false
+    Element {
+      elementName Steel
+      quantity 10000
+      unit g/m
+    }
+  }
+    
 
   // Cooling for the module
   Component {
@@ -213,4 +225,4 @@ Materials rod1 {
       unit g/m
     }
   }
-}
+//}

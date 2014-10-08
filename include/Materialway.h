@@ -66,8 +66,24 @@ namespace material {
     class Section;
     class Station;      //because Train need to use Station and Section, and Station and Section need to use Train
 
-    typedef std::map<const Layer*, std::pair<std::vector<Section*>, Section*> > LayerRodSectionsMap;
-    typedef std::map<const Disk*, std::pair<std::vector<Section*>, Section*> > DiskRodSectionsMap;
+    class RodSectionsStation {
+    private:
+      std::vector<Section*> sections_;
+      Section* station_;
+    public:
+      RodSectionsStation();
+      ~RodSectionsStation();
+      void addSection(Section* section);
+      void setStation(Section* station);
+      std::vector<Section*>& getSections();
+      Section* getStation();
+    };
+
+    //typedef std::map<const Layer*, std::pair<std::vector<Section*>, Section*> > LayerRodSectionsMap;
+    //typedef std::map<const Disk*, std::pair<std::vector<Section*>, Section*> > DiskRodSectionsMap;
+
+    typedef std::map<const Layer*, RodSectionsStation> LayerRodSectionsMap;
+    typedef std::map<const Disk*, RodSectionsStation> DiskRodSectionsMap;
 
   public:
     class Train {
