@@ -68,6 +68,7 @@ namespace material {
     for(const Element * currElement : serviceElements) {
       outputObject.addElementIfService(currElement);
     }
+    
     if (materials != nullptr) {
       materials->copyServicesTo(outputObject);
     }
@@ -77,6 +78,7 @@ namespace material {
     for(const Element * currElement : serviceElements) {
       outputObject.addElementIfService(currElement);
     }
+
     if (materials != nullptr) {
       materials->copyServicesTo(outputObject);
     }
@@ -86,6 +88,7 @@ namespace material {
     for(const Element * currElement : serviceElements) {
       outputObject.addElementIfLocal(currElement);
     }
+
     if (materials != nullptr) {
       materials->copyLocalsTo(outputObject);
     }
@@ -119,7 +122,7 @@ namespace material {
       //TODO: check why componentName is not present in no Element
       quantity = currElement->quantityInGrams(materialProperties);
       if(currElement->scale() == true) {
-        quantity *= currElement->nStripsAcross();
+        quantity *= currElement->nSegments(); //nStripsAcross();
       }
       if (currElement->componentName.state()) {
         materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(materialProperties));
@@ -357,7 +360,7 @@ namespace material {
     if(service() == false) {
       quantity = quantityInGrams(materialProperties);
       if(scale() == true) {
-        quantity *= nStripsAcross();
+        quantity *= nSegments(); //nStripsAcross();
       }
       materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }

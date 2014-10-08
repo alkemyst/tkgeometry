@@ -26,6 +26,27 @@
 
 namespace material {
 
+  Materialway::RodSectionsStation::RodSectionsStation() {}
+
+  Materialway::RodSectionsStation::~RodSectionsStation() {}
+
+  void Materialway::RodSectionsStation::addSection(Materialway::Section* section) {
+    sections_.push_back(section);
+  }
+
+  void Materialway::RodSectionsStation::setStation(Materialway::Section* station) {
+    station_ = station;
+  }
+
+  std::vector<Materialway::Section*>& Materialway::RodSectionsStation::getSections() {
+    return sections_;
+  }
+
+  Materialway::Section* Materialway::RodSectionsStation::getStation() {
+    return station_;
+  }
+
+
   //=====================================================================================================================
   //START Materialway::Boundary
   Materialway::Boundary::Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR) :
@@ -244,7 +265,7 @@ namespace material {
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
     source.copyServicesTo(conversionStation_);
-    //dont pass
+    //don't pass
   }
 
   ConversionStation& Materialway::Station::conversionStation() {
@@ -590,8 +611,8 @@ namespace material {
         stationListFirst_.push_back(station);
         startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
         sectionsList_.push_back(startLayer);
-        layerRodSections_[currLayer_].first.push_back(startLayer);
-        layerRodSections_[currLayer_].second = station;
+        layerRodSections_[currLayer_].addSection(startLayer);
+        layerRodSections_[currLayer_].setStation(station);
 
         /*
         //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;
@@ -627,7 +648,7 @@ namespace material {
           }
           if (section->minZ() < attachPoint - sectionTolerance) {
             section = splitSection(section, attachPoint);
-            layerRodSections_[currLayer_].first.push_back(section);
+            layerRodSections_[currLayer_].addSection(section);
           }
           moduleSectionAssociations_[&module] = section;
         }
@@ -699,8 +720,8 @@ namespace material {
           startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL, section);
           //startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL);
           sectionsList_.push_back(startDisk);
-          diskRodSections_[currDisk_].first.push_back(startDisk);
-          diskRodSections_[currDisk_].second = section;
+          diskRodSections_[currDisk_].addSection(startDisk);
+          diskRodSections_[currDisk_].setStation(section);
 
           //TODO:aggiungi riferimento della rod a startZ...
         }
@@ -723,7 +744,7 @@ namespace material {
           }
           if (section->minR() < attachPoint - sectionTolerance) {
             section = splitSection(section, attachPoint);
-            diskRodSections_[currDisk_].first.push_back(section);
+            diskRodSections_[currDisk_].addSection(section);
           }
 
           moduleSectionAssociations_[&module] = section;
@@ -738,7 +759,7 @@ namespace material {
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
-      LayerRodSectionsMap& layerRodSections_;
+      LayerRodSectionsMap& layerRodSections_;  //map each layer with corresponding sections vector and station
       DiskRodSectionsMap& diskRodSections_;
       Section* startLayer;
       //Section* startLayerZMinus;
@@ -1025,20 +1046,26 @@ namespace material {
   }
 
   void Materialway::routeRodMaterials() {
-    for (std::pair<const Layer* const, std::pair<std::vector<Section*>, Section*> > pair : layerRodSections_) {
-      for (Section* currSection : pair.second.first) {
-        pair.first->materialObject().copyServicesTo(currSection->materialObject());
-        pair.first->materialObject().copyLocalsTo(currSection->materialObject());
+    bool first = true;
+    for (std::pair<const Layer* const, RodSectionsStation> currAssociation : layerRodSections_) {
+      first = true;
+      for (Section* currSection : currAssociation.second.getSections()) {
+        //currAssociation.first->materialObject().copyServicesTo(currSection->materialObject());
+        if (first) {
+          currSection->getServicesAndPass(currAssociation.first->materialObject());
+          first = false;
+        }
+        currAssociation.first->materialObject().copyLocalsTo(currSection->materialObject());
       }
-      pair.second.second->getServicesAndPass(pair.first->materialObject());
+      currAssociation.second.getStation()->getServicesAndPass(currAssociation.first->materialObject());
     }
 
-    for (std::pair<const Disk* const, std::pair<std::vector<Section*>, Section*> > pair : diskRodSections_) {
-      for (Section* currSection : pair.second.first) {
-        pair.first->materialObject().copyServicesTo(currSection->materialObject());
-        pair.first->materialObject().copyLocalsTo(currSection->materialObject());
+    for (std::pair<const Disk* const, RodSectionsStation> currAssociation : diskRodSections_) {
+      for (Section* currSection : currAssociation.second.getSections()) {
+        currAssociation.first->materialObject().copyServicesTo(currSection->materialObject());
+        currAssociation.first->materialObject().copyLocalsTo(currSection->materialObject());
       }
-      pair.second.second->getServicesAndPass(pair.first->materialObject());
+      currAssociation.second.getStation()->getServicesAndPass(currAssociation.first->materialObject());
     }
   }
 

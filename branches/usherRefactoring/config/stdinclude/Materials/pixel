@@ -43,13 +43,13 @@ Materials module-pixel {
     componentName "Cooling blocks"
     service false
     Element {
-      scalse true
+      scale true
       elementName Al
       quantity 0.3
       unit g
     }
     Element {
-      scalse false
+      scale false
       elementName Al
       quantity 0.26
       unit g
