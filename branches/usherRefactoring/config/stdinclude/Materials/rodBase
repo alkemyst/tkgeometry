@@ -8,17 +8,17 @@
 //  type rod
 
   //DUMMY!!!!!!!!!!!!!
-  Component {
-    componentName Cooling
-    service true
+  //Component {
+  //  componentName Cooling
+  //  service true
 //    service false
-    scale false
-    Element {
-      elementName Steel
-      quantity 10000
-      unit g/m
-    }
-  }
+  //  scale false
+  //  Element {
+  //    elementName Steel
+  //    quantity 10000
+  //    unit g/m
+  //  }
+ // }
     
 
   // Cooling for the module

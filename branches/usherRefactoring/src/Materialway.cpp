@@ -920,10 +920,12 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveElements" << std::endl;
     //testTrains();
     //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << std::endl;
-    routeModuleServices();
-    std::cout << "TIME " << difftime(time(0), startTime) << " end routeModuleServices" << std::endl;
-    routeRodMaterials();
-    std::cout << "TIME " << difftime(time(0), startTime) << " end routeRodMaterials" << std::endl;
+    routeServices(tracker);
+    std::cout << "TIME " << difftime(time(0), startTime) << " end routeServices" << std::endl;
+    //routeModuleServices();
+    //std::cout << "TIME " << difftime(time(0), startTime) << " end routeModuleServices" << std::endl;
+    //routeRodMaterials();
+    //std::cout << "TIME " << difftime(time(0), startTime) << " end routeRodMaterials" << std::endl;
     firstStepConversions();
     std::cout << "TIME " << difftime(time(0), startTime) << " end firstStepConversions" << std::endl;
     createEndCaps(tracker);
@@ -1036,6 +1038,130 @@ namespace material {
         }
       }
     }
+  }
+
+  void Materialway::routeServices(const Tracker& tracker) {
+    class ServiceVisitor : public ConstGeometryVisitor {
+    private:
+      ModuleSectionMap& moduleSectionAssociations_;  /**< Map that associate each module with the section that it feeds */
+      LayerRodSectionsMap& layerRodSections_;      /**< maps for sections of the rods */
+      DiskRodSectionsMap& diskRodSections_;
+
+      const Layer* currLayer_;
+      const Disk* currDisk_;
+
+      bool printGuard;
+      int printCounter;
+    public:
+      ServiceVisitor(ModuleSectionMap& moduleSectionAssociations, LayerRodSectionsMap& layerRodSections, DiskRodSectionsMap& diskRodSections) :
+        moduleSectionAssociations_(moduleSectionAssociations),
+        layerRodSections_(layerRodSections),
+        diskRodSections_(diskRodSections), printGuard(true), printCounter(0) {}
+
+      void visit(const Layer& layer) {
+        currLayer_ = &layer;
+      }
+
+      void visit(const BarrelModule& module) {
+        if(module.maxZ() > 0) {
+          moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
+
+          if (printGuard) {
+            std::cout << "MODULO:\t\t< "
+                      << std::setw(9) << module.minZ() << ";\tv " 
+                      << std::setw(9) << module.minR() << ";\t> " 
+                      << std::setw(9) << module.maxZ() << ";\t^ " 
+                      << std::setw(9) << module.maxR() << std::endl;
+            std::cout << "popolo sez mod:\t< " 
+                      << std::setw(9) << undiscretize(moduleSectionAssociations_.at(&module)->minZ()) << ";\tv " 
+                      << std::setw(9) << undiscretize(moduleSectionAssociations_.at(&module)->minR()) << ";\t> " 
+                      << std::setw(9) << undiscretize(moduleSectionAssociations_.at(&module)->maxZ()) << ";\t^ " 
+                      << std::setw(9) << undiscretize(moduleSectionAssociations_.at(&module)->maxR()) << std::endl;
+          }
+
+          //route layer rod services
+
+          /* NO
+          for (
+               currSectionIter = layerRodSections_.at(currLayer_).getSections().begin();
+               currSectionIter != layerRodSections_.at(currLayer_).getSections().end();
+               ++currSectionIter) {
+            currLayer_->materialObject().copyServicesTo((*currSectionIter)->materialObject());
+            currLayer_->materialObject().copyLocalsTo((*currSectionIter)->materialObject());
+          }
+          */
+         
+          /* SI
+          RodSectionsStation& rodSectionsStation = layerRodSections_.at(currLayer_);
+          std::vector<Section*>& layerSections = rodSectionsStation.getSections();
+          for (currSectionIter = layerSections.begin(); currSectionIter != layerSections.end(); ++currSectionIter) {
+            Section* currSection = *currSectionIter;
+            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
+            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
+          }
+          */
+
+          //  /* NO
+          for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
+            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
+            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
+            if (printGuard) {
+              std::cout << "popolo sez rod:\t< " 
+                        << std::setw(9) << undiscretize(currSection->minZ()) << ";\tv " 
+                        << std::setw(9) << undiscretize(currSection->minR()) << ";\t> " 
+                        << std::setw(9) << undiscretize(currSection->maxZ()) << ";\t^ " 
+                        << std::setw(9) << undiscretize(currSection->maxR()) << std::endl;
+            }
+          }
+          // */
+
+          /* NO
+          RodSectionsStation& rodSectionsStation = layerRodSections_.at(currLayer_);
+          std::vector<Section*>& layerSections = rodSectionsStation.getSections();
+          for (Section* currSection : layerSections) {
+            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
+            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
+          }
+          */
+
+          layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(currLayer_->materialObject());
+          if (printGuard) {
+            std::cout << "popolo staz:\t< " 
+                      << std::setw(9) << undiscretize(layerRodSections_.at(currLayer_).getStation()->minZ()) << ";\tv " 
+                      << std::setw(9) << undiscretize(layerRodSections_.at(currLayer_).getStation()->minR()) << ";\t> " 
+                      << std::setw(9) << undiscretize(layerRodSections_.at(currLayer_).getStation()->maxZ()) << ";\t^ " 
+                      << std::setw(9) << undiscretize(layerRodSections_.at(currLayer_).getStation()->maxR()) << std::endl;
+            
+            if (++ printCounter == 2) {
+              printGuard = false;
+            }
+          }
+        }
+      }
+
+      void visit(const Disk& disk) {
+        currDisk_ = &disk;
+      }
+
+      void visit(const EndcapModule& module) {
+        if (module.minZ() >= 0) {
+          //route module services
+          moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
+
+          return;
+
+          //route disk rod services
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+            currDisk_->materialObject().copyServicesTo(currSection->materialObject());
+            currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
+          }
+          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
+        }
+      }
+    };
+
+    ServiceVisitor v(moduleSectionAssociations_, layerRodSections_, diskRodSections_);
+    tracker.accept(v);
   }
 
   void Materialway::routeModuleServices() {
