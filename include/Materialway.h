@@ -319,6 +319,7 @@ namespace material {
     void buildExternalSections(const Tracker& tracker);       /**< build the sections outside the boundaries */
     void buildInternalSections(Tracker& tracker);                             /**< build the sections inside the boundaries */
     void buildInactiveElements();
+    void routeServices(const Tracker& tracker);
     void routeModuleServices();
     void routeRodMaterials();
     void firstStepConversions();
