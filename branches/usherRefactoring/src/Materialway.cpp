@@ -1060,12 +1060,19 @@ namespace material {
 
       void visit(const Layer& layer) {
         currLayer_ = &layer;
+
+        for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
+            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
+            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
+        }
+        layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(currLayer_->materialObject());
       }
 
       void visit(const BarrelModule& module) {
         if(module.maxZ() > 0) {
           moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
 
+          return;
           if (printGuard) {
             std::cout << "MODULO:\t\t< "
                       << std::setw(9) << module.minZ() << ";\tv " 
@@ -1141,6 +1148,15 @@ namespace material {
 
       void visit(const Disk& disk) {
         currDisk_ = &disk;
+
+        if(disk.minZ() > 0) {
+
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+            currDisk_->materialObject().copyServicesTo(currSection->materialObject());
+            currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
+          }
+          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
+        }
       }
 
       void visit(const EndcapModule& module) {
