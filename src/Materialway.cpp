@@ -264,6 +264,7 @@ namespace material {
   }
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
+    return; //PROVA!
     source.copyServicesTo(conversionStation_);
     //don't pass
   }
@@ -1060,12 +1061,15 @@ namespace material {
 
       void visit(const Layer& layer) {
         currLayer_ = &layer;
+      }
 
+      void visit(const RodPair& rod) {
         for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
-            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
+            rod.materialObject().copyServicesTo(currSection->materialObject());
+            rod.materialObject().copyLocalsTo(currSection->materialObject());
         }
-        layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(currLayer_->materialObject());
+        return; //PROVA!
+        layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject());
       }
 
       void visit(const BarrelModule& module) {
@@ -1131,7 +1135,8 @@ namespace material {
           }
           */
 
-          layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(currLayer_->materialObject());
+          //layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(currLayer_->materialObject());
+          
           if (printGuard) {
             std::cout << "popolo staz:\t< " 
                       << std::setw(9) << undiscretize(layerRodSections_.at(currLayer_).getStation()->minZ()) << ";\tv " 
@@ -1149,22 +1154,24 @@ namespace material {
       void visit(const Disk& disk) {
         currDisk_ = &disk;
 
-        if(disk.minZ() > 0) {
-
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            currDisk_->materialObject().copyServicesTo(currSection->materialObject());
-            currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
+        if(currDisk_->minZ() > 0) {
+          //iterate for number of radial sectors (module in first ring of disk)
+          for (int i = 0; i < currDisk_->rings()[0].modules().size() / 2; ++i) {
+            for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+              currDisk_->materialObject().copyServicesTo(currSection->materialObject());
+              currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
+            }
+            diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
           }
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
         }
       }
+
+      
 
       void visit(const EndcapModule& module) {
         if (module.minZ() >= 0) {
           //route module services
           moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
-
-          return;
 
           //route disk rod services
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
@@ -1179,6 +1186,8 @@ namespace material {
     ServiceVisitor v(moduleSectionAssociations_, layerRodSections_, diskRodSections_);
     tracker.accept(v);
   }
+
+  /*
 
   void Materialway::routeModuleServices() {
     for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
@@ -1210,6 +1219,8 @@ namespace material {
       currAssociation.second.getStation()->getServicesAndPass(currAssociation.first->materialObject());
     }
   }
+
+  */
 
   void Materialway::firstStepConversions() {
     for (Station* station : stationListFirst_) {

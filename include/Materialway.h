@@ -320,8 +320,8 @@ namespace material {
     void buildInternalSections(Tracker& tracker);                             /**< build the sections inside the boundaries */
     void buildInactiveElements();
     void routeServices(const Tracker& tracker);
-    void routeModuleServices();
-    void routeRodMaterials();
+    //void routeModuleServices();
+    //void routeRodMaterials();
     void firstStepConversions();
     void createEndCaps(Tracker& tracker);
     void populateAllMaterialProperties(Tracker& tracker);
