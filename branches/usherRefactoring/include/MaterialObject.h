@@ -26,7 +26,7 @@ namespace material {
   public:
     class Element; //forward declaration for getElementIfService(Element& inputElement)
   public:
-    enum Type {MODULE, ROD, SERVICE};
+    enum Type {MODULE, ROD, LAYER, SERVICE};
 
     MaterialObject(Type materialType);
     virtual ~MaterialObject() {};

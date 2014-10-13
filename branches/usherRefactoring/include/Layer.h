@@ -58,7 +58,7 @@ public:
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
   Layer() :
-            materialObject_(MaterialObject::ROD),
+            materialObject_(MaterialObject::LAYER),
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),

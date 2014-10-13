@@ -22,7 +22,8 @@
 namespace material {
   const std::map<MaterialObject::Type, const std::string> MaterialObject::typeString = {
       {MODULE, "module"},
-      {ROD, "rod"}
+      {ROD, "rod"},
+      {LAYER, "layer"}
   };
 
   MaterialObject::MaterialObject(Type materialType) :

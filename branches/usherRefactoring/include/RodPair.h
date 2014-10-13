@@ -27,7 +27,8 @@ public:
   typedef PtrVector<BarrelModule> Container;
 protected:
   Container zPlusModules_, zMinusModules_;
-
+  MaterialObject materialObject_;
+  
   enum class BuildDir { RIGHT = 1, LEFT = -1 };
   enum class StartZMode { MODULECENTER, MODULEEDGE };
 
@@ -44,6 +45,7 @@ public:
   Property<bool, Default> beamSpotCover;
 
   RodPair() :
+      materialObject_(MaterialObject::ROD),
       startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER),
       beamSpotCover("beamSpotCover", parsedAndChecked(), true)
   {}
@@ -81,6 +83,7 @@ public:
     for (const auto& m : zMinusModules_) { m.accept(v); }
   }
 
+  const MaterialObject& materialObject() const;
 };
 
 class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {
