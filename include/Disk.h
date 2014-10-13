@@ -49,7 +49,7 @@ public:
   ReadonlyProperty<double, Computable> maxRingThickness;
 
   Disk() :
-    materialObject_(MaterialObject::ROD),
+    materialObject_(MaterialObject::LAYER),
     numRings("numRings", parsedAndChecked()),
     innerRadius("innerRadius", parsedAndChecked()),
     outerRadius("outerRadius", parsedAndChecked()),

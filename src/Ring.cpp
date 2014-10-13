@@ -189,6 +189,9 @@ void Ring::buildTopDown() {
 
 
 void Ring::build() {
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
@@ -210,6 +213,10 @@ void Ring::mirrorZ() {
   for (auto& m : modules_) {
     m.mirrorZ();
   }
+}
+
+const MaterialObject& Ring::materialObject() const{
+  return materialObject_;
 }
 
 define_enum_strings(Ring::BuildDirection) = { "topdown", "bottomup" };

@@ -1154,6 +1154,7 @@ namespace material {
       void visit(const Disk& disk) {
         currDisk_ = &disk;
 
+        /*
         if(currDisk_->minZ() > 0) {
           //iterate for number of radial sectors (module in first ring of disk)
           for (int i = 0; i < currDisk_->rings()[0].modules().size() / 2; ++i) {
@@ -1164,21 +1165,33 @@ namespace material {
             diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
           }
         }
+        */
       }
 
-      
+      void visit(const Ring& ring) {
+        //route disk rod services
+        if(ring.minZ() > 0) {
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+            ring.materialObject().copyServicesTo(currSection->materialObject());
+            ring.materialObject().copyLocalsTo(currSection->materialObject());
+          }
+          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject());
+        }
+      }
 
       void visit(const EndcapModule& module) {
         if (module.minZ() >= 0) {
           //route module services
           moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
 
+          /*
           //route disk rod services
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
             currDisk_->materialObject().copyServicesTo(currSection->materialObject());
             currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
           }
           diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
+          */
         }
       }
     };
