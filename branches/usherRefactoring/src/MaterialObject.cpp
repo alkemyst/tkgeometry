@@ -121,14 +121,16 @@ namespace material {
       //currElement.populateMaterialProperties(materialProperties);
       //populate directly because need to skip the control if is a service
       //TODO: check why componentName is not present in no Element
-      quantity = currElement->quantityInGrams(materialProperties);
-      if(currElement->scale() == true) {
-        quantity *= currElement->nSegments(); //nStripsAcross();
-      }
-      if (currElement->componentName.state()) {
-        materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(materialProperties));
-      } else {
-        materialProperties.addLocalMass(currElement->elementName(), currElement->quantityInGrams(materialProperties));
+      if (currElement->debugInactivate() == false) {
+        quantity = currElement->quantityInGrams(materialProperties);
+        if(currElement->scale() == true) {
+          quantity *= currElement->nSegments(); //nStripsAcross();
+        }
+        if (currElement->componentName.state()) {
+          materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(materialProperties));
+        } else {
+          materialProperties.addLocalMass(currElement->elementName(), currElement->quantityInGrams(materialProperties));
+        }
       }
     }
 
@@ -287,20 +289,23 @@ namespace material {
           scale ("scale", parsedOnly(), false),
           quantity ("quantity", parsedAndChecked()),
           unit ("unit", parsedAndChecked()),
+          debugInactivate ("debugInactivate", parsedOnly(), false),
           materialTab_ (MaterialTab::instance()) {};
 
-  /*
-  MaterialObject::Element::Element(const MaterialObject::Element& originElement, double multiplier) : materialTab_ (MaterialTab::instance()) {
-    componentName(originElement.componentName());
-    nStripsAcross(originElement.nStripsAcross());
-    nSegments(originElement.nSegments());
-    elementName(originElement.elementName());
-    service(originElement.service());
-    scale(originElement.scale());
-    quantity(originElement.quantity() * multiplier);
-    unit(originElement.unit());
+  MaterialObject::Element::Element(const Element& original, double multiplier) : Element() {
+    if(original.componentName.state())
+      componentName(original.componentName());
+    if(original.nStripsAcross.state())
+      nStripsAcross(original.nStripsAcross());
+    if(original.nSegments.state())
+      nSegments(original.nSegments());
+    elementName(original.elementName());
+    service(original.service());
+    scale(original.scale());
+    quantity(original.quantity() * multiplier);
+    unit(original.unit());
+    debugInactivate(original.debugInactivate());
   }
-  */
 
   const std::string MaterialObject::Element::msg_no_valid_unit = "No valid unit: ";
 
@@ -358,12 +363,14 @@ namespace material {
   void MaterialObject::Element::populateMaterialProperties(MaterialProperties& materialProperties) const {
     double quantity;
 
-    if(service() == false) {
-      quantity = quantityInGrams(materialProperties);
-      if(scale() == true) {
-        quantity *= nSegments(); //nStripsAcross();
+    if(debugInactivate() == false) {
+      if(service() == false) {
+        quantity = quantityInGrams(materialProperties);
+        if(scale() == true) {
+          quantity *= nSegments(); //nStripsAcross();
+        }
+        materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
-      materialProperties.addLocalMass(elementName(), componentName(), quantity);
     }
   }
 

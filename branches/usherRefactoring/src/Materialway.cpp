@@ -264,7 +264,7 @@ namespace material {
   }
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
-    return; //PROVA!
+    //return; //PROVA!
     source.copyServicesTo(conversionStation_);
     //don't pass
   }
@@ -1068,7 +1068,7 @@ namespace material {
             rod.materialObject().copyServicesTo(currSection->materialObject());
             rod.materialObject().copyLocalsTo(currSection->materialObject());
         }
-        return; //PROVA!
+        //return; //PROVA!
         layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject());
       }
 
