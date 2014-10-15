@@ -61,7 +61,7 @@ namespace material {
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
 
-      ReadonlyProperty<std::string, NoDefault> componentName; //only the inner component's name
+      Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<long, NoDefault> nStripsAcross;
       Property<long, NoDefault> nSegments;
       Property<std::string, NoDefault> elementName;
@@ -69,9 +69,11 @@ namespace material {
       Property<bool, Default> scale;
       Property<double, NoDefault> quantity;
       Property<std::string, NoDefault> unit;
+      Property<bool, Default> debugInactivate;
 
       Element();
-      //Element(const Element& originElement, double multiplier = 1.0);
+      Element(const Element& original, double multiplier = 1.0);
+      //Element(const Element& originElement);
 
       virtual ~Element() {};
       void build();

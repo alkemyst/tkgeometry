@@ -57,15 +57,8 @@ namespace material {
       multiplier = totalGrams / inputElement->quantityInGrams(inactiveElement);
 
       for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
-        //MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
-        //MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement);
-        //newElement->quantity(newElement->quantity() * multiplier);
-
-        MaterialObject::Element * newElement = new MaterialObject::Element();
-        newElement->elementName(outputElement->elementName());
-        newElement->service(outputElement->service());
-        newElement->quantity(outputElement->quantity() * multiplier);
-        newElement->unit(outputElement->unit());
+    
+        MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
 
         if (newElement->service()) {
           serviceOutput.addElement(newElement);
