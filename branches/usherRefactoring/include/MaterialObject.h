@@ -1,7 +1,7 @@
 /**
  * @file MaterialObject.h
  *
- * @date 19/giu/2014
+ * @date 19/Jun/2014
  * @author Stefano Martina
  */
 
@@ -39,7 +39,7 @@ namespace material {
     void addElementIfService(const Element* inputElement);
     void addElementIfLocal(const Element* inputElement);
     void addElement(const Element* inputElement);
-    void populateMaterialProperties(MaterialProperties& materialPropertiess) const;
+    void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
 
     //void chargeTrain(Materialway::Train& train) const;
