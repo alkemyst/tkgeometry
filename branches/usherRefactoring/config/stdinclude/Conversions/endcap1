@@ -1,0 +1,24 @@
+// Second level conversion rules
+
+Station endcap1 {
+  type endcap
+
+  minZ 1500
+  maxZ 1600
+  Conversion {
+    Input {
+      Element {
+        elementName Cu
+        quantity 1
+        unit g
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 1
+        unit g
+      }
+    }
+  }
+}

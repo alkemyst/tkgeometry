@@ -36,7 +36,8 @@ namespace material {
   public:
     MaterialStation();
     virtual ~MaterialStation();
-    
+
+    void getServicesAndPass(MaterialObject& source);
   }
 }
 

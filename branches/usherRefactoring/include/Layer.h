@@ -11,12 +11,14 @@
 #include "RodPair.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
+#include "ConversionStation.h"
 
 using std::string;
 using std::vector;
 using std::pair;
 using std::unique_ptr;
 using material::MaterialObject;
+using material::ConversionStation;
 
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:
@@ -24,6 +26,7 @@ public:
 private:
   Container rods_;
   MaterialObject materialObject_;
+  ConversionStation endCapConversionStation_;
 
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
@@ -59,6 +62,7 @@ public:
 
   Layer() :
             materialObject_(MaterialObject::LAYER),
+            endCapConversionStation_(ConversionStation::ENDCAP),
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
