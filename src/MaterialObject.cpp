@@ -29,6 +29,7 @@ namespace material {
   MaterialObject::MaterialObject(Type materialType) :
       materialType_ (materialType),
       type_ ("type", parsedAndChecked()),
+      station_ ("Station", parsedOnly()),
       materialsNode_ ("Materials", parsedOnly()),
       materials (nullptr) {}
 
@@ -42,6 +43,10 @@ namespace material {
   }
 
   void MaterialObject::build() {
+    if (station_.state()){
+      std::cout<<"YEEEE "<<station_()<<" "<<materialType_<<std::endl;
+    }
+
     static std::map<std::string, Materials*> materialsMap_; //for saving memory
 
     //std::cout << "Materials " << materialsNode_.size() << std::endl;
@@ -52,6 +57,7 @@ namespace material {
       if (type_().compare(getTypeString()) == 0) {
         if (materialsMap_.count(currentMaterialNode.first) == 0) {
           Materials * newMaterials  = new Materials();
+          newMaterials->store(propertyTree());
           newMaterials->store(currentMaterialNode.second);
           newMaterials->build();
           materialsMap_[currentMaterialNode.first] = newMaterials;
@@ -145,9 +151,13 @@ namespace material {
   //}
 
   MaterialObject::Materials::Materials() :
-          componentsNode_ ("Component", parsedOnly()) {};
+    station_ ("Station", parsedOnly()),
+    componentsNode_ ("Component", parsedOnly()) {};
 
   void MaterialObject::Materials::build() {
+    if(station_.state())
+      std::cout<< "YAYYY " << station_()<<std::endl;
+    
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
       newComponent->store(propertyTree());
@@ -222,6 +232,7 @@ namespace material {
       newElement->build();
       //bool test1 = newElement->componentName.state();
       //bool test2 = newElement->nSegments.state();
+
       elements.push_back(newElement);
     }
     cleanup();
@@ -281,18 +292,21 @@ namespace material {
   */
 
   MaterialObject::Element::Element() :
-          componentName ("componentName", parsedOnly()),
-          nStripsAcross("nStripsAcross", parsedOnly()),
-          nSegments("nSegments", parsedOnly()),
-          elementName ("elementName", parsedAndChecked()),
-          service ("service", parsedOnly(), false),
-          scale ("scale", parsedOnly(), false),
-          quantity ("quantity", parsedAndChecked()),
-          unit ("unit", parsedAndChecked()),
-          debugInactivate ("debugInactivate", parsedOnly(), false),
-          materialTab_ (MaterialTab::instance()) {};
+    station_ ("Station", parsedOnly()),
+    componentName ("componentName", parsedOnly()),
+    nStripsAcross("nStripsAcross", parsedOnly()),
+    nSegments("nSegments", parsedOnly()),
+    elementName ("elementName", parsedAndChecked()),
+    service ("service", parsedOnly(), false),
+    scale ("scale", parsedOnly(), false),
+    quantity ("quantity", parsedAndChecked()),
+    unit ("unit", parsedAndChecked()),
+    debugInactivate ("debugInactivate", parsedOnly(), false),
+    materialTab_ (MaterialTab::instance()) {};
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element() {
+    if(original.station_.state())
+      station_(original.station_());
     if(original.componentName.state())
       componentName(original.componentName());
     if(original.nStripsAcross.state())
@@ -342,6 +356,9 @@ namespace material {
   }
 
   void MaterialObject::Element::build() {
+    if(station_.state())
+      std::cout<< "YUPPYYY " << station_()<<std::endl;
+    
     /*
     std::cout << "  ELEMENT " << elementName() << std::endl;
     std::cout << "    DATA "

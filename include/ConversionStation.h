@@ -27,6 +27,8 @@ namespace material {
     ConversionStation(Type stationType) :
       stationType_ (stationType),
       type_ ("type", parsedAndChecked()),
+      minZ_ ("minZ", parsedOnly()),
+      maxZ_ ("maxZ", parsedOnly()),
       stationsNode_ ("Station", parsedOnly()),
       conversionsNode_ ("Conversion", parsedOnly()) {} ;
     virtual ~ConversionStation() {};
@@ -41,6 +43,8 @@ namespace material {
     static const std::map<Type, const std::string> typeString;
     Type stationType_;
     ReadonlyProperty<std::string, NoDefault> type_;
+    ReadonlyProperty<double, NoDefault> minZ_;
+    ReadonlyProperty<double, NoDefault> maxZ_;
     PropertyNodeUnique<std::string> stationsNode_;
     PropertyNodeUnique<std::string> conversionsNode_;
 

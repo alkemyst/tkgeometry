@@ -211,9 +211,13 @@ void Layer::build() {
 
     if (tiltedLayerSpecFile().empty()) buildStraight();
     else buildTilted();
-    
+
+    endCapConversionStation_.store(propertyTree());
+    endCapConversionStation_.build();
+        
     cleanup();
     builtok(true);
+
   } catch (PathfulException& pe) { 
     pe.pushPath(fullid(*this)); 
     throw; 

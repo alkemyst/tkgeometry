@@ -50,6 +50,7 @@ namespace material {
     static const std::map<Type, const std::string> typeString;
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
+    ReadonlyProperty<std::string, NoDefault> station_;
     PropertyNodeUnique<std::string> materialsNode_;
 
     const std::string getTypeString() const;
@@ -70,6 +71,7 @@ namespace material {
       Property<double, NoDefault> quantity;
       Property<std::string, NoDefault> unit;
       Property<bool, Default> debugInactivate;
+      Property<std::string, NoDefault> station_;
 
       Element();
       Element(const Element& original, double multiplier = 1.0);
@@ -108,6 +110,7 @@ namespace material {
 
     class Materials : public PropertyObject {
     public:
+      ReadonlyProperty<std::string, NoDefault> station_;
       PropertyNodeUnique<std::string> componentsNode_;
       //Property<double, Computable> radiationLength, interactionLenght;
       Materials();
