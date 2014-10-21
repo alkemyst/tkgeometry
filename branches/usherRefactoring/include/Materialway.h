@@ -249,6 +249,7 @@ namespace material {
       InnerUsher(
           SectionVector& sectionsList,
           StationVector& stationListFirst,
+          StationVector& stationListSecond,
           BarrelBoundaryMap& barrelBoundaryAssociations,
           EndcapBoundaryMap& endcapBoundaryAssociations,
           ModuleSectionMap& moduleSectionAssociations,
@@ -260,6 +261,7 @@ namespace material {
     private:
       SectionVector& sectionsList_;
       StationVector& stationListFirst_;
+      StationVector& stationListSecond_;
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
@@ -288,6 +290,7 @@ namespace material {
     BoundariesSet boundariesList_;       /**< Vector for storing all the boundaries */
     SectionVector sectionsList_;         /**< Vector for storing all the sections (also stations)*/
     StationVector stationListFirst_;         /**< Pointers to first step stations*/
+    StationVector stationListSecond_;         /**< Pointers to second step stations*/
 
     OuterUsher outerUsher;
     InnerUsher innerUsher;
@@ -323,7 +326,8 @@ namespace material {
     //void routeModuleServices();
     //void routeRodMaterials();
     void firstStepConversions();
-    void createEndCaps(Tracker& tracker);
+    void secondStepConversions();
+    void createModuleCaps(Tracker& tracker);
     void populateAllMaterialProperties(Tracker& tracker);
     //void calculateMaterialValues(Tracker& tracker);
     void testTrains();

@@ -114,6 +114,8 @@ public:
     for (const auto& r : rods_) { r.accept(v); }
   }
   const MaterialObject& materialObject() const;
+
+  ConversionStation* endCapConversionStation();
 };
 
 

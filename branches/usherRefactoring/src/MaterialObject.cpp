@@ -155,9 +155,7 @@ namespace material {
     componentsNode_ ("Component", parsedOnly()) {};
 
   void MaterialObject::Materials::build() {
-    if(station_.state())
-      std::cout<< "YAYYY " << station_()<<std::endl;
-    
+        
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
       newComponent->store(propertyTree());
@@ -356,9 +354,7 @@ namespace material {
   }
 
   void MaterialObject::Element::build() {
-    if(station_.state())
-      std::cout<< "YUPPYYY " << station_()<<std::endl;
-    
+        
     /*
     std::cout << "  ELEMENT " << elementName() << std::endl;
     std::cout << "    DATA "

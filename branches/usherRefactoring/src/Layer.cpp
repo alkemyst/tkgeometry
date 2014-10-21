@@ -228,4 +228,9 @@ const MaterialObject& Layer::materialObject() const{
   return materialObject_;
 }
 
+ConversionStation* Layer::endCapConversionStation() {
+  return &endCapConversionStation_;
+}
+
+
 define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };
