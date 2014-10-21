@@ -60,9 +60,9 @@ public:
   ModuleCap* getModuleCap() { return myModuleCap_ ; }
 
   Property<int16_t, AutoDefault> side;
-
+  
   Property<double, Computable> minPhi, maxPhi;
-
+  
   ReadonlyProperty<std::string, Default> moduleType; 
   ReadonlyProperty<int, AutoDefault>     numSensors;
   ReadonlyProperty<SensorLayout, Default> sensorLayout;
@@ -93,12 +93,15 @@ public:
 
   Property<int8_t, Default> plotColor;
 
+  Property<double, Default> hybridWidth;
+  Property<double, Default> hybridLength;
+
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
   void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
-
-  DetectorModule(Decorated* decorated) : 
-      Decorator<GeometricModule>(decorated),
+  
+ DetectorModule(Decorated* decorated) : 
+    Decorator<GeometricModule>(decorated),
       materialObject_(MaterialObject::MODULE),
       sensorNode               ("Sensor"                   , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
@@ -123,7 +126,9 @@ public:
       trackingTags             ("trackingTags"             , parsedOnly()),
       resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
       resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
-      plotColor                ("plotColor"                , parsedOnly(), 0)
+      plotColor                ("plotColor"                , parsedOnly(), 0),
+      hybridWidth              ("hybridWidth"              , parsedOnly(), 5),
+      hybridLength             ("hybridLength"             , parsedOnly(), 5)
   { }
 
   virtual void setup();
