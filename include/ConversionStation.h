@@ -39,12 +39,12 @@ namespace material {
     //void routeConvertedLocalsTo(MaterialObject& outputObject) const;
     void addElementIfService(const MaterialObject::Element* inputElement);
 
-  private:
-    static const std::map<Type, const std::string> typeString;
-    Type stationType_;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<double, NoDefault> minZ_;
     ReadonlyProperty<double, NoDefault> maxZ_;
+  private:
+    static const std::map<Type, const std::string> typeString;
+    Type stationType_;
     PropertyNodeUnique<std::string> stationsNode_;
     PropertyNodeUnique<std::string> conversionsNode_;
 

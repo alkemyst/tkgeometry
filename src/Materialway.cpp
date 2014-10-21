@@ -517,6 +517,7 @@ namespace material {
   Materialway::InnerUsher::InnerUsher(
       SectionVector& sectionsList,
       StationVector& stationListFirst,
+      StationVector& stationListSecond,
       BarrelBoundaryMap& barrelBoundaryAssociations,
       EndcapBoundaryMap& endcapBoundaryAssociations,
       ModuleSectionMap& moduleSectionAssociations,
@@ -524,6 +525,7 @@ namespace material {
       DiskRodSectionsMap& diskRodSections) :
         sectionsList_(sectionsList),
         stationListFirst_(stationListFirst),
+        stationListSecond_(stationListSecond),
         barrelBoundaryAssociations_(barrelBoundaryAssociations),
         endcapBoundaryAssociations_(endcapBoundaryAssociations),
         moduleSectionAssociations_(moduleSectionAssociations),
@@ -538,6 +540,7 @@ namespace material {
       MultipleVisitor(
           SectionVector& sectionsList,
           StationVector& stationListFirst,
+          StationVector& stationListSecond,
           BarrelBoundaryMap& barrelBoundaryAssociations,
           EndcapBoundaryMap& endcapBoundaryAssociations,
           ModuleSectionMap& moduleSectionAssociations,
@@ -545,6 +548,7 @@ namespace material {
           DiskRodSectionsMap& diskRodSections) :
         sectionsList_(sectionsList),
         stationListFirst_(stationListFirst),
+        stationListSecond_(stationListSecond),
         barrelBoundaryAssociations_(barrelBoundaryAssociations),
         endcapBoundaryAssociations_(endcapBoundaryAssociations),
         moduleSectionAssociations_(moduleSectionAssociations),
@@ -556,6 +560,7 @@ namespace material {
         startEndcap(nullptr),
         startDisk(nullptr),
         barrelConversionStation_(nullptr),
+        endcapConversionStation_(nullptr),
         currLayer_(nullptr),
         currDisk_(nullptr) {}
         //currEndcapPosition(POSITIVE) {}//, splitCounter(0) {}
@@ -577,6 +582,7 @@ namespace material {
       }
 
       void visit(Layer& layer) {
+        endcapConversionStation_ = layer.endCapConversionStation();
         currLayer_ = &layer;
         //split the right section
         Section* section = startBarrel;
@@ -614,6 +620,42 @@ namespace material {
         sectionsList_.push_back(startLayer);
         layerRodSections_[currLayer_].addSection(startLayer);
         layerRodSections_[currLayer_].setStation(station);
+
+
+        //==========second level conversion station
+
+        //find attach point
+        std::cout<<"STAZZ "<<endcapConversionStation_->type_()<<std::endl;
+        attachPoint = discretize((endcapConversionStation_->maxZ_() - endcapConversionStation_->minZ_()) /2);
+         
+        while(section->maxR() < attachPoint + sectionTolerance) {
+          if(!section->hasNextSection()) {
+            //TODO: messaggio di errore
+            return;
+          }
+          section = section->nextSection();
+        }
+
+        if (section->minR() < attachPoint - sectionTolerance) {
+          section = splitSection(section, attachPoint);
+        }
+
+        stationMinZ = discretize(endcapConversionStation_->minZ_());
+        stationMinR = section->maxR() + safetySpace;
+        stationMaxZ = discretize(endcapConversionStation_->maxZ_());
+        stationMaxR = stationMinR + layerStationWidth;
+
+        if(!section->hasNextSection()) {
+          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
+        } else {
+          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
+        }
+
+        section->nextSection(station);
+
+        sectionsList_.push_back(station);
+        stationListSecond_.push_back(station);
+
 
         /*
         //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;
@@ -757,6 +799,7 @@ namespace material {
       //int splitCounter;
       SectionVector& sectionsList_;
       StationVector& stationListFirst_;
+      StationVector& stationListSecond_;
       BarrelBoundaryMap& barrelBoundaryAssociations_;
       EndcapBoundaryMap& endcapBoundaryAssociations_;
       ModuleSectionMap& moduleSectionAssociations_;
@@ -769,6 +812,7 @@ namespace material {
       Section* startEndcap;
       //ZPosition currEndcapPosition;
       ConversionStation* barrelConversionStation_;
+      ConversionStation* endcapConversionStation_;
       Layer* currLayer_;
       Disk* currDisk_;
 
@@ -805,7 +849,7 @@ namespace material {
       }
     }; //END class MultipleVisitor
 
-    MultipleVisitor visitor (sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_);
+    MultipleVisitor visitor (sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_);
     tracker.accept(visitor);
   }
 
@@ -836,7 +880,7 @@ namespace material {
 
   Materialway::Materialway() :
     outerUsher(sectionsList_, boundariesList_),
-    innerUsher(sectionsList_, stationListFirst_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_),
+    innerUsher(sectionsList_, stationListFirst_, stationListSecond_, barrelBoundaryAssociations_, endcapBoundaryAssociations_, moduleSectionAssociations_, layerRodSections_, diskRodSections_),
     boundariesList_() {}
   Materialway::~Materialway() {}
 
@@ -929,8 +973,10 @@ namespace material {
     //std::cout << "TIME " << difftime(time(0), startTime) << " end routeRodMaterials" << std::endl;
     firstStepConversions();
     std::cout << "TIME " << difftime(time(0), startTime) << " end firstStepConversions" << std::endl;
-    createEndCaps(tracker);
-    std::cout << "TIME " << difftime(time(0), startTime) << " end createEndCaps" << std::endl;
+    secondStepConversions();
+    std::cout << "TIME " << difftime(time(0), startTime) << " end secondStepConversions" << std::endl;
+    createModuleCaps(tracker);
+    std::cout << "TIME " << difftime(time(0), startTime) << " end createModuleCaps" << std::endl;
     populateAllMaterialProperties(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
     //calculateMaterialValues(tracker);
@@ -1002,7 +1048,7 @@ namespace material {
   }
 
   void Materialway::buildInternalSections(Tracker& tracker) {
-    innerUsher.go(tracker);
+   innerUsher.go(tracker);
   }
 
   void Materialway::buildInactiveElements() {
@@ -1265,7 +1311,21 @@ namespace material {
     }
   }
 
-  void Materialway::createEndCaps(Tracker& tracker) {
+  void Materialway::secondStepConversions() {
+    for (Station* station : stationListSecond_) {
+      if ((station->nextSection() != nullptr) && (station->inactiveElement() != nullptr)) {
+        //put local materials in the materialObject of the station
+        //put exiting services in the materialObject of the adiacent section of station
+        station->conversionStation().routeConvertedElements(station->materialObject(), station->nextSection()->materialObject(), *station->inactiveElement());
+        if (station->nextSection()->nextSection() != nullptr) {
+          //route from the adiacent section of the adiacent section of the station the materials of the adiacent section of the station
+          station->nextSection()->nextSection()->getServicesAndPass(station->nextSection()->materialObject());
+        }
+      }
+    }
+  }
+
+  void Materialway::createModuleCaps(Tracker& tracker) {
 
     class CapsVisitor : public GeometryVisitor {
     public:
