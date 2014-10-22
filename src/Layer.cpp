@@ -212,6 +212,8 @@ void Layer::build() {
     if (tiltedLayerSpecFile().empty()) buildStraight();
     else buildTilted();
 
+    flangeConversionStation_.store(propertyTree());
+    flangeConversionStation_.build();
     endCapConversionStation_.store(propertyTree());
     endCapConversionStation_.build();
         
@@ -226,6 +228,10 @@ void Layer::build() {
 
 const MaterialObject& Layer::materialObject() const{
   return materialObject_;
+}
+
+ConversionStation* Layer::flangeConversionStation() {
+  return &flangeConversionStation_;
 }
 
 ConversionStation* Layer::endCapConversionStation() {

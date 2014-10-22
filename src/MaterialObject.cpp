@@ -30,6 +30,7 @@ namespace material {
       materialType_ (materialType),
       type_ ("type", parsedAndChecked()),
       station_ ("Station", parsedOnly()),
+      debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
       materials (nullptr) {}
 
@@ -43,31 +44,30 @@ namespace material {
   }
 
   void MaterialObject::build() {
-    if (station_.state()){
-      std::cout<<"YEEEE "<<station_()<<" "<<materialType_<<std::endl;
-    }
+    if (!debugInactivate_()) {
+ 
+      static std::map<std::string, Materials*> materialsMap_; //for saving memory
 
-    static std::map<std::string, Materials*> materialsMap_; //for saving memory
+      //std::cout << "Materials " << materialsNode_.size() << std::endl;
 
-    //std::cout << "Materials " << materialsNode_.size() << std::endl;
+      for (auto& currentMaterialNode : materialsNode_) {
+        store(currentMaterialNode.second);
+        check();
+        if (type_().compare(getTypeString()) == 0) {
+          if (materialsMap_.count(currentMaterialNode.first) == 0) {
+            Materials * newMaterials  = new Materials();
+            newMaterials->store(propertyTree());
+            newMaterials->store(currentMaterialNode.second);
+            newMaterials->build();
+            materialsMap_[currentMaterialNode.first] = newMaterials;
+          }
+          materials = materialsMap_[currentMaterialNode.first];
 
-    for (auto& currentMaterialNode : materialsNode_) {
-      store(currentMaterialNode.second);
-      check();
-      if (type_().compare(getTypeString()) == 0) {
-        if (materialsMap_.count(currentMaterialNode.first) == 0) {
-          Materials * newMaterials  = new Materials();
-          newMaterials->store(propertyTree());
-          newMaterials->store(currentMaterialNode.second);
-          newMaterials->build();
-          materialsMap_[currentMaterialNode.first] = newMaterials;
+          break;
         }
-        materials = materialsMap_[currentMaterialNode.first];
-
-        break;
       }
-    }
 
+    }
     cleanup();
   }
 

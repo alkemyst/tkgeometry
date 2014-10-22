@@ -26,6 +26,7 @@ public:
 private:
   Container rods_;
   MaterialObject materialObject_;
+  ConversionStation flangeConversionStation_;
   ConversionStation endCapConversionStation_;
 
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
@@ -62,6 +63,7 @@ public:
 
   Layer() :
             materialObject_(MaterialObject::LAYER),
+            flangeConversionStation_(ConversionStation::FLANGE),
             endCapConversionStation_(ConversionStation::ENDCAP),
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
@@ -115,6 +117,7 @@ public:
   }
   const MaterialObject& materialObject() const;
 
+  ConversionStation* flangeConversionStation();
   ConversionStation* endCapConversionStation();
 };
 

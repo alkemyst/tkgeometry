@@ -51,6 +51,7 @@ namespace material {
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<std::string, NoDefault> station_;
+    ReadonlyProperty<bool, Default> debugInactivate_;
     PropertyNodeUnique<std::string> materialsNode_;
 
     const std::string getTypeString() const;
