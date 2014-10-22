@@ -19,13 +19,14 @@ using insur::InactiveElement;
 
 namespace material {
   //class MaterialObject;
-
+  
   class ConversionStation :public PropertyObject { //MaterialObject {
   public:
     enum Type {FLANGE, ENDCAP};
-
+    
     ConversionStation(Type stationType) :
       stationType_ (stationType),
+      valid_(false),
       type_ ("type", parsedAndChecked()),
       minZ_ ("minZ", parsedOnly()),
       maxZ_ ("maxZ", parsedOnly()),
@@ -39,12 +40,15 @@ namespace material {
     //void routeConvertedLocalsTo(MaterialObject& outputObject) const;
     void addElementIfService(const MaterialObject::Element* inputElement);
 
+    bool valid();
+
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<double, NoDefault> minZ_;
     ReadonlyProperty<double, NoDefault> maxZ_;
   private:
     static const std::map<Type, const std::string> typeString;
     Type stationType_;
+    bool valid_;
     PropertyNodeUnique<std::string> stationsNode_;
     PropertyNodeUnique<std::string> conversionsNode_;
 

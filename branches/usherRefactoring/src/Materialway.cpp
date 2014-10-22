@@ -577,11 +577,10 @@ namespace material {
         int maxR = boundary->maxR() - safetySpace;
 
         startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection()); //TODO:build other segment in other direction?
-
-        barrelConversionStation_ = barrel.conversionStation();
       }
 
       void visit(Layer& layer) {
+        barrelConversionStation_ = layer.flangeConversionStation();
         endcapConversionStation_ = layer.endCapConversionStation();
         currLayer_ = &layer;
         //split the right section
@@ -625,37 +624,37 @@ namespace material {
         //==========second level conversion station
 
         //find attach point
-        std::cout<<"STAZZ "<<endcapConversionStation_->type_()<<std::endl;
-        attachPoint = discretize((endcapConversionStation_->maxZ_() - endcapConversionStation_->minZ_()) /2);
+        if(endcapConversionStation_->valid()) {
+          attachPoint = discretize((endcapConversionStation_->maxZ_() + endcapConversionStation_->minZ_()) /2);
          
-        while(section->maxR() < attachPoint + sectionTolerance) {
-          if(!section->hasNextSection()) {
-            //TODO: messaggio di errore
-            return;
+          while(section->maxZ() < attachPoint + sectionTolerance) {
+            if(!section->hasNextSection()) {
+              //TODO: messaggio di errore
+              return;
+            }
+            section = section->nextSection();
           }
-          section = section->nextSection();
+
+          if (section->minZ() < attachPoint - sectionTolerance) {
+            splitSection(section, attachPoint);
+          }
+
+          stationMinZ = discretize(endcapConversionStation_->minZ_());
+          stationMinR = section->maxR() + safetySpace;
+          stationMaxZ = discretize(endcapConversionStation_->maxZ_());
+          stationMaxR = stationMinR + layerStationWidth;
+
+          if(!section->hasNextSection()) {
+            station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
+          } else {
+            station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
+          }
+
+          section->nextSection(station);
+
+          sectionsList_.push_back(station);
+          stationListSecond_.push_back(station);
         }
-
-        if (section->minR() < attachPoint - sectionTolerance) {
-          section = splitSection(section, attachPoint);
-        }
-
-        stationMinZ = discretize(endcapConversionStation_->minZ_());
-        stationMinR = section->maxR() + safetySpace;
-        stationMaxZ = discretize(endcapConversionStation_->maxZ_());
-        stationMaxR = stationMinR + layerStationWidth;
-
-        if(!section->hasNextSection()) {
-          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
-        } else {
-          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
-        }
-
-        section->nextSection(station);
-
-        sectionsList_.push_back(station);
-        stationListSecond_.push_back(station);
-
 
         /*
         //sectionMinZ = discretize(layer.sectionMinZ()) - layerSectionRightMargin;

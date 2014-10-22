@@ -33,6 +33,7 @@ namespace material {
         conversionsNode_.clear();
         store(currentStationNode.second);
         buildConversions();
+        valid_ = true;
         break;
       }
     }
@@ -83,6 +84,10 @@ namespace material {
     if (inputElement->service() == true) {
       inputElements.push_back(inputElement);
     }
+  }
+
+  bool ConversionStation::valid() {
+    return valid_;
   }
 
   void ConversionStation::buildConversions() {
