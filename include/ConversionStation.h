@@ -27,6 +27,7 @@ namespace material {
     ConversionStation(Type stationType) :
       stationType_ (stationType),
       valid_(false),
+      stationName_ ("stationName", parsedAndChecked()),
       type_ ("type", parsedAndChecked()),
       minZ_ ("minZ", parsedOnly()),
       maxZ_ ("maxZ", parsedOnly()),
@@ -42,6 +43,7 @@ namespace material {
 
     bool valid();
 
+    ReadonlyProperty<std::string, NoDefault> stationName_;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<double, NoDefault> minZ_;
     ReadonlyProperty<double, NoDefault> maxZ_;

@@ -42,9 +42,39 @@ namespace material {
 
   void ConversionStation::routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement) {
     MaterialObject::Element* inputElement;
-    double totalGrams = 0.0;
+    //double totalGrams = 0.0;
     double multiplier = 0.0;
+    bool converted = false;
 
+    
+    for (const MaterialObject::Element* currElement : inputElements) {
+      converted = false;
+      //if the material need to be converted (flange station, or endcap station with right destination)
+      if ((stationType_ == FLANGE) || (stationType_ == ENDCAP && currElement->destination.state() && currElement->destination().compare(stationName_()))) {
+        for (const Conversion* currConversion : conversions) {
+          inputElement = currConversion->input->elements[0];
+          if (inputElement->elementName().compare(currElement->elementName()) == 0) {
+            converted = true;
+            multiplier = currElement->quantityInGrams(inactiveElement) / inputElement->quantityInGrams(inactiveElement);
+          
+            for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
+              MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+              if (newElement->service()) {
+                serviceOutput.addElement(newElement);
+              } else {
+                localOutput.addElement(newElement);
+              }
+            }
+          }
+        }
+      }
+      if (!converted) {
+        serviceOutput.addElement(currElement);
+      }
+    }
+    
+
+    /*
     for (const Conversion* currConversion : conversions) {
       inputElement = currConversion->input->elements[0];
       totalGrams = 0.0;
@@ -68,6 +98,7 @@ namespace material {
         }
       }
     }
+    */
   }
 
   /*
