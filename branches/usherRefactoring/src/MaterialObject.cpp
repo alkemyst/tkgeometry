@@ -29,7 +29,6 @@ namespace material {
   MaterialObject::MaterialObject(Type materialType) :
       materialType_ (materialType),
       type_ ("type", parsedAndChecked()),
-      station_ ("Station", parsedOnly()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
       materials (nullptr) {}
@@ -151,7 +150,6 @@ namespace material {
   //}
 
   MaterialObject::Materials::Materials() :
-    station_ ("Station", parsedOnly()),
     componentsNode_ ("Component", parsedOnly()) {};
 
   void MaterialObject::Materials::build() {
@@ -290,7 +288,7 @@ namespace material {
   */
 
   MaterialObject::Element::Element() :
-    station_ ("Station", parsedOnly()),
+    destination ("Station", parsedOnly()),
     componentName ("componentName", parsedOnly()),
     nStripsAcross("nStripsAcross", parsedOnly()),
     nSegments("nSegments", parsedOnly()),
@@ -303,8 +301,8 @@ namespace material {
     materialTab_ (MaterialTab::instance()) {};
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element() {
-    if(original.station_.state())
-      station_(original.station_());
+    if(original.destination.state())
+      destination(original.destination());
     if(original.componentName.state())
       componentName(original.componentName());
     if(original.nStripsAcross.state())
@@ -354,7 +352,6 @@ namespace material {
   }
 
   void MaterialObject::Element::build() {
-        
     /*
     std::cout << "  ELEMENT " << elementName() << std::endl;
     std::cout << "    DATA "
@@ -364,6 +361,7 @@ namespace material {
         << " scale " << scale()
         << " quantity " << quantity()
         << " unit " << unit()
+        << " station " << (destination.state() ? destination() : "NOT_SET")
         << std::endl;
     */
   }
