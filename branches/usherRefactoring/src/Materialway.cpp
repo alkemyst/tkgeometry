@@ -1359,6 +1359,7 @@ namespace material {
     //sections
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
+        //section->inactiveElement()->addLocalMass("Steel", 1000.0*section->inactiveElement()->getZLength());
         section->materialObject().populateMaterialProperties(*section->inactiveElement());
       }
     }
