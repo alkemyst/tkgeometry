@@ -35,6 +35,9 @@
 
 #include <Tracker.h>
 #include <Support.h>
+#include "Materialway.h"
+
+using material::Materialway;
 
 namespace po = boost::program_options;
 /**
@@ -79,6 +82,7 @@ namespace insur {
     //bool buildTrackerSystem();
     //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
+    bool buildMaterials(bool verbose = false);
     bool createMaterialBudget(bool verbose = false);
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
@@ -97,6 +101,7 @@ namespace insur {
     bool reportTriggerPerformanceSite(bool extended);
     bool reportNeighbourGraphSite();
     bool additionalInfoSite();
+    bool serviceDebugSite();
     bool makeSite(bool addLogPage = true);
     void setBasename(std::string newBaseName);
     void setGeometryFile(std::string geomFile);
@@ -117,13 +122,15 @@ namespace insur {
     MaterialBudget* pm;
     MatParser mp;
     Usher u;
+    Materialway materialwayTracker;
+    Materialway materialwayPixel;
     MatCalc tkMaterialCalc;
     MatCalc pxMaterialCalc;
     Analyzer a;
     Analyzer pixelAnalyzer;
     Vizard v;
     tk2CMSSW t2c;
-    mainConfigHandler mainConfiguration;
+    mainConfigHandler& mainConfiguration;
     bool fileExists(std::string filename);
     std::string extractFileName(const std::string& full);
     Squid(const Squid& s);

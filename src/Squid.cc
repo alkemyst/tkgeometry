@@ -12,7 +12,9 @@ namespace insur {
   /**
    * The constructor sets the internal pointers to <i>NULL</i>.
    */
-  Squid::Squid() : t2c(mainConfiguration) {
+  Squid::Squid() :
+      mainConfiguration(mainConfigHandler::instance()),
+      t2c(mainConfiguration) {
     tr = NULL;
     is = NULL;
     mb = NULL;
@@ -69,6 +71,7 @@ namespace insur {
     ptree pt;
     info_parser::read_info(ss, pt);
 
+    /*
     class CoordExportVisitor : public ConstGeometryVisitor {
       std::ofstream barof, endof;
     public:
@@ -101,6 +104,7 @@ namespace insur {
            << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
       }
     };
+    */
 
     try { 
       auto childRange = getChildRange(pt, "Tracker");
@@ -226,6 +230,55 @@ namespace insur {
       stopTaskClock();
       return false;
     }
+  }
+
+  bool Squid::buildMaterials(bool verbose) {
+    startTaskClock("Building materials");
+
+    if (tr) {
+        std::string trackm = getMaterialFile();
+        if (trackm=="") return false;
+        if (!is) is = new InactiveSurfaces();
+        //if (mb) delete mb;
+        //mb  = new MaterialBudget(*tr, *is);
+        //if (tkMaterialCalc.initDone()) tkMaterialCalc.reset(); // TODO: obsolete these
+        //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
+
+        //if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+          materialwayTracker.build(*tr, *is);
+
+          // mb->materialsAll(tkMaterialCalc);
+          // if (verbose) mb->print();
+
+          if (px) {
+            std::string pixm = getPixelMaterialFile();
+            if (pixm!="") {
+              //if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+                if (!pi) pi = new InactiveSurfaces();
+                //if (pm) delete pm;
+                //pm = new MaterialBudget(*px, *pi);
+                materialwayPixel.build(*px, *pi);
+
+                //pm->materialsAll(pxMaterialCalc);
+                //if (verbose) pm->print();
+                //}
+            }
+          }
+
+          /*
+        } else {
+          //if (mb) delete mb;
+          //mb = NULL;
+          //if (pm) delete pm;
+          //pm = NULL;
+          logERROR(err_init_failed);
+          return false;
+        }
+        */
+      } else {
+        logERROR(err_no_tracker);
+        return false;
+      }
   }
 
 
@@ -396,6 +449,7 @@ namespace insur {
    * @return a boolean with the operation success
    */
   bool Squid::makeSite(bool addLogPage /* = true */) {
+    std::cerr << "Creating website cerr" << std::endl;
     startTaskClock("Creating website");
     if (!prepareWebsite()) {
       logERROR("Problem in preparing website");
@@ -408,6 +462,7 @@ namespace insur {
 
     bool result = site.makeSite(false);
     stopTaskClock();
+    std::cerr << "done cerr" << std::endl;
     return result;
   }
 
@@ -619,6 +674,18 @@ namespace insur {
                            getMaterialFile(), getPixelMaterialFile(),
                            defaultMaterialFile, defaultPixelMaterialFile,
                            a, pixelAnalyzer, *tr, *simParms_, site);
+      stopTaskClock();
+      return true;
+    }
+  }
+
+  bool Squid::serviceDebugSite() {
+    if (!tr) {
+      logERROR(err_no_tracker);
+      return false;
+    } else {
+      startTaskClock("Creating material routing debug page");
+      v.serviceDebugSite(*tr, site);
       stopTaskClock();
       return true;
     }

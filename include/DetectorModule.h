@@ -7,7 +7,10 @@
 #include "ModuleBase.h"
 #include "GeometricModule.h"
 #include "CoordinateOperations.h"
+#include "Visitable.h"
+#include "MaterialObject.h"
 
+using material::MaterialObject;
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================
@@ -27,13 +30,19 @@ struct PosRef { int cnt, z, rho, phi; };
 struct TableRef { string table; int row, col; };
 struct UniRef { string cnt; int layer, ring, phi, side; };
 
+namespace insur {
+  class ModuleCap;
+}
+using insur::ModuleCap;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
+
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 protected:
+  MaterialObject materialObject_;
   Sensors sensors_;
   std::string cntName_;
   int16_t cntId_;
@@ -45,7 +54,11 @@ protected:
   int numHits_ = 0;
 
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
+  ModuleCap* myModuleCap_ = NULL;
 public:
+  void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
+  ModuleCap* getModuleCap() { return myModuleCap_ ; }
+
   Property<int16_t, AutoDefault> side;
   
   Property<double, Computable> minPhi, maxPhi;
@@ -89,6 +102,7 @@ public:
   
  DetectorModule(Decorated* decorated) : 
     Decorator<GeometricModule>(decorated),
+      materialObject_(MaterialObject::MODULE),
       sensorNode               ("Sensor"                   , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
@@ -115,7 +129,7 @@ public:
       plotColor                ("plotColor"                , parsedOnly(), 0),
       hybridWidth              ("hybridWidth"              , parsedOnly(), 5),
       hybridLength             ("hybridLength"             , parsedOnly(), 5)
-  {}
+  { }
 
   virtual void setup();
 
@@ -125,7 +139,12 @@ public:
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
-  double area() const { return decorated().area(); }
+  double area() const { 
+    //return decorated().area();
+    const GeometricModule& module = decorated();
+    double area = module.area(); 
+    return area;
+  }
   double dsDistance() const { return decorated().dsDistance(); }
   void dsDistance(double d) { decorated().dsDistance(d); }
   double thickness() const { return dsDistance() + sensorThickness(); }
@@ -195,6 +214,7 @@ public:
   double thetaAperture() const { return maxTheta() - minTheta(); }
 
   const Sensors& sensors() const { return sensors_; }
+  const MaterialObject& materialObject() const { return materialObject_; }
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
   int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
@@ -234,9 +254,6 @@ public:
 
 
 
-
-
-
 class BarrelModule : public DetectorModule, public Clonable<BarrelModule> {
 public:
   Property<int16_t, AutoDefault> layer;
@@ -244,7 +261,9 @@ public:
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
 
-  BarrelModule(Decorated* decorated) : DetectorModule(decorated) { setup(); }
+
+  BarrelModule(Decorated* decorated);
+
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     v.visit(*(DetectorModule*)this);
@@ -287,7 +306,7 @@ public:
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
 
-  EndcapModule(Decorated* decorated) : DetectorModule(decorated) { setup(); } 
+  EndcapModule(Decorated* decorated);
 
   void setup() override {
     DetectorModule::setup();

@@ -10,8 +10,11 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Ring.h"
+#include "Visitable.h"
 
-class Disk : public PropertyObject, public Buildable, public Identifiable<int> {
+using material::MaterialObject;
+
+class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
   typedef PtrVector<Ring> Container;
   //typedef boost::ptr_map<int, Ring> RingIndexMap;
@@ -20,7 +23,7 @@ public:
 private:
   Container rings_;
   RingIndexMap ringIndexMap_;
-  
+  MaterialObject materialObject_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -46,6 +49,7 @@ public:
   ReadonlyProperty<double, Computable> maxRingThickness;
 
   Disk() :
+    materialObject_(MaterialObject::LAYER),
     numRings("numRings", parsedAndChecked()),
     innerRadius("innerRadius", parsedAndChecked()),
     outerRadius("outerRadius", parsedAndChecked()),
@@ -60,7 +64,7 @@ public:
 
   void setup() {
     minZ.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minZ()); } return min; });
-    maxZ.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
+    maxZ.setup([this]() { double max = -99999; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
     minR.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
@@ -87,6 +91,7 @@ public:
     v.visit(*this); 
     for (const auto& r : rings_) { r.accept(v); }
   }
+  const MaterialObject& materialObject() const;
 };
 
 #endif

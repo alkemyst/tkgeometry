@@ -1,0 +1,228 @@
+// ROD material
+// In rod service true means that exit from the rod
+//        service false means that stay in the rod (but in the service cylinder)
+
+//  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
+
+//Materials rodBase {
+//  type rod
+
+  //DUMMY!!!!!!!!!!!!!
+  //Component {
+  //  componentName Cooling
+  //  service true
+//    service false
+  //  scale false
+  //  Element {
+  //    elementName Steel
+  //    quantity 10000
+  //    unit g/m
+  //  }
+ // }
+    
+
+  // Cooling for the module
+  Component {
+    componentName Cooling
+    service true
+    scale false
+    Element {
+      elementName Steel
+      quantity 7.860696517
+      unit g/m
+    }
+    Element {
+      elementName CO2
+      quantity 1.791044776
+      unit g/m
+    }
+  }
+
+  // 6 TWP/Rod
+  // (4 for sensors and 2 for converters)
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // I acknowledge that there are no GBTs at the end of the rod
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scale false
+    Element {
+      elementName Cu_twp
+      quantity 0
+      unit g
+    }
+  }
+
+  // Support mechanics
+  //Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scale false
+    Element {
+      elementName CF
+      quantity 81.12
+      unit g/m
+    }
+    Element {
+      elementName PE
+      quantity 6.05895727
+      unit g/m
+    }
+  }
+//}
