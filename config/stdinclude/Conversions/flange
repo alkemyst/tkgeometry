@@ -4,6 +4,7 @@
 // SERVICES
 // HV, MV, LV
 Station flange {
+  stationName flange
   type flange
 
   // Wires and cables one-to-one
