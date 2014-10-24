@@ -634,9 +634,6 @@ namespace material {
           sectionsList_.push_back(startLayer);
           layerRodSections_[currLayer_].addSection(startLayer);
           layerRodSections_[currLayer_].setStation(station);
-        } else {
-          //TODO: error message
-          exit;
         }
 
         //==========second level conversion station
@@ -660,7 +657,7 @@ namespace material {
           stationMinZ = discretize(endcapConversionStation_->minZ_());
           stationMinR = section->maxR() + safetySpace;
           stationMaxZ = discretize(endcapConversionStation_->maxZ_());
-          stationMaxR = stationMinR + layerStationWidth;
+          stationMaxR = stationMinR + layerStationLenght;
 
           if(!section->hasNextSection()) {
             station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
