@@ -34,7 +34,7 @@ namespace material {
         store(currentStationNode.second);
         buildConversions();
         valid_ = true;
-        break;
+        break; //alert, if multiple stations defined, build only the first
       }
     }
     cleanup();

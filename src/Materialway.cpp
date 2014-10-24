@@ -583,43 +583,61 @@ namespace material {
         barrelConversionStation_ = layer.flangeConversionStation();
         endcapConversionStation_ = layer.endCapConversionStation();
         currLayer_ = &layer;
-        //split the right section
-        Section* section = startBarrel;
-        int attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
+        Section* section = nullptr;
+        Station* station = nullptr;
 
-        while(section->maxR() < attachPoint + sectionTolerance) {
-          if(!section->hasNextSection()) {
-            //TODO: messaggio di errore
-            return;
+        int attachPoint = 0;
+        int sectionMinZ = 0;
+        int sectionMinR = 0;
+        int sectionMaxZ = 0;
+        int sectionMaxR = 0;
+        int stationMinZ = 0;
+        int stationMinR = 0;
+        int stationMaxZ = 0;
+        int stationMaxR = 0;
+
+
+        if(barrelConversionStation_->valid()) {
+          //split the right section
+          section = startBarrel;
+          attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
+
+          while(section->maxR() < attachPoint + sectionTolerance) {
+            if(!section->hasNextSection()) {
+              //TODO: messaggio di errore
+              return;
+            }
+            section = section->nextSection();
           }
-          section = section->nextSection();
+
+          if (section->minR() < attachPoint - sectionTolerance) {
+            section = splitSection(section, attachPoint);
+          }
+
+          //built two main sections above the layer (one for positive part, one for negative)
+
+          sectionMinZ = safetySpace;
+          sectionMinR = attachPoint;
+          //sectionMaxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
+          sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
+          sectionMaxR = sectionMinR + sectionWidth;
+
+          stationMinZ = sectionMaxZ + safetySpace;
+          stationMinR = sectionMinR -(layerStationWidth/2);
+          stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
+          stationMaxR = sectionMinR + (layerStationWidth/2);
+
+          station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *barrelConversionStation_, section); //TODO: check if is ok VERTICAL
+          sectionsList_.push_back(station);
+          stationListFirst_.push_back(station);
+          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
+          sectionsList_.push_back(startLayer);
+          layerRodSections_[currLayer_].addSection(startLayer);
+          layerRodSections_[currLayer_].setStation(station);
+        } else {
+          //TODO: error message
+          exit;
         }
-
-        if (section->minR() < attachPoint - sectionTolerance) {
-          section = splitSection(section, attachPoint);
-        }
-
-        //built two main sections above the layer (one for positive part, one for negative)
-
-        int sectionMinZ = safetySpace;
-        int sectionMinR = attachPoint;
-        //int sectionMaxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
-        int sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
-        int sectionMaxR = sectionMinR + sectionWidth;
-
-        int stationMinZ = sectionMaxZ + safetySpace;
-        int stationMinR = sectionMinR -(layerStationWidth/2);
-        int stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
-        int stationMaxR = sectionMinR + (layerStationWidth/2);
-
-        Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *barrelConversionStation_, section); //TODO: check if is ok VERTICAL
-        sectionsList_.push_back(station);
-        stationListFirst_.push_back(station);
-        startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
-        sectionsList_.push_back(startLayer);
-        layerRodSections_[currLayer_].addSection(startLayer);
-        layerRodSections_[currLayer_].setStation(station);
-
 
         //==========second level conversion station
 

@@ -202,10 +202,10 @@ void Layer::buildTilted() {
 }
 
 void Layer::build() {
-  materialObject_.store(propertyTree());
-  materialObject_.build();
-
   try { 
+    materialObject_.store(propertyTree());
+    materialObject_.build();
+
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
