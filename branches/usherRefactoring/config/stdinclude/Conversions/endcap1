@@ -1,6 +1,6 @@
 // Second level conversion rules
 
-Station endcap1 {
+Station {
   stationName endcap1
   type endcap
 
