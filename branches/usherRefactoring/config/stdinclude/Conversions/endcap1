@@ -1,6 +1,7 @@
 // Second level conversion rules
 
 Station endcap1 {
+  stationName endcap1
   type endcap
 
   minZ 1500
