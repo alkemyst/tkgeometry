@@ -288,7 +288,7 @@ namespace material {
   */
 
   MaterialObject::Element::Element() :
-    destination ("Station", parsedOnly()),
+    destination ("destination", parsedOnly()),
     componentName ("componentName", parsedOnly()),
     nStripsAcross("nStripsAcross", parsedOnly()),
     nSegments("nSegments", parsedOnly()),
