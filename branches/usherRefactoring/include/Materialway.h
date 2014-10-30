@@ -85,28 +85,6 @@ namespace material {
     typedef std::map<const Layer*, RodSectionsStation> LayerRodSectionsMap;
     typedef std::map<const Disk*, RodSectionsStation> DiskRodSectionsMap;
 
-  public:
-    class Train {
-    public:
-      enum UnitType { GRAMS, GRAMS_METERS, MILLIMITERS };
-
-      Train();
-      virtual ~Train();
-
-      void relaseMaterial(Section* section) const;
-      void addWagon(std::string massName, double massQuantity, UnitType massUnit);
-    private:
-      struct Wagon {
-        std::string material;
-        double droppingGramsMeter;
-        Wagon(std::string newMassName, double newDroppingGramsMeter) :
-          material(newMassName),
-          droppingGramsMeter(newDroppingGramsMeter) {}
-      };
-      Station* destination;
-      std::vector<Wagon> wagons;
-    };
-
   private:
 
     /**
@@ -140,7 +118,6 @@ namespace material {
       InactiveElement* inactiveElement() const;
       //Section* appendNewSection
 
-      virtual void route(const Train& train);
       virtual void getServicesAndPass(const MaterialObject& source);
 
       bool debug_;
@@ -163,7 +140,6 @@ namespace material {
 
       };
 
-      virtual void route(const Train& train);
       virtual void getServicesAndPass(const MaterialObject& source);
 
       ConversionStation& conversionStation();
@@ -330,7 +306,6 @@ namespace material {
     void createModuleCaps(Tracker& tracker);
     void populateAllMaterialProperties(Tracker& tracker);
     //void calculateMaterialValues(Tracker& tracker);
-    void testTrains();
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
     void calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker);
     InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);

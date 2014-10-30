@@ -16,9 +16,6 @@
 #include <stdexcept>
 
 
-
-
-
 namespace material {
   const std::map<MaterialObject::Type, const std::string> MaterialObject::typeString = {
       {MODULE, "module"},
@@ -55,7 +52,6 @@ namespace material {
         if (type_().compare(getTypeString()) == 0) {
           if (materialsMap_.count(currentMaterialNode.first) == 0) {
             Materials * newMaterials  = new Materials();
-            newMaterials->store(propertyTree());
             newMaterials->store(currentMaterialNode.second);
             newMaterials->build();
             materialsMap_[currentMaterialNode.first] = newMaterials;
@@ -102,7 +98,7 @@ namespace material {
 
   void MaterialObject::addElementIfService(const Element* inputElement) {
     if (inputElement->service() == true) {
-      //std::cout << "ADDING " << inputElement->elementName() << std::endl;
+    //std::cout << "ADDING " << inputElement->elementName() << std::endl;
       //std::cout << "COMP " << inputElement->componentName() << std::endl;
       //bool test = (inputElement->elementName().compare("SenSi") == 0);
       serviceElements.push_back(inputElement);
@@ -110,7 +106,7 @@ namespace material {
   }
 
   void MaterialObject::addElementIfLocal(const Element* inputElement) {
-    if (inputElement->service() == false) {
+    if (inputElement->service() == false) {      
       serviceElements.push_back(inputElement);
     }
   }
@@ -126,15 +122,18 @@ namespace material {
       //currElement.populateMaterialProperties(materialProperties);
       //populate directly because need to skip the control if is a service
       //TODO: check why componentName is not present in no Element
+
+      
       if (currElement->debugInactivate() == false) {
         quantity = currElement->quantityInGrams(materialProperties);
+
         if(currElement->scale() == true) {
           quantity *= currElement->nSegments(); //nStripsAcross();
         }
         if (currElement->componentName.state()) {
-          materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), currElement->quantityInGrams(materialProperties));
+          materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
         } else {
-          materialProperties.addLocalMass(currElement->elementName(), currElement->quantityInGrams(materialProperties));
+          materialProperties.addLocalMass(currElement->elementName(), quantity);
         }
       }
     }
