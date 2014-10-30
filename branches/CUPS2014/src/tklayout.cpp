@@ -158,7 +158,6 @@ int main(int argc, char* argv[]) {
 
     if (!squid.reportGeometrySite()) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;
-    if (!squid.serviceDebugSite()) return EXIT_FAILURE;
     if (!squid.makeSite()) return EXIT_FAILURE;
 
   } else {
