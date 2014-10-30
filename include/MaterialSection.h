@@ -11,11 +11,11 @@
 namespace material {
   class MaterialSection : public MaterialObject {
   public:
-    MaterialSection(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
-    MaterialSection(int minZ, int minR, int maxZ, int maxR, Direction bearing);
+    MaterialSection(double minZ, double minR, double maxZ, double maxR, Direction bearing, MaterialSection* nextSection);
+    MaterialSection(double minZ, double minR, double maxZ, double maxR, Direction bearing);
     virtual ~MaterialSection();
 
-    int isHit(int z, int r, int end, Direction direction);
+    double isHit(double z, double r, double end, Direction direction);
     nextSection(MaterialSection* nextSection);
     MaterialSection* nextSection();
     inactiveElement(InactiveElement* inactiveElement);

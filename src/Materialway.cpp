@@ -109,29 +109,6 @@ namespace material {
   }
   //END Materialway::Boundary
   //=====================================================================================================================
-  //START Materialway::Train
-  Materialway::Train::Train() :
-    destination(nullptr) {}
-  Materialway::Train::~Train() {}
-
-  void Materialway::Train::relaseMaterial(Section* section) const {
-    for(const Wagon& wagon : wagons) {
-      if (section->inactiveElement() != nullptr) {
-        std::string tmp = wagon.material+"_HV lineeee";
-        section->inactiveElement()->addLocalMass(wagon.material, tmp, wagon.droppingGramsMeter * undiscretize(section->lenght()) / 1000.);   //TODO: control if unit is mm
-      }
-    }
-  }
-
-  void Materialway::Train::addWagon(std::string massName, double massQuantity, UnitType massUnit) {
-    switch (massUnit) {
-    case GRAMS_METERS:
-      Wagon newWagon(massName, massQuantity); //TODO:control if base unit is cm or mm
-      wagons.push_back(newWagon);
-    }
-  }
-  //END Materialway::Train
-  //=====================================================================================================================
   //START Materialway::Section
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug) :
     minZ_(minZ),
@@ -234,12 +211,6 @@ namespace material {
   InactiveElement* Materialway::Section::inactiveElement() const {
     return inactiveElement_;
   }
-  void Materialway::Section::route(const Train& train) {
-    train.relaseMaterial(this);
-    if(hasNextSection()) {
-      nextSection()->route(train);
-    }
-  }
   void Materialway::Section::getServicesAndPass(const MaterialObject& source) {
     source.copyServicesTo(materialObject());
     if(hasNextSection()) {
@@ -257,11 +228,6 @@ namespace material {
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation) :
       Station(minZ, minR, maxZ, maxR, bearing, conversionStation, nullptr) {}
   Materialway::Station::~Station() {}
-
-  void Materialway::Station::route(const Train& train) {
-    Section::route(train);
-    //inactiveElement()->addLocalMass("Steel", 10000.0); //TODO:cancel
-  }
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
     //return; //PROVA!
@@ -977,8 +943,6 @@ namespace material {
 
     buildInactiveElements();
     std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveElements" << std::endl;
-    //testTrains();
-    //std::cout << "TIME " << difftime(time(0), startTime) << " end testTrains" << std::endl;
     routeServices(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end routeServices" << std::endl;
     //routeModuleServices();
@@ -1375,6 +1339,7 @@ namespace material {
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
         //section->inactiveElement()->addLocalMass("Steel", 1000.0*section->inactiveElement()->getZLength());
+
         section->materialObject().populateMaterialProperties(*section->inactiveElement());
       }
     }
@@ -1426,21 +1391,6 @@ namespace material {
     tracker.accept(visitor);
   }
   */
-
-  void Materialway::testTrains() {
-    //TODO:erase counter
-    std::map<Section*, int> counter;
-    for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
-      Train train;
-      //train.addWagon(Train::GRAMS_METERS, "Cu_HV", 10);
-      pair.second->route(train);
-      counter[pair.second] ++;
-    }
-
-    //for (std::pair<Section* const, int>& pair : counter) {
-    //  std::cout<<"Sec (<"<<setw(10)<<left<<pair.first->minZ()<< ")  = "<<pair.second<<endl;
-    //}
-  }
 
   void Materialway::buildInactiveSurface(InactiveSurfaces& inactiveSurface) {
     for(Section* section : sectionsList_) {
