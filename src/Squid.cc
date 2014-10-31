@@ -679,18 +679,6 @@ namespace insur {
     }
   }
 
-  bool Squid::serviceDebugSite() {
-    if (!tr) {
-      logERROR(err_no_tracker);
-      return false;
-    } else {
-      startTaskClock("Creating material routing debug page");
-      v.serviceDebugSite(*tr, site);
-      stopTaskClock();
-      return true;
-    }
-  }
-
   void Squid::setBasename(std::string newBasename) {
     baseName_ = newBasename;
   }    
