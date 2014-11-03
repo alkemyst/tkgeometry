@@ -43,6 +43,7 @@ namespace material {
 
   class MaterialObject;
   class ConversionStation;
+  class WeightDistributionGrid;
 
   /**
    * @class Materialway
@@ -260,16 +261,7 @@ namespace material {
     Materialway();
     virtual ~Materialway();
 
-    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface);
-
-  private:
-    BoundariesSet boundariesList_;       /**< Vector for storing all the boundaries */
-    SectionVector sectionsList_;         /**< Vector for storing all the sections (also stations)*/
-    StationVector stationListFirst_;         /**< Pointers to first step stations*/
-    StationVector stationListSecond_;         /**< Pointers to second step stations*/
-
-    OuterUsher outerUsher;
-    InnerUsher innerUsher;
+    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface, WeightDistributionGrid weightDistribution);
 
     static const double gridFactor;                                     /**< the conversion factor for using integers in the algorithm (helps finding collisions),
                                                                             actually transforms millimiters in microns */
@@ -293,6 +285,15 @@ namespace material {
 
     static int discretize(double input);
     static double undiscretize(int input);
+
+  private:
+    BoundariesSet boundariesList_;       /**< Vector for storing all the boundaries */
+    SectionVector sectionsList_;         /**< Vector for storing all the sections (also stations)*/
+    StationVector stationListFirst_;         /**< Pointers to first step stations*/
+    StationVector stationListSecond_;         /**< Pointers to second step stations*/
+
+    OuterUsher outerUsher;
+    InnerUsher innerUsher;
 
     bool buildBoundaries(const Tracker& tracker);             /**< build the boundaries around barrels and endcaps */
     void buildExternalSections(const Tracker& tracker);       /**< build the sections outside the boundaries */

@@ -14,7 +14,9 @@ namespace insur {
    */
   Squid::Squid() :
       mainConfiguration(mainConfigHandler::instance()),
-      t2c(mainConfiguration) {
+      t2c(mainConfiguration),
+      weightDistributionTracker(0.1),
+      weightDistributionPixel(0.1) {
     tr = NULL;
     is = NULL;
     mb = NULL;
@@ -245,7 +247,7 @@ namespace insur {
         //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
 
         //if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-          materialwayTracker.build(*tr, *is);
+        materialwayTracker.build(*tr, *is, weightDistributionTracker);
 
           // mb->materialsAll(tkMaterialCalc);
           // if (verbose) mb->print();
@@ -257,7 +259,7 @@ namespace insur {
                 if (!pi) pi = new InactiveSurfaces();
                 //if (pm) delete pm;
                 //pm = new MaterialBudget(*px, *pi);
-                materialwayPixel.build(*px, *pi);
+                materialwayPixel.build(*px, *pi, weightDistributionPixel);
 
                 //pm->materialsAll(pxMaterialCalc);
                 //if (verbose) pm->print();
@@ -606,7 +608,7 @@ namespace insur {
       startTaskClock("Creating material budget report");
       v.histogramSummary(a, site, "outer");
       if (pm) v.histogramSummary(pixelAnalyzer, site, "pixel");
-      v.weigthSummart(a, site, "outer");
+      v.weigthSummart(a, weightDistributionTracker, site, "outer");
       stopTaskClock();
       return true;
     }

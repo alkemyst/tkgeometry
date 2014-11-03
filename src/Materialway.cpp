@@ -20,6 +20,7 @@
 #include "Endcap.h"
 #include "Disk.h"
 #include "Layer.h"
+#include "WeightDistributionGrid.h"
 
 #include <ctime>
 
@@ -871,7 +872,7 @@ namespace material {
     return double(input / gridFactor);
   }
 
-  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface) {
+  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface, WeightDistributionGrid weightDistribution) {
     /*
     std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
     std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;

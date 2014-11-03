@@ -1,7 +1,7 @@
 /**
  * @file MaterialObject.cpp
  *
- * @date 19/giu/2014
+ * @date 19/jun/2014
  * @author Stefano Martina
  */
 

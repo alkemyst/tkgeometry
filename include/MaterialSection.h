@@ -11,11 +11,11 @@
 namespace material {
   class MaterialSection : public MaterialObject {
   public:
-    MaterialSection(double minZ, double minR, double maxZ, double maxR, Direction bearing, MaterialSection* nextSection);
-    MaterialSection(double minZ, double minR, double maxZ, double maxR, Direction bearing);
+    MaterialSection(double newMinZ, double newMinR, double newMaxZ, double newMaxR, Direction newBearing, MaterialSection* nextSection);
+    MaterialSection(double newMinZ, double newMinR, double newMaxZ, double newMaxR, Direction newBearing);
     virtual ~MaterialSection();
 
-    double isHit(double z, double r, double end, Direction direction);
+    double isHit(double z, double r, double end, Direction aDirection);
     nextSection(MaterialSection* nextSection);
     MaterialSection* nextSection();
     inactiveElement(InactiveElement* inactiveElement);
@@ -23,18 +23,19 @@ namespace material {
 
     virtual void getServicesAndPass(MaterialObject& source);
   protected:
-    Property<double, noDefault> minZ_;
-    Property<double, noDefault> maxZ_;
-    Property<double, noDefault> minR_;
-    Property<double, noDefault> maxR_;
-    Property<Direction, noDefault> bearing_;
+    Property<double, noDefault> minZ;
+    Property<double, noDefault> maxZ;
+    Property<double, noDefault> minR;
+    Property<double, noDefault> maxR;
+    Property<Direction, noDefault> bearing;
     MaterialSection* nextSection_;
     InactiveElement* inactiveElement_;
   }
 
   class MaterialStation : public MaterialSection {
   public:
-    MaterialStation();
+    MaterialStation(double minZ, double minR, double maxZ, double maxR, Direction bearing, MaterialSection* nextSection);
+    MaterialStation(double minZ, double minR, double maxZ, double maxR, Direction bearing);
     virtual ~MaterialStation();
 
     void getServicesAndPass(MaterialObject& source);
