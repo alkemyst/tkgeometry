@@ -36,8 +36,11 @@
 #include <Tracker.h>
 #include <Support.h>
 #include "Materialway.h"
+#include "WeightDistributionGrid.h"
+
 
 using material::Materialway;
+using material::WeightDistributionGrid;
 
 namespace po = boost::program_options;
 /**
@@ -150,6 +153,10 @@ namespace insur {
     bool defaultPixelMaterialFile;
 
     RootWSite site;
+
+    WeightDistributionGrid weightDistributionTracker;
+    WeightDistributionGrid weightDistributionPixel;
+
     bool prepareWebsite();
     bool sitePrepared;
 
