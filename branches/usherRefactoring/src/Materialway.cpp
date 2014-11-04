@@ -1342,13 +1342,18 @@ namespace material {
         //section->inactiveElement()->addLocalMass("Steel", 1000.0*section->inactiveElement()->getZLength());
 
         section->materialObject().populateMaterialProperties(*section->inactiveElement());
+
+        weightDistribution.addTotalGrams(undiscretize(section->minZ()), undiscretize(section->minR()), undiscretize(section->maxZ()), undiscretize(section->maxR()), section->materialObject());
       }
     }
 
     //modules
     class ModuleVisitor : public GeometryVisitor {
+    private:
+      WeightDistributionGrid& weightDistribution_;
     public:
-      ModuleVisitor() {}
+      ModuleVisitor(WeightDistributionGrid& weightDistribution) :
+        weightDistribution_(weightDistribution) {}
       virtual ~ModuleVisitor() {}
 
       void visit(DetectorModule& module) {
@@ -1356,10 +1361,12 @@ namespace material {
         //MaterialProperties* materialProperties = ModuleCap;
         //module.materialObject().populateMaterialProperties(*materialProperties);
         module.materialObject().populateMaterialProperties(*module.getModuleCap());
+
+        weightDistribution_.addTotalGrams(module.minZ(), module.minR(), module.maxZ(), module.maxR(), module.materialObject());
       }
     };
 
-    ModuleVisitor visitor;
+    ModuleVisitor visitor(weightDistribution);
     tracker.accept(visitor);
   }
 
