@@ -39,6 +39,19 @@ namespace material {
     }
   }
 
+  void MaterialObject::setup() {
+    totalGrams.setup([&](){
+        double result = 0.0;
+        for (const Element* currElement : serviceElements) {
+          result += currElement->totalGrams();
+        }
+        if (materials != nullptr) {
+          result += materials->totalGrams();
+        }
+        return result;
+      });
+  }
+
   void MaterialObject::build() {
     if (!debugInactivate_()) {
  
@@ -52,6 +65,7 @@ namespace material {
         if (type_().compare(getTypeString()) == 0) {
           if (materialsMap_.count(currentMaterialNode.first) == 0) {
             Materials * newMaterials  = new Materials();
+            newMaterials->setup();
             newMaterials->store(currentMaterialNode.second);
             newMaterials->build();
             materialsMap_[currentMaterialNode.first] = newMaterials;
@@ -151,10 +165,21 @@ namespace material {
   MaterialObject::Materials::Materials() :
     componentsNode_ ("Component", parsedOnly()) {};
 
+  void MaterialObject::Materials::setup() {
+    totalGrams.setup([&](){
+        double result = 0.0;
+        for (auto& currentComponentNode : components) {
+          result += currentComponentNode->totalGrams();
+        }
+        return result;
+      });
+  }
+
   void MaterialObject::Materials::build() {
         
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
+      newComponent->setup();
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -163,10 +188,6 @@ namespace material {
       components.push_back(newComponent);
     }
     cleanup();
-  }
-
-  void MaterialObject::Materials::setup() {
-
   }
 
   void MaterialObject::Materials::copyServicesTo(MaterialObject& outputObject) const {
@@ -204,12 +225,26 @@ namespace material {
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()) {};
 
+  void MaterialObject::Component::setup() {
+    totalGrams.setup([&](){
+        double result = 0.0;
+        for (auto& currentComponentNode : components) {
+          result += currentComponentNode->totalGrams();
+        }
+        for  (auto& currentElementNode : elements) {
+          result += currentElementNode->totalGrams();
+        }
+        return result;
+      });
+  }
+
   void MaterialObject::Component::build() {
     //std::cout << "COMPONENT " << componentName() << std::endl;
 
     //sub components
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
+      newComponent->setup();
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -220,6 +255,7 @@ namespace material {
     //elements
     for  (auto& currentElementNode : elementsNode_) {
       Element* newElement = new Element();
+      newElement->setup();
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
@@ -348,6 +384,12 @@ namespace material {
     }
 
     return returnVal;
+  }
+
+  void MaterialObject::Element::setup() {
+    totalGrams.setup([&](){
+        return 1;
+      });
   }
 
   void MaterialObject::Element::build() {
