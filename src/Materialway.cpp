@@ -872,7 +872,7 @@ namespace material {
     return double(input / gridFactor);
   }
 
-  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface, WeightDistributionGrid weightDistribution) {
+  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface, WeightDistributionGrid& weightDistribution) {
     /*
     std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
     std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;
@@ -956,7 +956,7 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end secondStepConversions" << std::endl;
     createModuleCaps(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end createModuleCaps" << std::endl;
-    populateAllMaterialProperties(tracker);
+    populateAllMaterialProperties(tracker, weightDistribution);
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
     //calculateMaterialValues(tracker);
     //std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
@@ -1335,7 +1335,7 @@ namespace material {
   }
  
 
-  void Materialway::populateAllMaterialProperties(Tracker& tracker) {
+  void Materialway::populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution) {
     //sections
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
