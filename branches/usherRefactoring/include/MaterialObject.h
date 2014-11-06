@@ -11,6 +11,8 @@
 #include "Property.h"
 //#include "Materialway.h"
 
+class DetectorModule;
+
 namespace insur {
   class MaterialProperties;
 }
@@ -85,7 +87,8 @@ namespace material {
       double totalGrams(double length, double surface) const;
       void build();
       //void chargeTrain(Materialway::Train& train) const;
-      double quantityInGrams(MaterialProperties& materialProperties) const;
+      double quantityInGrams(const DetectorModule& module) const;
+      double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(double length, double surface) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
     private:
