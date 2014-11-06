@@ -12,6 +12,7 @@
 #include "MaterialTab.h"
 //#include "InactiveElement.h"
 #include "MaterialProperties.h"
+#include "DetectorModule.h"
 #include <messageLogger.h>
 #include <stdexcept>
 
@@ -349,7 +350,11 @@ namespace material {
       {"g/m", GRAMS_METER}
   };
 
-  double MaterialObject::Element::quantityInGrams(MaterialProperties& materialProperties) const {
+  double MaterialObject::Element::quantityInGrams(const DetectorModule& module) const {
+    return quantityInGrams(module.length(), module.area());
+  }
+
+  double MaterialObject::Element::quantityInGrams(const MaterialProperties& materialProperties) const {
     return quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
   }
 
