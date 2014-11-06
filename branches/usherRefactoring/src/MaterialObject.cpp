@@ -39,17 +39,15 @@ namespace material {
     }
   }
 
-  void MaterialObject::setup() {
-    totalGrams.setup([&](){
-        double result = 0.0;
-        for (const Element* currElement : serviceElements) {
-          result += currElement->totalGrams();
-        }
-        if (materials != nullptr) {
-          result += materials->totalGrams();
-        }
-        return result;
-      });
+  double MaterialObject::totalGrams(double length, double surface) const {
+    double result = 0.0;
+    for (const Element* currElement : serviceElements) {
+      result += currElement->totalGrams(length, surface);
+    }
+    if (materials != nullptr) {
+      result += materials->totalGrams(length, surface);
+    }
+    return result;
   }
 
   void MaterialObject::build() {
@@ -65,7 +63,6 @@ namespace material {
         if (type_().compare(getTypeString()) == 0) {
           if (materialsMap_.count(currentMaterialNode.first) == 0) {
             Materials * newMaterials  = new Materials();
-            newMaterials->setup();
             newMaterials->store(currentMaterialNode.second);
             newMaterials->build();
             materialsMap_[currentMaterialNode.first] = newMaterials;
@@ -165,21 +162,18 @@ namespace material {
   MaterialObject::Materials::Materials() :
     componentsNode_ ("Component", parsedOnly()) {};
 
-  void MaterialObject::Materials::setup() {
-    totalGrams.setup([&](){
-        double result = 0.0;
-        for (auto& currentComponentNode : components) {
-          result += currentComponentNode->totalGrams();
-        }
-        return result;
-      });
+  double MaterialObject::Materials::totalGrams(double length, double surface) const {
+    double result = 0.0;
+    for (auto& currentComponentNode : components) {
+      result += currentComponentNode->totalGrams(length, surface);
+    }
+    return result;
   }
 
   void MaterialObject::Materials::build() {
         
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
-      newComponent->setup();
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -225,17 +219,15 @@ namespace material {
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()) {};
 
-  void MaterialObject::Component::setup() {
-    totalGrams.setup([&](){
-        double result = 0.0;
-        for (auto& currentComponentNode : components) {
-          result += currentComponentNode->totalGrams();
-        }
-        for  (auto& currentElementNode : elements) {
-          result += currentElementNode->totalGrams();
-        }
-        return result;
-      });
+  double MaterialObject::Component::totalGrams(double length, double surface) const {
+    double result = 0.0;
+    for (auto& currentComponentNode : components) {
+      result += currentComponentNode->totalGrams(length, surface);
+    }
+    for  (auto& currentElementNode : elements) {
+      result += currentElementNode->totalGrams(length, surface);
+    }
+    return result;
   }
 
   void MaterialObject::Component::build() {
@@ -244,7 +236,6 @@ namespace material {
     //sub components
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
-      newComponent->setup();
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -255,7 +246,6 @@ namespace material {
     //elements
     for  (auto& currentElementNode : elementsNode_) {
       Element* newElement = new Element();
-      newElement->setup();
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
@@ -361,6 +351,10 @@ namespace material {
   };
 
   double MaterialObject::Element::quantityInGrams(MaterialProperties& materialProperties) const {
+    return quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
+  }
+
+  double MaterialObject::Element::quantityInGrams(double length, double surface) const {
     double returnVal;
     try {
       switch (unitStringMap.at(unit())) {
@@ -369,14 +363,13 @@ namespace material {
         break;
 
       case Element::GRAMS_METER:
-        returnVal = materialProperties.getLength() * quantity() / 1000.0;
+        returnVal = length * quantity() / 1000.0;
         break;
 
       case Element::MILLIMETERS:
         std::string elementNameString = elementName();
         double elementDensity = materialTab_.density(elementNameString);
-        double elementSurface =  materialProperties.getSurface();
-        returnVal = elementDensity * elementSurface * quantity() / 1000.0;
+        returnVal = elementDensity * surface * quantity() / 1000.0;
         break;
       }
     } catch (const std::out_of_range& ex) {
@@ -386,10 +379,8 @@ namespace material {
     return returnVal;
   }
 
-  void MaterialObject::Element::setup() {
-    totalGrams.setup([&](){
-        return 1;
-      });
+  double MaterialObject::Element::totalGrams(double length, double surface) const {
+    return quantityInGrams(length, surface);
   }
 
   void MaterialObject::Element::build() {

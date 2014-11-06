@@ -13,7 +13,7 @@ namespace material {
   public:
     WeightDistributionGrid(double binDimension);
     virtual ~WeightDistributionGrid() {};
-    void addTotalGrams(double minZ, double minR, double maxZ, double maxR, const MaterialObject& materialObject);
+    void addTotalGrams(double minZ, double minR, double maxZ, double maxR, double length, double surface, const MaterialObject& materialObject);
     double binDimension() const;
   private:
     double binDimension_;

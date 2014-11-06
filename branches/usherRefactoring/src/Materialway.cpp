@@ -1343,7 +1343,15 @@ namespace material {
 
         section->materialObject().populateMaterialProperties(*section->inactiveElement());
 
-        weightDistribution.addTotalGrams(undiscretize(section->minZ()), undiscretize(section->minR()), undiscretize(section->maxZ()), undiscretize(section->maxR()), section->materialObject());
+        /*
+        double sectionMinZ = undiscretize(section->minZ());
+        double sectionMinR = undiscretize(section->minR());
+        double sectionMaxZ = undiscretize(section->maxZ());
+        double sectionMaxR = undiscretize(section->maxR());
+        double sectionLength = undiscretize(section->maxZ() - section->minZ());
+        double sectionArea = sectionLength * 2 * M_PI * sectionMinR;
+        weightDistribution.addTotalGrams(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, sectionLength, sectionArea, section->materialObject());
+        */
       }
     }
 
@@ -1362,7 +1370,7 @@ namespace material {
         //module.materialObject().populateMaterialProperties(*materialProperties);
         module.materialObject().populateMaterialProperties(*module.getModuleCap());
 
-        weightDistribution_.addTotalGrams(module.minZ(), module.minR(), module.maxZ(), module.maxR(), module.materialObject());
+        //weightDistribution_.addTotalGrams(module.minZ(), module.minR(), module.maxZ(), module.maxR(), module.length(), module.area(), module.materialObject());
       }
     };
 
