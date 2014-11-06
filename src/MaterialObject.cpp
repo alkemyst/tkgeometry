@@ -28,7 +28,7 @@ namespace material {
       type_ ("type", parsedAndChecked()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
-      materials (nullptr) {}
+      materials_ (nullptr) {}
 
   const std::string MaterialObject::getTypeString() const {
     auto mapIter = typeString.find(materialType_);
@@ -41,11 +41,11 @@ namespace material {
 
   double MaterialObject::totalGrams(double length, double surface) const {
     double result = 0.0;
-    for (const Element* currElement : serviceElements) {
+    for (const Element* currElement : serviceElements_) {
       result += currElement->totalGrams(length, surface);
     }
-    if (materials != nullptr) {
-      result += materials->totalGrams(length, surface);
+    if (materials_ != nullptr) {
+      result += materials_->totalGrams(length, surface);
     }
     return result;
   }
@@ -67,7 +67,7 @@ namespace material {
             newMaterials->build();
             materialsMap_[currentMaterialNode.first] = newMaterials;
           }
-          materials = materialsMap_[currentMaterialNode.first];
+          materials_ = materialsMap_[currentMaterialNode.first];
 
           break;
         }
@@ -78,32 +78,32 @@ namespace material {
   }
 
   void MaterialObject::copyServicesTo(MaterialObject& outputObject) const {
-    for(const Element * currElement : serviceElements) {
+    for(const Element * currElement : serviceElements_) {
       outputObject.addElementIfService(currElement);
     }
     
-    if (materials != nullptr) {
-      materials->copyServicesTo(outputObject);
+    if (materials_ != nullptr) {
+      materials_->copyServicesTo(outputObject);
     }
   }
 
   void MaterialObject::copyServicesTo(ConversionStation& outputObject) const {
-    for(const Element * currElement : serviceElements) {
+    for(const Element * currElement : serviceElements_) {
       outputObject.addElementIfService(currElement);
     }
 
-    if (materials != nullptr) {
-      materials->copyServicesTo(outputObject);
+    if (materials_ != nullptr) {
+      materials_->copyServicesTo(outputObject);
     }
   }
 
   void MaterialObject::copyLocalsTo(MaterialObject& outputObject) const {
-    for(const Element * currElement : serviceElements) {
+    for(const Element * currElement : serviceElements_) {
       outputObject.addElementIfLocal(currElement);
     }
 
-    if (materials != nullptr) {
-      materials->copyLocalsTo(outputObject);
+    if (materials_ != nullptr) {
+      materials_->copyLocalsTo(outputObject);
     }
   }
 
@@ -112,24 +112,24 @@ namespace material {
     //std::cout << "ADDING " << inputElement->elementName() << std::endl;
       //std::cout << "COMP " << inputElement->componentName() << std::endl;
       //bool test = (inputElement->elementName().compare("SenSi") == 0);
-      serviceElements.push_back(inputElement);
+      serviceElements_.push_back(inputElement);
     }
   }
 
   void MaterialObject::addElementIfLocal(const Element* inputElement) {
     if (inputElement->service() == false) {      
-      serviceElements.push_back(inputElement);
+      serviceElements_.push_back(inputElement);
     }
   }
 
   void MaterialObject::addElement(const Element* inputElement) {
-    serviceElements.push_back(inputElement);
+    serviceElements_.push_back(inputElement);
   }
 
   void MaterialObject::populateMaterialProperties(MaterialProperties& materialProperties) const {
     double quantity;
 
-    for (const Element* currElement : serviceElements) {
+    for (const Element* currElement : serviceElements_) {
       //currElement.populateMaterialProperties(materialProperties);
       //populate directly because need to skip the control if is a service
       //TODO: check why componentName is not present in no Element
@@ -149,14 +149,13 @@ namespace material {
       }
     }
 
-    if (materials != nullptr) {
-      materials->populateMaterialProperties(materialProperties);
+    if (materials_ != nullptr) {
+      materials_->populateMaterialProperties(materialProperties);
     }
   }
 
-
   //void MaterialObject::chargeTrain(Materialway::Train& train) const {
-  //  materials->chargeTrain(train);
+  //  materials_->chargeTrain(train);
   //}
 
   MaterialObject::Materials::Materials() :
@@ -164,7 +163,7 @@ namespace material {
 
   double MaterialObject::Materials::totalGrams(double length, double surface) const {
     double result = 0.0;
-    for (auto& currentComponentNode : components) {
+    for (auto& currentComponentNode : components_) {
       result += currentComponentNode->totalGrams(length, surface);
     }
     return result;
@@ -179,37 +178,37 @@ namespace material {
       newComponent->check();
       newComponent->build();
 
-      components.push_back(newComponent);
+      components_.push_back(newComponent);
     }
     cleanup();
   }
 
   void MaterialObject::Materials::copyServicesTo(MaterialObject& outputObject) const {
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->copyServicesTo(outputObject);
     }
   }
 
   void MaterialObject::Materials::copyServicesTo(ConversionStation& outputObject) const {
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->copyServicesTo(outputObject);
     }
   }
 
   void MaterialObject::Materials::copyLocalsTo(MaterialObject& outputObject) const {
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->copyLocalsTo(outputObject);
     }
   }
 
 //  void MaterialObject::Materials::chargeTrain(Materialway::Train& train) const {
-//    for (const Component& currComp : components) {
+//    for (const Component& currComp : components_) {
 //      currComp.chargeTrain(train);
 //    }
 //  }
 
   void MaterialObject::Materials::populateMaterialProperties(MaterialProperties& materialProperties) const {
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->populateMaterialProperties(materialProperties);
     }
   }
@@ -221,10 +220,10 @@ namespace material {
 
   double MaterialObject::Component::totalGrams(double length, double surface) const {
     double result = 0.0;
-    for (auto& currentComponentNode : components) {
+    for (auto& currentComponentNode : components_) {
       result += currentComponentNode->totalGrams(length, surface);
     }
-    for  (auto& currentElementNode : elements) {
+    for  (auto& currentElementNode : elements_) {
       result += currentElementNode->totalGrams(length, surface);
     }
     return result;
@@ -241,7 +240,7 @@ namespace material {
       newComponent->check();
       newComponent->build();
 
-      components.push_back(newComponent);
+      components_.push_back(newComponent);
     }
     //elements
     for  (auto& currentElementNode : elementsNode_) {
@@ -254,52 +253,52 @@ namespace material {
       //bool test1 = newElement->componentName.state();
       //bool test2 = newElement->nSegments.state();
 
-      elements.push_back(newElement);
+      elements_.push_back(newElement);
     }
     cleanup();
   }
 
   void MaterialObject::Component::copyServicesTo(MaterialObject& outputObject) const {
-    for(const Element* currElement : elements) {
+    for(const Element* currElement : elements_) {
       outputObject.addElementIfService(currElement);
     }
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->copyServicesTo(outputObject);
     }
   }
 
   void MaterialObject::Component::copyServicesTo(ConversionStation& outputObject) const {
-    for(const Element* currElement : elements) {
+    for(const Element* currElement : elements_) {
       outputObject.addElementIfService(currElement);
     }
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->copyServicesTo(outputObject);
     }
   }
 
   void MaterialObject::Component::copyLocalsTo(MaterialObject& outputObject) const {
-    for(const Element* currElement : elements) {
+    for(const Element* currElement : elements_) {
       outputObject.addElementIfLocal(currElement);
     }
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->copyLocalsTo(outputObject);
     }
   }
 
 //  void MaterialObject::Component::chargeTrain(Materialway::Train& train) const {
-//    for (const Component& currComp : components) {
+//    for (const Component& currComp : components_) {
 //      currComp.chargeTrain(train);
 //    }
-//    for (const Element& currElem : elements) {
+//    for (const Element& currElem : elements_) {
 //      currElem.chargeTrain(train);
 //    }
 //  }
 
   void MaterialObject::Component::populateMaterialProperties(MaterialProperties& materialProperties) const {
-    for (const Component* currComponent : components) {
+    for (const Component* currComponent : components_) {
       currComponent->populateMaterialProperties(materialProperties);
     }
-    for (const Element* currElement : elements) {
+    for (const Element* currElement : elements_) {
       currElement->populateMaterialProperties(materialProperties);
     }
   }

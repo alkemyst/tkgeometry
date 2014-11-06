@@ -25,7 +25,11 @@ namespace material {
   class MaterialObject : public PropertyObject {
   public:
     class Element; //forward declaration for getElementIfService(Element& inputElement)
-  public:
+    class Component;
+
+    typedef std::vector<const Component*> ComponentsVector;
+    typedef std::vector<const Element*> ElementsVector;
+
     enum Type {MODULE, ROD, LAYER, SERVICE};
 
     MaterialObject(Type materialType);
@@ -90,8 +94,6 @@ namespace material {
       //static const std::map<std::string, Materialway::Train::UnitType> unitTypeMap;
     };
 
-  private:
-
     class Component : public PropertyObject {
     public:
       //Property<std::string, NoDefault> componentName;
@@ -107,8 +109,8 @@ namespace material {
       //void chargeTrain(Materialway::Train& train) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
 
-      std::vector<const Component*> components;
-      std::vector<const Element*> elements;
+      ComponentsVector components_;
+      ElementsVector elements_;
     };
 
     class Materials : public PropertyObject {
@@ -125,15 +127,16 @@ namespace material {
       //void chargeTrain(Materialway::Train& train) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
-      std::vector<const Component*> components;
+      ComponentsVector components_;
     };
 
     //ATTENTION: Materials objects of the same structure are shared between MaterialObject objects
     //   of the modules/layer/etc.. (for containing memory use).
     //   This is not for service routing objects.
-    Materials * materials;
+    Materials * materials_;
 
-    std::vector<const Element*> serviceElements; //used for MaterialObject not from config file (service routing)
+    ElementsVector serviceElements_; //used for MaterialObject not from config file (service routing)
+    
   };
 } /* namespace material */
 
