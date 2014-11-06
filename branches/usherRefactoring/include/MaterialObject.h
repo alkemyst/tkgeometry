@@ -21,6 +21,13 @@ using insur::MaterialProperties;
 
 namespace material {
 
+  struct ElementGrams {
+    std::string name;
+    double grams;
+  };
+
+  typedef std::vector<ElementGrams> ElementsAndGrams;
+
   class MaterialTab;
   class ConversionStation;
 
@@ -49,6 +56,7 @@ namespace material {
     void addElement(const Element* inputElement);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
+    ElementsAndGrams& getElementsAndGrams(double length, double surface) const;
 
     //TODO: do methods for interrogate/get materials
 
@@ -91,6 +99,8 @@ namespace material {
       double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(double length, double surface) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
+      void getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const;
+
     private:
       const MaterialTab& materialTab_;
       static const std::string msg_no_valid_unit;
@@ -111,6 +121,7 @@ namespace material {
       void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
+      void getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const;
 
       ComponentsVector components_;
       ElementsVector elements_;
@@ -129,6 +140,7 @@ namespace material {
       void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
+      void getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const;
 
       ComponentsVector components_;
     };

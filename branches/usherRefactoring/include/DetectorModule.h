@@ -34,6 +34,8 @@ namespace insur {
   class ModuleCap;
 }
 using insur::ModuleCap;
+using material::ElementGrams;
+using material::ElementsAndGrams;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
@@ -217,6 +219,7 @@ public:
   const MaterialObject& materialObject() const { return materialObject_; }
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
+  ElementsAndGrams& getElementsAndGrams() const {return materialObject_.getElementsAndGrams(length(), area()); }
   int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
   int minSegments() const { int segm = 999999; for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
   int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
