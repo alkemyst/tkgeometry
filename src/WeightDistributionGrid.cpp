@@ -7,7 +7,7 @@ namespace material {
   WeightDistributionGrid::WeightDistributionGrid(double binDimension) :
     binDimension_(binDimension) {}
 
-  void WeightDistributionGrid::addTotalGrams(double minZ, double minR, double maxZ, double maxR, const MaterialObject& materialObject) {
+  void WeightDistributionGrid::addTotalGrams(double minZ, double minR, double maxZ, double maxR, double length, double surface, const MaterialObject& materialObject) {
     int binIndexZStart = floor(minZ / binDimension_);
     int binIndexZ = binIndexZStart;
     int binIndexR = floor(minR / binDimension_);
@@ -25,7 +25,7 @@ namespace material {
         rMul = std::max(binMinR, minR) - std::min(binMaxR, maxR);
 
         operator[](std::make_pair(binIndexZ, binIndexR)) += 
-          (materialObject.totalGrams() * zMul * rMul) / ((maxZ - minZ) * (maxR - minR));
+          (materialObject.totalGrams(length, surface) * zMul * rMul) / ((maxZ - minZ) * (maxR - minR));
 
         binIndexZ ++;
       } while (binMaxZ < maxZ);

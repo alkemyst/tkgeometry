@@ -31,10 +31,8 @@ namespace material {
     MaterialObject(Type materialType);
     virtual ~MaterialObject() {};
 
-    Property<double, Computable> totalGrams;
+    double totalGrams(double length, double surface) const;
 
-    void setup();
-      
     virtual void build();
 
     virtual void copyServicesTo(MaterialObject& outputObject) const;
@@ -64,8 +62,6 @@ namespace material {
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
 
-      Property<double, Computable> totalGrams;
-
       Property<std::string, NoDefault> componentName; //only the inner component's name
       Property<long, NoDefault> nStripsAcross;
       Property<long, NoDefault> nSegments;
@@ -82,10 +78,11 @@ namespace material {
       //Element(const Element& originElement);
 
       virtual ~Element() {};
-      void setup();
+      double totalGrams(double length, double surface) const;
       void build();
       //void chargeTrain(Materialway::Train& train) const;
       double quantityInGrams(MaterialProperties& materialProperties) const;
+      double quantityInGrams(double length, double surface) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
     private:
       const MaterialTab& materialTab_;
@@ -97,13 +94,12 @@ namespace material {
 
     class Component : public PropertyObject {
     public:
-      Property<double, Computable> totalGrams;
       //Property<std::string, NoDefault> componentName;
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
       Component();
       virtual ~Component() {};
-      void setup();
+      double totalGrams(double length, double surface) const;
       void build();
       void copyServicesTo(MaterialObject& outputObject) const;
       void copyServicesTo(ConversionStation& outputObject) const;
@@ -117,12 +113,11 @@ namespace material {
 
     class Materials : public PropertyObject {
     public:
-      Property<double, Computable> totalGrams;
       PropertyNodeUnique<std::string> componentsNode_;
       //Property<double, Computable> radiationLength, interactionLenght;
       Materials();
       virtual ~Materials() {};
-      void setup();
+      double totalGrams(double length, double surface) const;
       void build();
       void copyServicesTo(MaterialObject& outputObject) const;
       void copyServicesTo(ConversionStation& outputObject) const;
