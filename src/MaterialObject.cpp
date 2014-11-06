@@ -155,6 +155,15 @@ namespace material {
     }
   }
 
+  ElementsAndGrams& MaterialObject::getElementsAndGrams(double length, double surface) const {
+    ElementsAndGrams* elementsAndGrams = new ElementsAndGrams();
+    if (materials_ != nullptr) {
+      materials_->getElementsAndGrams(length, surface, *elementsAndGrams);
+    }
+
+    return *elementsAndGrams;
+  }
+
   //void MaterialObject::chargeTrain(Materialway::Train& train) const {
   //  materials_->chargeTrain(train);
   //}
@@ -211,6 +220,12 @@ namespace material {
   void MaterialObject::Materials::populateMaterialProperties(MaterialProperties& materialProperties) const {
     for (const Component* currComponent : components_) {
       currComponent->populateMaterialProperties(materialProperties);
+    }
+  }
+
+  void MaterialObject::Materials::getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const {
+    for (const Component* currComponent : components_) {
+      currComponent->getElementsAndGrams(length, surface, elementsAndGrams);
     }
   }
 
@@ -303,6 +318,16 @@ namespace material {
       currElement->populateMaterialProperties(materialProperties);
     }
   }
+
+  void MaterialObject::Component::getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const {
+    for (const Component* currComponent : components_) {
+      currComponent->getElementsAndGrams(length, surface, elementsAndGrams);
+    }
+    for (const Element* currElement : elements_) {
+      currElement->getElementsAndGrams(length, surface, elementsAndGrams);
+    }
+  }
+
 
   /*
   const std::map<MaterialObject::Type, const std::string> MaterialObject::Element::unitString = {
@@ -420,5 +445,19 @@ namespace material {
       }
     }
   }
+
+  void MaterialObject::Element::getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const {
+    if(service() == false) {
+      double quantity = quantityInGrams(length, surface);
+      if(scale() == true) {
+        quantity *= nSegments();
+      }
+      ElementGrams newElementGrams;
+      newElementGrams.name = elementName();
+      newElementGrams.grams = quantity;
+      elementsAndGrams.push_back(newElementGrams);
+    }
+  }
+
 
 } /* namespace material */
