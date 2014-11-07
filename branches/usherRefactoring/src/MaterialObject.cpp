@@ -155,13 +155,13 @@ namespace material {
     }
   }
 
-  ElementsAndGrams& MaterialObject::getElementsAndGrams(double length, double surface) const {
-    ElementsAndGrams* elementsAndGrams = new ElementsAndGrams();
+  ElementsVector& MaterialObject::getLocalElements() const {
+    ElementsVector* elementsList = new ElementsVector;
     if (materials_ != nullptr) {
-      materials_->getElementsAndGrams(length, surface, *elementsAndGrams);
+      materials_->getLocalElements(*elementsList);
     }
 
-    return *elementsAndGrams;
+    return *elementsList;
   }
 
   //void MaterialObject::chargeTrain(Materialway::Train& train) const {
@@ -223,9 +223,9 @@ namespace material {
     }
   }
 
-  void MaterialObject::Materials::getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const {
+  void MaterialObject::Materials::getLocalElements(ElementsVector& elementsList) const {
     for (const Component* currComponent : components_) {
-      currComponent->getElementsAndGrams(length, surface, elementsAndGrams);
+      currComponent->getLocalElements(elementsList);
     }
   }
 
@@ -319,12 +319,12 @@ namespace material {
     }
   }
 
-  void MaterialObject::Component::getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const {
+  void MaterialObject::Component::getLocalElements(ElementsVector& elementsList) const {
     for (const Component* currComponent : components_) {
-      currComponent->getElementsAndGrams(length, surface, elementsAndGrams);
+      currComponent->getLocalElements(elementsList);
     }
     for (const Element* currElement : elements_) {
-      currElement->getElementsAndGrams(length, surface, elementsAndGrams);
+      currElement->getLocalElements(elementsList);
     }
   }
 
@@ -408,8 +408,20 @@ namespace material {
     return returnVal;
   }
 
+  double MaterialObject::Element::totalGrams(const DetectorModule& module) const {
+    return totalGrams(module.length(), module.area());
+  }
+
+  double MaterialObject::Element::totalGrams(const MaterialProperties& materialProperties) const {
+    return totalGrams(materialProperties.getLength(), materialProperties.getSurface());
+  }
+  
   double MaterialObject::Element::totalGrams(double length, double surface) const {
-    return quantityInGrams(length, surface);
+    double quantity = quantityInGrams(length, surface);
+    if(scale() == true) {
+      quantity *= nSegments();
+    }
+    return quantity;
   }
 
   void MaterialObject::Element::build() {
@@ -446,16 +458,9 @@ namespace material {
     }
   }
 
-  void MaterialObject::Element::getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const {
+  void MaterialObject::Element::getLocalElements(ElementsVector& elementsList) const {
     if(service() == false) {
-      double quantity = quantityInGrams(length, surface);
-      if(scale() == true) {
-        quantity *= nSegments();
-      }
-      ElementGrams newElementGrams;
-      newElementGrams.name = elementName();
-      newElementGrams.grams = quantity;
-      elementsAndGrams.push_back(newElementGrams);
+      elementsList.push_back(this);
     }
   }
 

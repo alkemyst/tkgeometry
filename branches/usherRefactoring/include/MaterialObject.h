@@ -21,13 +21,6 @@ using insur::MaterialProperties;
 
 namespace material {
 
-  struct ElementGrams {
-    std::string name;
-    double grams;
-  };
-
-  typedef std::vector<ElementGrams> ElementsAndGrams;
-
   class MaterialTab;
   class ConversionStation;
 
@@ -56,7 +49,7 @@ namespace material {
     void addElement(const Element* inputElement);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
-    ElementsAndGrams& getElementsAndGrams(double length, double surface) const;
+    ElementsVector& getLocalElements() const;
 
     //TODO: do methods for interrogate/get materials
 
@@ -92,14 +85,16 @@ namespace material {
       //Element(const Element& originElement);
 
       virtual ~Element() {};
-      double totalGrams(double length, double surface) const;
       void build();
       //void chargeTrain(Materialway::Train& train) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(double length, double surface) const;
+      double totalGrams(const DetectorModule& module) const;
+      double totalGrams(const MaterialProperties& materialProperties) const;
+      double totalGrams(double length, double surface) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
-      void getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const;
+      void getLocalElements(ElementsVector& elementsList) const;
 
     private:
       const MaterialTab& materialTab_;
@@ -121,7 +116,7 @@ namespace material {
       void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
-      void getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const;
+      void getLocalElements(ElementsVector& elementsList) const;
 
       ComponentsVector components_;
       ElementsVector elements_;
@@ -140,7 +135,7 @@ namespace material {
       void copyLocalsTo(MaterialObject& outputObject) const;
       //void chargeTrain(Materialway::Train& train) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
-      void getElementsAndGrams(double length, double surface, ElementsAndGrams& elementsAndGrams) const;
+      void getLocalElements(ElementsVector& elementsList) const;
 
       ComponentsVector components_;
     };
@@ -153,6 +148,9 @@ namespace material {
     ElementsVector serviceElements_; //used for MaterialObject not from config file (service routing)
     
   };
+
+  typedef std::vector<const MaterialObject::Element*> ElementsVector;
+
 } /* namespace material */
 
 #endif /* MATERIALOBJECT_H_ */
