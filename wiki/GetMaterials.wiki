@@ -81,15 +81,16 @@ element->totalGrams(module)
 === Second method === 
 You can call the function of _MaterialObject_:
 {{{
-materialObject.getElementsAndGrams(length, surface);
+materialObject.getLocalElements();
 }}}
-_length_ and _surface_ are two doubles and are necessary for the conversion of unit. The returned value is of type _ElementsAndGrams_ and is a vector of structs defined in this way:
+The returned value is of type _ElementsVector_ and is a vector of Elements defined in this way:
 {{{
-struct ElementGrams {
-  std::string name;
-  double grams;
-};
-
-typedef std::vector<ElementGrams> ElementsAndGrams;
+typedef std::vector<const MaterialObject::Element*> ElementsVector;
 }}}
-*Note that* this method is easiest to call but you get less than the first one. 
+The vector is populated only with pointers to elements that are not services, or rather the locals elements of the module.
+
+As already said in the previous section you can call in the elements:
+{{{
+element->quantityInGrams(module);
+element->totalGrams(module)
+}}}
