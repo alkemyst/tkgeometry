@@ -62,6 +62,7 @@ You can visit the objects of the hierarchy, a _MaterialObject_ contains a pointe
 In the elements you can access to the properties defined in the configuration file doing:
 {{{
 element->componentName();
+element->elementName();
 element->quantity();
 ...
 }}}
@@ -89,7 +90,14 @@ typedef std::vector<const MaterialObject::Element*> ElementsVector;
 }}}
 The vector is populated only with pointers to elements that are not services, or rather the locals elements of the module.
 
-As already said in the previous section you can call in the elements:
+As already said in the previous section, in the elements you can access to the properties:
+{{{
+element->componentName();
+element->elementName();
+element->quantity();
+...
+}}}
+and call the functions:
 {{{
 element->quantityInGrams(module);
 element->totalGrams(module)
