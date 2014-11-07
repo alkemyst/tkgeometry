@@ -46,14 +46,15 @@ For reaching the modules is possible to define an online _Visitor_ class, for in
   tracker.accept(visitor);
 ...
 }}}
+
+Now you can access to the materials in two different ways.
+
+=== First method ===
 When you have a reference or a pointer to a module you can access to the _MaterialObject_ calling:
 {{{
 module.materialObject();
 }}}
-When you have a reference to the _MaterialObject_ you can access to the materials in two ways.
-
-=== First method ===
-You can visit the objects of the hierarchy, a _MaterialObject_ contains a pointer to a _Materials_, a _Materials_ contain a vector of pointers to _Component_, a _Component_ contains a vector of pointers to other _Component_ (subcomponents) and a vector of pointers to _Element_. Summarizing:
+When you have a reference to the _MaterialObject_ you can visit the objects of the hierarchy. A _MaterialObject_ contains a pointer to a _Materials_, a _Materials_ contain a vector of pointers to _Component_, a _Component_ contains a vector of pointers to other _Component_ (subcomponents) and a vector of pointers to _Element_. Summarizing:
  * materialObject (_MaterialObject_)
   * materials (_Materials`*`_)
    * components (_std::vector<const Component`*`>_)
