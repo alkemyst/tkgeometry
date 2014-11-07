@@ -1,0 +1,95 @@
+#summary Instruction for getting materials.
+
+= Introduction =
+
+This page provide instructions on how to access to the material of the modules.
+
+
+= Details =
+
+Add your content here.  Format your content with:
+
+== Configuration files ==
+Each module type have is configuration file inside _config/stdinclude/Materials/_ folder, the structure of those files is made like a tree with:
+ * *Component* for nodes;
+ * *Element* for leaves.
+The configuration files are read by the program and instances of _MaterialObject_ are created that respect the tree structure.
+
+the properties are collected and inherited inside the elements (a property define in a component is applied to all elements under it), those properties are:
+ * *componentName* the name of the inner component that contain the element (for instance _Sensor_);
+ * *elementName* the name of the element (for instance _SenSi_);
+ * *quantity* the amount of material accordingly to the specified unit;
+ * *unit* the unit of measure of the quantity, can be *g* for a fixed amount of grams, *g/m* for a quantity multiplied by a length, *mm* for a quantity multiplied by a density and an area (0.2mm of a Si in a module is equal to the area of the module times 0.2 times the area of the module);
+ * *scale* if is true means that the material need to be multiplied by the number of segments and strips;
+ * *service* if is true means that the material is not of the module but is a service that exit from it;
+ * *nStripsAcross* the number of strips for calculating the scaling;
+ * *nSegments* the number of segments for calculating the scaling.
+
+
+== Reaching the modules and MaterialObjects ==
+
+For reaching the modules is possible to define an online _Visitor_ class, for instance:
+{{{
+...
+  class ModuleVisitor : public GeometryVisitor {
+  public:
+    ModuleVisitor() {}
+    virtual ~ModuleVisitor() {}
+
+    void visit(DetectorModule& module) {
+      //do things with module
+      ...
+    }
+  };
+
+  ModuleVisitor visitor;
+  tracker.accept(visitor);
+...
+}}}
+When you have a reference or a pointer to a module you can access to the _MaterialObject_ calling:
+{{{
+module.materialObject();
+}}}
+When you have a reference to the _MaterialObject_ you can access to the materials in two ways.
+
+=== First method ===
+You can visit the objects of the hierarchy, a _MaterialObject_ contains a pointer to a _Materials_, a _Materials_ contain a vector of pointers to _Component_, a _Component_ contains a vector of pointers to other _Component_ (subcomponents) and a vector of pointers to _Element_. Summarizing:
+ * materialObject (_MaterialObject_)
+  * materials (_Materials`*`_)
+   * components (_std::vector<const Component`*`>_)
+    * components (_std::vector<const Component`*`>_)
+    * materials (_std::vector<const Element`*`>_) 
+In the elements you can access to the properties defined in the configuration file doing:
+{{{
+element->componentName();
+element->quantity();
+...
+}}}
+*please note* that if _service() == true_ means that the material is not of the module but is a service that exit from the module.
+
+If you want the quantity in grams, not the one defined in the configuration file, you can call:
+{{{
+element->quantityInGrams(module);
+}}}
+The function need a reference to the module for knowing the dimension of the length or the area for converting the unit of measure.
+
+*note that* the scaling is not took into account by the previous function, if you want the total quantity in grams and already scaled, call:
+{{{
+element->totalGrams(module)
+}}}
+
+=== Second method === 
+You can call the function of _MaterialObject_:
+{{{
+materialObject.getElementsAndGrams(length, surface);
+}}}
+_length_ and _surface_ are two doubles and are necessary for the conversion of unit. The returned value is of type _ElementsAndGrams_ and is a vector of structs defined in this way:
+{{{
+struct ElementGrams {
+  std::string name;
+  double grams;
+};
+
+typedef std::vector<ElementGrams> ElementsAndGrams;
+}}}
+*Note that* this method is easiest to call but you get less than the first one. 
