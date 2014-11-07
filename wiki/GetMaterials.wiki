@@ -79,9 +79,9 @@ element->totalGrams(module)
 }}}
 
 === Second method === 
-You can call the function of _MaterialObject_:
+You can call the function of _DetectorModule_ (or also of the _MaterialObject_):
 {{{
-materialObject.getLocalElements();
+module.getLocalElements();
 }}}
 The returned value is of type _ElementsVector_ and is a vector of Elements defined in this way:
 {{{
