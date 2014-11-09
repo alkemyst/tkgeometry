@@ -147,7 +147,8 @@ namespace material {
         quantity = currElement->quantityInGrams(materialProperties);
 
         if(currElement->scale() == true) {
-          quantity = quantity / (currElement->nSegments() * currElement->nStripsAcross()) * (currElement->numSegments() * currElement->numStripsAcross());
+          quantity = quantity * currElement->nSegments();
+          //quantity = quantity / (currElement->nSegments() * currElement->nStripsAcross()) * (currElement->numSegments() * currElement->numStripsAcross());
         }
         if (currElement->componentName.state()) {
           materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
@@ -432,7 +433,8 @@ namespace material {
   double MaterialObject::Element::totalGrams(double length, double surface) const {
     double quantity = quantityInGrams(length, surface);
     if(scale() == true) {
-      quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
+      quantity = quantity * nSegments();
+      //quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
     }
     return quantity;
   }
@@ -464,7 +466,8 @@ namespace material {
       if(service() == false) {
         quantity = quantityInGrams(materialProperties);
         if(scale() == true) {
-          quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
+          quantity = quantity * nSegments();
+          //quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
         }
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
