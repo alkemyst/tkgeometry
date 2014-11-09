@@ -27,7 +27,6 @@ DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m
 
 void DetectorModule::build() {
   //myModuleCap_ = new ModuleCap(this);
-
   materialObject_.store(propertyTree());
   materialObject_.build();
 
