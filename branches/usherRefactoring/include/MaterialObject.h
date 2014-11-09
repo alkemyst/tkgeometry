@@ -59,6 +59,7 @@ namespace material {
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<bool, Default> debugInactivate_;
     PropertyNodeUnique<std::string> materialsNode_;
+    PropertyNode<int> sensorNode;
 
     const std::string getTypeString() const;
 
@@ -70,7 +71,9 @@ namespace material {
       static const std::map<std::string, Unit> unitStringMap;
 
       Property<std::string, NoDefault> componentName; //only the inner component's name
-      Property<long, NoDefault> nStripsAcross;
+      Property<long, NoDefault> numStripsAcross; //the real strips and segments of sensor
+      Property<long, NoDefault> numSegments;
+      Property<long, NoDefault> nStripsAcross; //the reference strips and segments for scaling
       Property<long, NoDefault> nSegments;
       Property<std::string, NoDefault> elementName;
       Property<bool, Default> service;

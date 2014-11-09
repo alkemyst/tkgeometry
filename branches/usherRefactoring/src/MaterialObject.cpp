@@ -29,6 +29,7 @@ namespace material {
       type_ ("type", parsedAndChecked()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
+      sensorNode ("Sensor", parsedOnly()),
       materials_ (nullptr) {}
 
   const std::string MaterialObject::getTypeString() const {
@@ -64,6 +65,12 @@ namespace material {
         if (type_().compare(getTypeString()) == 0) {
           if (materialsMap_.count(currentMaterialNode.first) == 0) {
             Materials * newMaterials  = new Materials();
+            if (sensorNode.count(1) > 0){ //ATTENTION use only the first sensor for setting the real strips and segments
+              newMaterials->store(sensorNode.at(1));
+              std::cout<<"OK "<< type_() <<std::endl;
+            } else {
+              std::cout<<"NOT OK "<< type_() <<std::endl;
+            }
             newMaterials->store(currentMaterialNode.second);
             newMaterials->build();
             materialsMap_[currentMaterialNode.first] = newMaterials;
@@ -140,7 +147,7 @@ namespace material {
         quantity = currElement->quantityInGrams(materialProperties);
 
         if(currElement->scale() == true) {
-          quantity *= currElement->nSegments(); //nStripsAcross();
+          quantity = quantity / (currElement->nSegments() * currElement->nStripsAcross()) * (currElement->numSegments() * currElement->numStripsAcross());
         }
         if (currElement->componentName.state()) {
           materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
@@ -340,6 +347,8 @@ namespace material {
   MaterialObject::Element::Element() :
     destination ("destination", parsedOnly()),
     componentName ("componentName", parsedOnly()),
+    numStripsAcross("numStripsAcross", parsedOnly()),
+    numSegments("numSegments", parsedOnly()),
     nStripsAcross("nStripsAcross", parsedOnly()),
     nSegments("nSegments", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
@@ -355,6 +364,10 @@ namespace material {
       destination(original.destination());
     if(original.componentName.state())
       componentName(original.componentName());
+    if(original.numStripsAcross.state())
+      numStripsAcross(original.numStripsAcross());
+    if(original.numSegments.state())
+      numSegments(original.numSegments());
     if(original.nStripsAcross.state())
       nStripsAcross(original.nStripsAcross());
     if(original.nSegments.state())
@@ -419,7 +432,7 @@ namespace material {
   double MaterialObject::Element::totalGrams(double length, double surface) const {
     double quantity = quantityInGrams(length, surface);
     if(scale() == true) {
-      quantity *= nSegments();
+      quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
     }
     return quantity;
   }
@@ -451,7 +464,7 @@ namespace material {
       if(service() == false) {
         quantity = quantityInGrams(materialProperties);
         if(scale() == true) {
-          quantity *= nSegments(); //nStripsAcross();
+          quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
         }
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
