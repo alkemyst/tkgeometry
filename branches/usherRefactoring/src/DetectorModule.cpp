@@ -26,10 +26,6 @@ DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m
 */
 
 void DetectorModule::build() {
-  //myModuleCap_ = new ModuleCap(this);
-  materialObject_.store(propertyTree());
-  materialObject_.build();
-
   check();
   if (!decorated().builtok()) {
     decorated().store(propertyTree());
@@ -44,6 +40,7 @@ void DetectorModule::build() {
       if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
       s->build();
       sensors_.push_back(s);
+      materialObject_.sensorChannels[i+1]=s->numChannels();
     }
   } else {
     Sensor* s = GeometryFactory::make<Sensor>();  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
@@ -52,6 +49,9 @@ void DetectorModule::build() {
     s->build();
     sensors_.push_back(s);
   }
+
+  materialObject_.store(propertyTree());
+  materialObject_.build();
 }
 
 

@@ -29,7 +29,7 @@ namespace material {
     class Element; //forward declaration for getElementIfService(Element& inputElement)
     class Component;
 
-    typedef std::vector<const Component*> ComponentsVector;
+    typedef std::vector<Component*> ComponentsVector;
     typedef std::vector<const Element*> ElementsVector;
 
     enum Type {MODULE, ROD, LAYER, SERVICE};
@@ -59,33 +59,59 @@ namespace material {
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<bool, Default> debugInactivate_;
     PropertyNodeUnique<std::string> materialsNode_;
-    PropertyNode<int> sensorNode;
 
     const std::string getTypeString() const;
 
   public:
+    // The sensor channel count
+    std::map<int, int> sensorChannels;
+    class ReferenceSensor : public PropertyObject {
+    public:
+      Property<int, NoDefault> numStripsAcross;
+      Property<int, NoDefault> numSegments;      
+      ReferenceSensor() :
+        numSegments("numSegments", parsedOnly()),
+        numStripsAcross("numStripsAcross", parsedOnly())
+      {}
+      int numChannels() const { return numStripsAcross() * numSegments(); }
+    };
+    // The index of module types, including channel count per sensor
+    class MaterialObjectKey {
+    public:
+      // TODO embed sensorChannel map into a fancier object?...?
+      MaterialObjectKey(const std::string& newName, std::map<int, int> newSensorChannels)
+        : name(newName), 
+        sensorChannels(newSensorChannels) {}
+      bool operator<(const MaterialObjectKey& r ) const {
+        if (this->sensorChannels < r.sensorChannels) return true;
+        if (this->sensorChannels > r.sensorChannels) return false;
+        if (this->name < r.name) return true;
+        return false;
+      }
+    private:
+      std::string name;
+      std::map<int, int> sensorChannels;
+    };
     class Element : public PropertyObject {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
       //static const std::map<Unit, const std::string> unitString;
       static const std::map<std::string, Unit> unitStringMap;
-
       Property<std::string, NoDefault> componentName; //only the inner component's name
-      Property<long, NoDefault> numStripsAcross; //the real strips and segments of sensor
-      Property<long, NoDefault> numSegments;
-      Property<long, NoDefault> nStripsAcross; //the reference strips and segments for scaling
-      Property<long, NoDefault> nSegments;
       Property<std::string, NoDefault> elementName;
       Property<bool, Default> service;
-      Property<bool, Default> scale;
+      Property<int, Default> scaleOnSensor;
       Property<double, NoDefault> quantity;
       Property<std::string, NoDefault> unit;
       Property<bool, Default> debugInactivate;
       Property<std::string, NoDefault> destination;
+      PropertyNode<int> referenceSensorNode;
 
       Element();
       Element(const Element& original, double multiplier = 1.0);
+      void setSensorChannels(const std::map<int, int>& newSensorChannels);
       //Element(const Element& originElement);
+      std::map<int, ReferenceSensor*> referenceSensors_;
 
       virtual ~Element() {};
       void build();
@@ -96,8 +122,10 @@ namespace material {
       double totalGrams(const DetectorModule& module) const;
       double totalGrams(const MaterialProperties& materialProperties) const;
       double totalGrams(double length, double surface) const;
+      double scalingMultiplier() const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
+      std::map<int, int> sensorChannels_;
 
     private:
       const MaterialTab& materialTab_;
@@ -112,6 +140,7 @@ namespace material {
       PropertyNodeUnique<std::string> elementsNode_;
       Component();
       virtual ~Component() {};
+      void setSensorChannels(const std::map<int, int>& newSensorChannels);
       double totalGrams(double length, double surface) const;
       void build();
       void copyServicesTo(MaterialObject& outputObject) const;
@@ -131,6 +160,7 @@ namespace material {
       //Property<double, Computable> radiationLength, interactionLenght;
       Materials();
       virtual ~Materials() {};
+      void setSensorChannels(const std::map<int, int>& newSensorChannels);
       double totalGrams(double length, double surface) const;
       void build();
       void copyServicesTo(MaterialObject& outputObject) const;
@@ -153,6 +183,7 @@ namespace material {
   };
 
   typedef std::vector<const MaterialObject::Element*> ElementsVector;
+
 
 } /* namespace material */
 

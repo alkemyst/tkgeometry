@@ -5,15 +5,23 @@ Materials module-ptPS {
   type module
 
   // Default sensor:
-  nStripsAcross 960
-  nSegments 2
+  ReferenceSensor 1 {
+    numStripsAcross 960
+    //numSegments 2
+    numSegments 32
+  }
+  ReferenceSensor 2 {
+    numStripsAcross 960
+    //numSegments 32
+    numSegments 2
+  } 
 
   // Sensor and hybrid stuff
   // Sensor
   Component {
     componentName Sensor
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName SenSi
       quantity 0.2
@@ -25,7 +33,7 @@ Materials module-ptPS {
   Component {
     componentName Sensor
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName SenSi
       quantity 0.2
@@ -37,7 +45,7 @@ Materials module-ptPS {
   Component {
     componentName Hybrid
     service false
-    scale true
+    scaleOnSensor 1
     Element {
       elementName G10
       quantity 1.3952
@@ -55,7 +63,7 @@ Materials module-ptPS {
   Component {
     componentName ASICs
     service false
-    scale true
+    scaleOnSensor 1
     Element {
       elementName Si
       quantity 0.45
@@ -67,7 +75,7 @@ Materials module-ptPS {
   Component {
     componentName ASICs
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Si
       quantity 0.2
@@ -79,7 +87,7 @@ Materials module-ptPS {
   Component {
     componentName NaIS
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Cu
       quantity 0.0976
@@ -96,7 +104,7 @@ Materials module-ptPS {
   Component {
     componentName NaIS
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Cu
       quantity 0.0976
@@ -114,7 +122,7 @@ Materials module-ptPS {
   Component {
     componentName GBTs
     service false
-    scale false
+    scaleOnSensor 0
     // Service board PCB
     Element {
       elementName G10
@@ -139,7 +147,7 @@ Materials module-ptPS {
   Component {
     componentName Fibers
     service true
-    scale false
+    scaleOnSensor 0
     Element {
       elementName PE
       quantity 1.51390639
@@ -152,7 +160,7 @@ Materials module-ptPS {
   Component {
     componentName DC/DC
     service false
-    scale false
+    scaleOnSensor 0
     // Service board PCB
     Element {
       elementName G10
@@ -256,7 +264,7 @@ Materials module-ptPS {
   Component {
     componentName "Power lines"
     service true
-    scale true
+    scaleOnSensor 1
     Element {
       elementName Cu_MV
       quantity 2.36
@@ -273,7 +281,7 @@ Materials module-ptPS {
   Component {
     componentName DC/DC
     service false
-    scale false
+    scaleOnSensor 0
     // Service board PCB
     Element {
       elementName G10
@@ -376,7 +384,7 @@ Materials module-ptPS {
   Component {
     componentName "HV lines"
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Kapton
       quantity 0.085
@@ -389,7 +397,7 @@ Materials module-ptPS {
   Component {
     componentName "HV lines"
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Kapton
       quantity 0.085
@@ -402,7 +410,7 @@ Materials module-ptPS {
   Component {
     componentName Mechanics
     service false
-    scale false
+    scaleOnSensor 0
     // Module frame
     Element {
       elementName CF
@@ -439,7 +447,7 @@ Materials module-ptPS {
   Component {
     componentName "HV lines"
     service true
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Cu_HV
       quantity 1.18

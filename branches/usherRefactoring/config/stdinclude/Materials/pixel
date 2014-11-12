@@ -3,14 +3,16 @@ Materials module-pixel {
   type module
 
   // Default sensor:
-  nStripsAcross 1024
-  nSegments 128
+  ReferenceSensor 1 {
+    numStripsAcross 1024
+    numSegments 128
+  }
 
   // Modules: masses taken from TOB modules / 2
   Component {
     componentName Module
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Si
       quantity 0.3
@@ -43,13 +45,13 @@ Materials module-pixel {
     componentName "Cooling blocks"
     service false
     Element {
-      scale true
+      scaleOnSensor 1
       elementName Al
       quantity 0.3
       unit g
     }
     Element {
-      scale false
+      scaleOnSensor 0
       elementName Al
       quantity 0.26
       unit g
@@ -64,7 +66,7 @@ Materials module-pixel {
   Component {
     componentName AOH
     service false
-    scale true
+    scaleOnSensor 1
     Element {
       elementName Cu
       quantity 0.0263
@@ -86,7 +88,7 @@ Materials module-pixel {
   Component {
     componentName HV
     service true
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Cu 
       quantity 0.04
@@ -103,7 +105,7 @@ Materials module-pixel {
   Component {
     componentName Fibers
     service true
-    scale true
+    scaleOnSensor 1
     Element {
       elementName PE
       quantity 0.04
@@ -115,7 +117,7 @@ Materials module-pixel {
   Component {
     componentName Mechanics
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName CF
       quantity  0.608
