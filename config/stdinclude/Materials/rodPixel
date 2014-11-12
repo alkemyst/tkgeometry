@@ -4,50 +4,52 @@
 Materials rodPixel {
   type rod
 
-  nStripsAcross 1024
-  nSegments 128
+  ReferenceSensor 1 {
+    numStripsAcross 1024
+    numSegments 128
+  }
   
   // Interconnect BUS
   Component {
     componentName "Interconnect BUS"
     Element {
       service true
-      scale true
+      scaleOnSensor 1
       elementName Cu
       quantity 0.8
       unit g
     }
     Element {
       service true
-      scale true
+      scaleOnSensor 1
       elementName G10
       quantity 0.8
       unit g
     }
     Element {
       service true
-      scale false
+      scaleOnSensor 0
       elementName G10
       quantity 0.5
       unit g
     }
     Element {
       service false
-      scale true
+      scaleOnSensor 1
       elementName Cu
       quantity 0.0263
       unit g
     }
     Element {
       service false
-      scale true
+      scaleOnSensor 1
       elementName G10
       quantity 0.0405
       unit g
     }
     Element {
       service false
-      scale true
+      scaleOnSensor 1
       elementName PE
       quantity 0.0081
       unit g

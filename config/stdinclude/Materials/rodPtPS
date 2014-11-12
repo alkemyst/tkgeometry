@@ -7,8 +7,8 @@
 Materials rodPtPS {
   type rod
 
-  nStripsAcross 960
-  nSegments 2
+//  nStripsAcross 960
+//  nSegments 2
 //}
   @includestd Materials/rodBase
 }

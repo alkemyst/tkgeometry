@@ -12,7 +12,7 @@
   //  componentName Cooling
   //  service true
 //    service false
-  //  scale false
+  //  scaleOnSensor 0
   //  Element {
   //    elementName Steel
   //    quantity 10000
@@ -25,7 +25,7 @@
   Component {
     componentName Cooling
     service true
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Steel
       quantity 7.860696517
@@ -45,7 +45,7 @@
   Component {
     componentName "Twisted pairs"
     service true
-    scale false
+    scaleOnSensor 0
     // Two conductors and a drain
     Element {
       elementName Cu
@@ -71,7 +71,7 @@
   Component {
     componentName "Twisted pairs"
     service true
-    scale false
+    scaleOnSensor 0
     // Two conductors and a drain
     Element {
       elementName Cu
@@ -97,7 +97,7 @@
   Component {
     componentName "Twisted pairs"
     service true
-    scale false
+    scaleOnSensor 0
     // Two conductors and a drain
     Element {
       elementName Cu
@@ -123,7 +123,7 @@
   Component {
     componentName "Twisted pairs"
     service true
-    scale false
+    scaleOnSensor 0
     // Two conductors and a drain
     Element {
       elementName Cu
@@ -149,7 +149,7 @@
   Component {
     componentName "Twisted pairs"
     service true
-    scale false
+    scaleOnSensor 0
     // Two conductors and a drain
     Element {
       elementName Cu
@@ -175,7 +175,7 @@
   Component {
     componentName "Twisted pairs"
     service true
-    scale false
+    scaleOnSensor 0
     // Two conductors and a drain
     Element {
       elementName Cu
@@ -200,7 +200,7 @@
   Component {
     componentName "Twisted pairs"
     service true
-    scale false
+    scaleOnSensor 0
     Element {
       elementName Cu_twp
       quantity 0
@@ -213,7 +213,7 @@
   Component {
     componentName Mechanics
     service false
-    scale false
+    scaleOnSensor 0
     Element {
       elementName CF
       quantity 81.12

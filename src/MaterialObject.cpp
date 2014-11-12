@@ -29,7 +29,6 @@ namespace material {
       type_ ("type", parsedAndChecked()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
-      sensorNode ("Sensor", parsedOnly()),
       materials_ (nullptr) {}
 
   const std::string MaterialObject::getTypeString() const {
@@ -54,28 +53,25 @@ namespace material {
 
   void MaterialObject::build() {
     if (!debugInactivate_()) {
- 
-      static std::map<std::string, Materials*> materialsMap_; //for saving memory
-
-      //std::cout << "Materials " << materialsNode_.size() << std::endl;
+      //static std::map<std::string, Materials*> materialsMap_; //for saving memory
+      static std::map<MaterialObjectKey, Materials*> materialsMap_; //for saving memory
+      
+      // std::cout << "Materials " << materialsNode_.size() << std::endl;
+      // std::cout << "materialsMap_.size()=" << materialsMap_.size() << std::endl;
 
       for (auto& currentMaterialNode : materialsNode_) {
         store(currentMaterialNode.second);
         check();
         if (type_().compare(getTypeString()) == 0) {
-          if (materialsMap_.count(currentMaterialNode.first) == 0) {
+          MaterialObjectKey myKey(currentMaterialNode.first, sensorChannels);
+          if (materialsMap_.count(myKey) == 0) {
             Materials * newMaterials  = new Materials();
-            if (sensorNode.count(1) > 0){ //ATTENTION use only the first sensor for setting the real strips and segments
-              newMaterials->store(sensorNode.at(1));
-              std::cout<<"OK "<< type_() <<std::endl;
-            } else {
-              std::cout<<"NOT OK "<< type_() <<std::endl;
-            }
             newMaterials->store(currentMaterialNode.second);
             newMaterials->build();
-            materialsMap_[currentMaterialNode.first] = newMaterials;
+            newMaterials->setSensorChannels(sensorChannels);
+            materialsMap_[myKey] = newMaterials;
           }
-          materials_ = materialsMap_[currentMaterialNode.first];
+          materials_ = materialsMap_[myKey];
 
           break;
         }
@@ -144,12 +140,8 @@ namespace material {
 
       
       if (currElement->debugInactivate() == false) {
-        quantity = currElement->quantityInGrams(materialProperties);
+        quantity = currElement->totalGrams(materialProperties);
 
-        if(currElement->scale() == true) {
-          quantity = quantity * currElement->nSegments();
-          //quantity = quantity / (currElement->nSegments() * currElement->nStripsAcross()) * (currElement->numSegments() * currElement->numStripsAcross());
-        }
         if (currElement->componentName.state()) {
           materialProperties.addLocalMass(currElement->elementName(), currElement->componentName(), quantity);
         } else {
@@ -178,7 +170,14 @@ namespace material {
 
   MaterialObject::Materials::Materials() :
     componentsNode_ ("Component", parsedOnly()) {};
+  
 
+  void MaterialObject::Materials::setSensorChannels(const std::map<int, int>& newSensorChannels) {
+    for (auto& currentComponentNode : components_) {
+      currentComponentNode->setSensorChannels(newSensorChannels);
+    }
+  }
+  
   double MaterialObject::Materials::totalGrams(double length, double surface) const {
     double result = 0.0;
     for (auto& currentComponentNode : components_) {
@@ -242,6 +241,15 @@ namespace material {
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()) {};
 
+  void MaterialObject::Component::setSensorChannels(const std::map<int, int>& newSensorChannels) {
+    for (auto& currentComponentNode : components_) {
+      currentComponentNode->setSensorChannels(newSensorChannels);
+    }
+    for  (auto& currentElementNode : elements_) {
+      currentElementNode->setSensorChannels(newSensorChannels);
+    }
+  }
+
   double MaterialObject::Component::totalGrams(double length, double surface) const {
     double result = 0.0;
     for (auto& currentComponentNode : components_) {
@@ -267,7 +275,7 @@ namespace material {
       components_.push_back(newComponent);
     }
     //elements
-    for  (auto& currentElementNode : elementsNode_) {
+    for (auto& currentElementNode : elementsNode_) {
       Element* newElement = new Element();
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
@@ -348,13 +356,14 @@ namespace material {
   MaterialObject::Element::Element() :
     destination ("destination", parsedOnly()),
     componentName ("componentName", parsedOnly()),
-    numStripsAcross("numStripsAcross", parsedOnly()),
-    numSegments("numSegments", parsedOnly()),
-    nStripsAcross("nStripsAcross", parsedOnly()),
-    nSegments("nSegments", parsedOnly()),
+    //numStripsAcross("numStripsAcross", parsedOnly()),
+    //numSegments("numSegments", parsedOnly()),
+    //nStripsAcross("nStripsAcross", parsedOnly()),
+    //nSegments("nSegments", parsedOnly()),
+    referenceSensorNode ("ReferenceSensor", parsedOnly()),
     elementName ("elementName", parsedAndChecked()),
     service ("service", parsedOnly(), false),
-    scale ("scale", parsedOnly(), false),
+    scaleOnSensor ("scaleOnSensor", parsedOnly(), false),
     quantity ("quantity", parsedAndChecked()),
     unit ("unit", parsedAndChecked()),
     debugInactivate ("debugInactivate", parsedOnly(), false),
@@ -365,20 +374,18 @@ namespace material {
       destination(original.destination());
     if(original.componentName.state())
       componentName(original.componentName());
-    if(original.numStripsAcross.state())
-      numStripsAcross(original.numStripsAcross());
-    if(original.numSegments.state())
-      numSegments(original.numSegments());
-    if(original.nStripsAcross.state())
-      nStripsAcross(original.nStripsAcross());
-    if(original.nSegments.state())
-      nSegments(original.nSegments());
     elementName(original.elementName());
     service(original.service());
-    scale(original.scale());
-    quantity(original.quantity() * multiplier);
+    quantity(original.quantity() * original.scalingMultiplier() * multiplier); //apply the scaling in the copied object
+    scaleOnSensor(0);
     unit(original.unit());
     debugInactivate(original.debugInactivate());
+  }
+
+  void MaterialObject::Element::setSensorChannels(const std::map<int, int>& newSensorChannels) {
+    for (const auto& aSensorChannel : newSensorChannels ) {
+      sensorChannels_[aSensorChannel.first] = aSensorChannel.second;
+    }
   }
 
   const std::string MaterialObject::Element::msg_no_valid_unit = "No valid unit: ";
@@ -431,22 +438,48 @@ namespace material {
   }
   
   double MaterialObject::Element::totalGrams(double length, double surface) const {
-    double quantity = quantityInGrams(length, surface);
-    if(scale() == true) {
-      quantity = quantity * nSegments();
-      //quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
+    return quantityInGrams(length, surface) * scalingMultiplier();
+  }
+
+  double MaterialObject::Element::scalingMultiplier() const {
+    const int sensorIndex = scaleOnSensor();
+
+    if(scaleOnSensor() != 0) {
+      try {
+        return sensorChannels_[sensorIndex] / referenceSensors_[sensorIndex]->numChannels();
+      } catch (std::out_of_range& e) {
+        std::cerr << "Reference sensor " << sensorIndex <<" don't exists" << std::endl;
+      }
     }
-    return quantity;
+    return 1.;
   }
 
   void MaterialObject::Element::build() {
+    for (const auto& currentSensorNode : referenceSensorNode ) {
+
+      
+      ReferenceSensor* newReferenceSensor = new ReferenceSensor();
+      newReferenceSensor->store(currentSensorNode.second);
+      newReferenceSensor->check();
+      newReferenceSensor->cleanup();
+      referenceSensors_[currentSensorNode.first] = newReferenceSensor;
+      
+
+      /*
+      ReferenceSensor& newReferenceSensor = referenceSensors_[currentSensorNode.first];
+      newReferenceSensor.store(currentSensorNode.second);
+      newReferenceSensor.check();
+      newReferenceSensor.cleanup();
+      */
+
+    }
     /*
     std::cout << "  ELEMENT " << elementName() << std::endl;
     std::cout << "    DATA "
         << " componentName " << (componentName.state() ? componentName() : "NOT_SET")
         << " nSegments " << (nSegments.state() ? std::to_string(nSegments()) : "NOT_SET")
         << " exiting " << service()
-        << " scale " << scale()
+        << " scaleOnSensor " << scaleOnSensor()
         << " quantity " << quantity()
         << " unit " << unit()
         << " station " << (destination.state() ? destination() : "NOT_SET")
@@ -464,11 +497,7 @@ namespace material {
 
     if(debugInactivate() == false) {
       if(service() == false) {
-        quantity = quantityInGrams(materialProperties);
-        if(scale() == true) {
-          quantity = quantity * nSegments();
-          //quantity = quantity / (nSegments() * nStripsAcross()) * (numSegments() * numStripsAcross());
-        }
+        quantity = totalGrams(materialProperties);
         materialProperties.addLocalMass(elementName(), componentName(), quantity);
       }
     }

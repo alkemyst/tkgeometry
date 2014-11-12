@@ -27,6 +27,7 @@ DOXYDIR=doc/doxygen
 COMPILERFLAGS+=-std=c++11 
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g
+COMPILERFLAGS+=-fpermissive
 #COMPILERFLAGS+=-Werror
 #COMPILERFLAGS+=-O5
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
