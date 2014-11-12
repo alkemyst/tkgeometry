@@ -59,6 +59,7 @@ namespace material {
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<bool, Default> debugInactivate_;
     PropertyNodeUnique<std::string> materialsNode_;
+    //    PropertyNode<int> sensorNode_;
 
     const std::string getTypeString() const;
 
@@ -109,12 +110,11 @@ namespace material {
 
       Element();
       Element(const Element& original, double multiplier = 1.0);
-      void setSensorChannels(const std::map<int, int>& newSensorChannels);
       //Element(const Element& originElement);
       std::map<int, ReferenceSensor*> referenceSensors_;
 
       virtual ~Element() {};
-      void build();
+      void build(const std::map<int, int>& newSensorChannels);
       //void chargeTrain(Materialway::Train& train) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
@@ -140,9 +140,8 @@ namespace material {
       PropertyNodeUnique<std::string> elementsNode_;
       Component();
       virtual ~Component() {};
-      void setSensorChannels(const std::map<int, int>& newSensorChannels);
       double totalGrams(double length, double surface) const;
-      void build();
+      void build(const std::map<int, int>& newSensorChannels);
       void copyServicesTo(MaterialObject& outputObject) const;
       void copyServicesTo(ConversionStation& outputObject) const;
       void copyLocalsTo(MaterialObject& outputObject) const;
@@ -160,9 +159,8 @@ namespace material {
       //Property<double, Computable> radiationLength, interactionLenght;
       Materials();
       virtual ~Materials() {};
-      void setSensorChannels(const std::map<int, int>& newSensorChannels);
       double totalGrams(double length, double surface) const;
-      void build();
+      void build(const std::map<int, int>& newSensorChannels);
       void copyServicesTo(MaterialObject& outputObject) const;
       void copyServicesTo(ConversionStation& outputObject) const;
       void copyLocalsTo(MaterialObject& outputObject) const;

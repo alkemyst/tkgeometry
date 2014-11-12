@@ -14,14 +14,14 @@ Materials rodPixel {
     componentName "Interconnect BUS"
     Element {
       service true
-      scaleOnSensor 1
+      scaleOnSensor 0
       elementName Cu
       quantity 0.8
       unit g
     }
     Element {
       service true
-      scaleOnSensor 1
+      scaleOnSensor 0
       elementName G10
       quantity 0.8
       unit g
@@ -35,21 +35,21 @@ Materials rodPixel {
     }
     Element {
       service false
-      scaleOnSensor 1
+      scaleOnSensor 0
       elementName Cu
       quantity 0.0263
       unit g
     }
     Element {
       service false
-      scaleOnSensor 1
+      scaleOnSensor 0
       elementName G10
       quantity 0.0405
       unit g
     }
     Element {
       service false
-      scaleOnSensor 1
+      scaleOnSensor 0
       elementName PE
       quantity 0.0081
       unit g

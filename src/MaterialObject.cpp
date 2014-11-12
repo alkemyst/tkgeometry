@@ -29,6 +29,7 @@ namespace material {
       type_ ("type", parsedAndChecked()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
+      // sensorNode_ ("Sensor", parsedOnly()),
       materials_ (nullptr) {}
 
   const std::string MaterialObject::getTypeString() const {
@@ -53,12 +54,19 @@ namespace material {
 
   void MaterialObject::build() {
     if (!debugInactivate_()) {
-      //static std::map<std::string, Materials*> materialsMap_; //for saving memory
-      static std::map<MaterialObjectKey, Materials*> materialsMap_; //for saving memory
-      
-      // std::cout << "Materials " << materialsNode_.size() << std::endl;
-      // std::cout << "materialsMap_.size()=" << materialsMap_.size() << std::endl;
+      // for (auto& currentSensor : sensorNode_) {
+      //   ReferenceSensor temporarySensor;
+      //   temporarySensor.store(currentSensor.second);
+      //   temporarySensor.check();
+      //   temporarySensor.cleanup();
 
+      //   std::cout << "[" << currentSensor.first << "]=" << temporarySensor.numChannels() << "; ";
+      //   sensorChannels[currentSensor.first] = temporarySensor.numChannels();
+      // }
+      // std::cout << "}" << std::endl;
+      
+
+      static std::map<MaterialObjectKey, Materials*> materialsMap_; //for saving memory
       for (auto& currentMaterialNode : materialsNode_) {
         store(currentMaterialNode.second);
         check();
@@ -67,8 +75,7 @@ namespace material {
           if (materialsMap_.count(myKey) == 0) {
             Materials * newMaterials  = new Materials();
             newMaterials->store(currentMaterialNode.second);
-            newMaterials->build();
-            newMaterials->setSensorChannels(sensorChannels);
+            newMaterials->build(sensorChannels);
             materialsMap_[myKey] = newMaterials;
           }
           materials_ = materialsMap_[myKey];
@@ -172,12 +179,6 @@ namespace material {
     componentsNode_ ("Component", parsedOnly()) {};
   
 
-  void MaterialObject::Materials::setSensorChannels(const std::map<int, int>& newSensorChannels) {
-    for (auto& currentComponentNode : components_) {
-      currentComponentNode->setSensorChannels(newSensorChannels);
-    }
-  }
-  
   double MaterialObject::Materials::totalGrams(double length, double surface) const {
     double result = 0.0;
     for (auto& currentComponentNode : components_) {
@@ -186,14 +187,14 @@ namespace material {
     return result;
   }
 
-  void MaterialObject::Materials::build() {
+  void MaterialObject::Materials::build(const std::map<int, int>& newSensorChannels) {
         
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
-      newComponent->build();
+      newComponent->build(newSensorChannels);
 
       components_.push_back(newComponent);
     }
@@ -241,15 +242,6 @@ namespace material {
     componentsNode_ ("Component", parsedOnly()),
     elementsNode_ ("Element", parsedOnly()) {};
 
-  void MaterialObject::Component::setSensorChannels(const std::map<int, int>& newSensorChannels) {
-    for (auto& currentComponentNode : components_) {
-      currentComponentNode->setSensorChannels(newSensorChannels);
-    }
-    for  (auto& currentElementNode : elements_) {
-      currentElementNode->setSensorChannels(newSensorChannels);
-    }
-  }
-
   double MaterialObject::Component::totalGrams(double length, double surface) const {
     double result = 0.0;
     for (auto& currentComponentNode : components_) {
@@ -261,7 +253,7 @@ namespace material {
     return result;
   }
 
-  void MaterialObject::Component::build() {
+  void MaterialObject::Component::build(const std::map<int, int>& newSensorChannels) {
     //std::cout << "COMPONENT " << componentName() << std::endl;
 
     //sub components
@@ -270,7 +262,7 @@ namespace material {
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
-      newComponent->build();
+      newComponent->build(newSensorChannels);
 
       components_.push_back(newComponent);
     }
@@ -281,7 +273,7 @@ namespace material {
       newElement->store(currentElementNode.second);
       newElement->check();
       newElement->cleanup();
-      newElement->build();
+      newElement->build(newSensorChannels);
       //bool test1 = newElement->componentName.state();
       //bool test2 = newElement->nSegments.state();
 
@@ -382,12 +374,6 @@ namespace material {
     debugInactivate(original.debugInactivate());
   }
 
-  void MaterialObject::Element::setSensorChannels(const std::map<int, int>& newSensorChannels) {
-    for (const auto& aSensorChannel : newSensorChannels ) {
-      sensorChannels_[aSensorChannel.first] = aSensorChannel.second;
-    }
-  }
-
   const std::string MaterialObject::Element::msg_no_valid_unit = "No valid unit: ";
 
   const std::map<std::string, MaterialObject::Element::Unit> MaterialObject::Element::unitStringMap = {
@@ -442,36 +428,29 @@ namespace material {
   }
 
   double MaterialObject::Element::scalingMultiplier() const {
-    const int sensorIndex = scaleOnSensor();
+    int sensorIndex = scaleOnSensor();
 
-    if(scaleOnSensor() != 0) {
+    if(sensorIndex != 0) {
       try {
-        return sensorChannels_[sensorIndex] / referenceSensors_[sensorIndex]->numChannels();
+        return sensorChannels_.at(sensorIndex) / referenceSensors_.at(sensorIndex)->numChannels();
       } catch (std::out_of_range& e) {
-        std::cerr << "Reference sensor " << sensorIndex <<" don't exists" << std::endl;
+        std::cerr << "Sensor " << sensorIndex <<" don't exists." << std::endl;
       }
     }
     return 1.;
   }
 
-  void MaterialObject::Element::build() {
-    for (const auto& currentSensorNode : referenceSensorNode ) {
+  void MaterialObject::Element::build(const std::map<int, int>& newSensorChannels) {
+    for (const auto& aSensorChannel : newSensorChannels ) {
+      sensorChannels_[aSensorChannel.first] = aSensorChannel.second;
+    }
 
-      
+    for (const auto& currentSensorNode : referenceSensorNode ) {      
       ReferenceSensor* newReferenceSensor = new ReferenceSensor();
       newReferenceSensor->store(currentSensorNode.second);
       newReferenceSensor->check();
       newReferenceSensor->cleanup();
       referenceSensors_[currentSensorNode.first] = newReferenceSensor;
-      
-
-      /*
-      ReferenceSensor& newReferenceSensor = referenceSensors_[currentSensorNode.first];
-      newReferenceSensor.store(currentSensorNode.second);
-      newReferenceSensor.check();
-      newReferenceSensor.cleanup();
-      */
-
     }
     /*
     std::cout << "  ELEMENT " << elementName() << std::endl;
