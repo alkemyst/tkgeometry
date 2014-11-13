@@ -7,306 +7,171 @@ Station {
   stationName flange
   type flange
 
-  // Wires and cables one-to-one
+  // Radial cables
   Conversion {
     Input {
       Element {
         elementName Cu
-        quantity 1
+        quantity 16
         unit g
       }
     }
     Output {
       Element {
         elementName Cu
-        quantity 10
-        unit g/m
-        service true
-      }
-    }
-  }
-  Conversion {
-    Input {
-      Element {
-        elementName Cu_MV
-        quantity 1
+        quantity -55
         unit g
+        service false
       }
-    }
-    Output {
-      Element {
-        elementName Cu
-        quantity 10
-        unit g/m
-        service true
-      }
-    }
-  }
-  Conversion {
-    Input {
-      Element {
-        elementName Cu_HV
-        quantity 1
-        unit g
-      }
-    }
-    Output {
-      Element {
-        elementName Cu
-        quantity 10
-        unit g/m
-        service true
-      }
-    }
-  }
-  Conversion {
-    Input {
-      Element {
-        elementName PE
-        quantity 1
-        unit g
-      }
-    }
-    Output {
-      Element {
-        elementName PE
-        quantity 10
-        unit g/m
-        service true
-      }
-    }
-  }
-  Conversion {
-    Input {
       Element {
         elementName Al
-        quantity 1
+        quantity -45
+        unit g
+        service false
+      }
+      Element {
+        elementName PE
+        quantity -45
+        unit g
+        service false
+      }
+    }
+  }
+  // Radial pipes
+  Conversion {
+    Input {
+      Element {
+        elementName Cu
+        quantity 16
         unit g
       }
     }
     Output {
+      Element {
+        elementName Cu
+        quantity -12.5
+        unit g
+        service false
+      }
+      Element {
+        elementName C6F14
+        quantity -220
+        unit g
+        service false
+      }
+    }
+  }
+  // Radial rest
+  Conversion {
+    Input {
+      Element {
+        elementName Cu
+        quantity 16
+        unit g
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity -45
+        unit g
+        service false
+      }
       Element {
         elementName Al
-        quantity 10
-        unit g/m
-        service true
-      }
-    }
-  }
-
-  // Manifolds + radial pipes
-  Conversion {
-    Input {
-      Element {
-        elementName Steel
-        quantity 0.79
-        unit g
-      }
-    }
-    Output {
-      Element {
-        elementName Steel
-        quantity 4.2
+        quantity -33
         unit g
         service false
       }
       Element {
-        elementName Steel
-        quantity 17.2
-        unit g/m
-        service true
-      }
-    }
-  }
-
-  Conversion {
-    Input {
-      Element {
-        elementName CO2
-        quantity 0.18
-        unit g
-      }
-    }
-    Output {
-      Element {
-        elementName CO2
-        quantity 1.4
+        elementName PE
+        quantity -34
         unit g
         service false
       }
-      Element {
-        elementName CO2
-        quantity 3.7
-        unit g/m
-        service true
-      }
     }
   }
-
-  // Holders
+  // Radial cables
   Conversion {
     Input {
       Element {
-        elementName Steel
-        quantity 0.79
+        elementName Cu
+        quantity 7.2
         unit g
       }
     }
     Output {
+      Element {
+        elementName Cu
+        quantity 55
+        unit g/m
+        service true
+      }
       Element {
         elementName Al
-        quantity 7.4
-        unit g
-        service false
+        quantity 45
+        unit g/m
+        service true
+      }
+      Element {
+        elementName PE
+        quantity 45
+        unit g/m
+        service true
       }
     }
   }
-
-  // 3 GBTs per rod
-  // 1.452 g Cu_twp = 1 rod SS with 2 hybrids / module
+  // Radial pipes
   Conversion {
     Input {
       Element {
-        elementName Cu_twp
-        quantity 1.452
+        elementName Cu
+        quantity 7.2
         unit g
       }
     }
     Output {
-      // GBT's PCB
-      Element {
-        elementName G10
-        quantity 8.19
-        unit g
-        service false
-      }
-      // GBT's PCB
       Element {
         elementName Cu
-        quantity 1.65
-        unit g
-        service false
+        quantity 12.5
+        unit g/m
+        service true
       }
-      // Packaging
       Element {
-        elementName PE
-        quantity 8.25
-        unit g
-        service false
+        elementName C6F14
+        quantity 220
+        unit g/m
+        service true
       }
-      // 3 Coils (DC/DC)
+    }
+  }
+  // Radial rest
+  Conversion {
+    Input {
       Element {
         elementName Cu
-        quantity 1.14
+        quantity 7.2
         unit g
-        service false
       }
-      // Cooling
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 45
+        unit g/m
+        service true
+      }
       Element {
         elementName Al
-        quantity 6.81
-        unit g
-        service false
-      }
-      // Data NaIS
-      Element {
-        elementName Cu
-        quantity 0.72
-        unit g
-        service false
-      }
-      // Data NaIS
-      Element {
-        elementName PE
-        quantity 1.14
-        unit g
-        service false
-      }
-      // LV NaIS
-      Element {
-        elementName Cu
-        quantity 1.47
-        unit g
-        service false
-      }
-      // LV NaIS
-      Element {
-        elementName PE
-        quantity 2.19
-        unit g
-        service false
-      }
-      // 6 fibers / 3 GBT (see above)
-      Element {
-        elementName PE
-        quantity 4.5
-        unit g/m
-        service true
-      }
-      // GBT power - 6 wires/ 3 GBT
-      Element {
-        elementName Cu
-        quantity 7.08
+        quantity 33
         unit g/m
         service true
       }
       Element {
         elementName PE
-        quantity 5.76
+        quantity 34
         unit g/m
         service true
-      }
-    }
-  }
-
-  // 2 x (25-pin Binders):
-  // 1.3 g Cu_HV g = 1 rod
-  // 5.2 g Cu_MV g = 1 rod
-  Conversion {
-    Input {
-      // HV
-      Element {
-        elementName Cu_HV
-        quantity 1.3
-        unit g
-      }
-    }
-    Output {
-      Element {
-        elementName Cu
-        quantity 2.20
-        unit g
-        service false
-      }
-      Element {
-        elementName PE
-        quantity 1.93
-        unit g
-        service false
-      }
-    }
-  }
-  Conversion {
-    Input {
-      // MV
-      Element {
-        elementName Cu_MV
-        quantity 5.2
-        unit g
-      }
-    }
-    Output {
-      Element {
-        elementName Cu
-        quantity 2.20
-        unit g
-        service false
-      }
-      Element {
-        elementName PE
-        quantity 1.93
-        unit g
-        service false
       }
     }
   }
