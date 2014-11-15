@@ -1,0 +1,34 @@
+
+moduleType pt2S
+
+sensorLayout pt
+zCorrelation samesegment
+
+numSensors 2
+
+//powerStripChip 0.3
+//powerModuleChip 1000
+//powerModuleOptical 500
+powerStripChip 0
+powerModuleChip 4700
+powerModuleOptical 0
+
+sensorThickness 0.2
+
+Sensor 1 {
+  sensorType strip
+  numStripsAcross 1016
+  numSegments 2
+  numROCX 8
+  numROCY 2
+}
+
+Sensor 2 {
+  sensorType strip
+  numStripsAcross 1016
+  numSegments 2
+  numROCX 8
+  numROCY 2
+}
+
+plotColor 2 
