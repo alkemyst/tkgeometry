@@ -59,6 +59,9 @@ namespace material {
           
             for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
               MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);
+              if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
+                newElement->debugInactivate(true);
+              }
               if (newElement->service()) {
                 serviceOutput.addElement(newElement);
               } else {
