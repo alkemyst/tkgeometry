@@ -1267,7 +1267,7 @@ namespace material {
         //put exiting services in the materialObject of the adiacent section of station
         station->conversionStation().routeConvertedElements(station->materialObject(), station->nextSection()->materialObject(), *station->inactiveElement());
         if (station->nextSection()->nextSection() != nullptr) {
-          //route from the adiacent section of the adiacent section of the station the materials of the adiacent section of the station
+          //route from the adiacent section of the adiacent section of the station, the materials of the adiacent section of the station
           station->nextSection()->nextSection()->getServicesAndPass(station->nextSection()->materialObject());
         }
       }
