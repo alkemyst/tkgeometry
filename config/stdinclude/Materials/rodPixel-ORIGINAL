@@ -16,43 +16,43 @@ Materials rodPixel {
       service true
       scaleOnSensor 0
       elementName Cu
-      quantity 11.27
-      unit g/m
+      quantity 0.8
+      unit g
     }
     Element {
       service true
       scaleOnSensor 0
       elementName G10
-      quantity 11.27
-      unit g/m
+      quantity 0.8
+      unit g
     }
     Element {
       service true
       scaleOnSensor 0
       elementName G10
-      quantity 7.04
-      unit g/m
+      quantity 0.5
+      unit g
     }
     Element {
       service false
       scaleOnSensor 0
       elementName Cu
-      quantity 0.37
-      unit g/m
+      quantity 0.0263
+      unit g
     }
     Element {
       service false
       scaleOnSensor 0
       elementName G10
-      quantity 0.57
-      unit g/m
+      quantity 0.0405
+      unit g
     }
     Element {
       service false
       scaleOnSensor 0
       elementName PE
-      quantity 0.11
-      unit g/m
+      quantity 0.0081
+      unit g
     }
   }
 }
