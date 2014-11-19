@@ -8,6 +8,7 @@
 #include "ConversionStation.h"
 //#include "MaterialObject.h"
 #include "InactiveElement.h"
+#include "messageLogger.h"
 
 namespace material {
 
@@ -63,9 +64,13 @@ namespace material {
                 newElement->debugInactivate(true);
               }
               if (newElement->service()) {
-                serviceOutput.addElement(newElement);
+                if (newElement->unit().compare("g") != 0) {
+                  serviceOutput.addElement(newElement);
+                } else {
+                  logERROR(err_service1 + newElement->elementName() + err_service2);
+                }        
               } else {
-                localOutput.addElement(newElement);
+                localOutput.addElementNoUnitCheck(newElement);
               }
             }
           }
@@ -116,7 +121,11 @@ namespace material {
 
   void ConversionStation::addElementIfService(const MaterialObject::Element* inputElement) {
     if (inputElement->service() == true) {
-      inputElements.push_back(inputElement);
+      if (inputElement->unit().compare("g") != 0) {
+        inputElements.push_back(inputElement);
+      } else {
+        logERROR(err_service1 + inputElement->elementName() + err_service2);
+      }        
     }
   }
 
