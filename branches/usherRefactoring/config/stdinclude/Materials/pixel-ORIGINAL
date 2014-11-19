@@ -91,13 +91,13 @@ Materials module-pixel {
     scaleOnSensor 0
     Element {
       elementName Cu 
-      quantity 0.56
-      unit g/m
+      quantity 0.04
+      unit g
     }
     Element {
       elementName PE
-      quantity 0.56
-      unit g/m
+      quantity 0.04
+      unit g
     }
   }
 
@@ -108,8 +108,8 @@ Materials module-pixel {
     scaleOnSensor 1
     Element {
       elementName PE
-      quantity 0.56
-      unit g/m
+      quantity 0.04
+      unit g
     }
   }
 

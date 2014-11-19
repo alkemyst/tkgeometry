@@ -197,18 +197,18 @@
   }
 
   // I acknowledge that there are no GBTs at the end of the rod
-  Component {
-    componentName "Twisted pairs"
-    service true
-    scaleOnSensor 0
-    Element {
-      elementName Cu_twp
-      quantity 0
-      unit g
-    }
-  }
+  // Component {
+  //   componentName "Twisted pairs"
+  //   service true
+  //   scaleOnSensor 0
+  //   Element {
+  //     elementName Cu_twp
+  //     quantity 0
+  //     unit g
+  //   }
+  // }
 
-  // Support mechanics
+  // Support Mechanics
   //Mechanics
   Component {
     componentName Mechanics
