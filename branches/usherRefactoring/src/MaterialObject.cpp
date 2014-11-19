@@ -13,7 +13,7 @@
 //#include "InactiveElement.h"
 #include "MaterialProperties.h"
 #include "DetectorModule.h"
-#include <messageLogger.h>
+#include "messageLogger.h"
 #include <stdexcept>
 
 
@@ -123,17 +123,33 @@ namespace material {
     //std::cout << "ADDING " << inputElement->elementName() << std::endl;
       //std::cout << "COMP " << inputElement->componentName() << std::endl;
       //bool test = (inputElement->elementName().compare("SenSi") == 0);
-      serviceElements_.push_back(inputElement);
+      if (inputElement->unit().compare("g") != 0) {
+        serviceElements_.push_back(inputElement);
+      } else {
+        logERROR(err_service1 + inputElement->elementName() + err_service2);
+      }        
     }
   }
 
   void MaterialObject::addElementIfLocal(const Element* inputElement) {
     if (inputElement->service() == false) {      
-      serviceElements_.push_back(inputElement);
+      if (inputElement->unit().compare("g") != 0) {
+        serviceElements_.push_back(inputElement);
+      } else {
+        logERROR(err_service1 + inputElement->elementName() + err_service2);
+      }        
     }
   }
 
   void MaterialObject::addElement(const Element* inputElement) {
+    if (inputElement->unit().compare("g") != 0) {
+      serviceElements_.push_back(inputElement);
+    } else {
+      logERROR(err_service1 + inputElement->elementName() + err_service2);
+    }        
+  }
+
+  void MaterialObject::addElementNoUnitCheck(const Element* inputElement) {
     serviceElements_.push_back(inputElement);
   }
 

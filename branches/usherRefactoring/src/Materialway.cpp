@@ -849,7 +849,7 @@ namespace material {
   const int Materialway::boundaryPadding = discretize(10.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
   const int Materialway::boundaryPrincipalPadding = discretize(15.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
   const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for exiting the services) */
-  const int Materialway::globalMaxRPadding = discretize(50.0);          /**< the space between the tracker and the upper limit (for exiting the services) */
+  const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for exiting the services) */
   const int Materialway::layerSectionMargin = discretize(2.0);          /**< the space between the layer and the service sections over it */
   const int Materialway::diskSectionMargin = discretize(2.0);          /**< the space between the disk and the service sections right of it */
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
@@ -1090,8 +1090,8 @@ namespace material {
 
       void visit(const RodPair& rod) {
         for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-            rod.materialObject().copyServicesTo(currSection->materialObject());
-            rod.materialObject().copyLocalsTo(currSection->materialObject());
+          rod.materialObject().copyServicesTo(currSection->materialObject());
+          rod.materialObject().copyLocalsTo(currSection->materialObject());
         }
         //return; //PROVA!
         layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject());

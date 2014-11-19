@@ -20,6 +20,8 @@ namespace insur {
 using insur::MaterialProperties;
 
 namespace material {
+  static const std::string err_service1 = "Impossible to use 'g' as unit for service materials, element '";
+  static const std::string err_service2 = "' ignored.";
 
   class MaterialTab;
   class ConversionStation;
@@ -47,6 +49,7 @@ namespace material {
     void addElementIfService(const Element* inputElement);
     void addElementIfLocal(const Element* inputElement);
     void addElement(const Element* inputElement);
+    void addElementNoUnitCheck(const Element* inputElement);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
     ElementsVector& getLocalElements() const;
