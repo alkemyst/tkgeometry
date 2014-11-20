@@ -564,44 +564,50 @@ namespace material {
         int stationMaxR = 0;
 
 
+        //split the right section
+        section = startBarrel;
+        attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
+
+        while(section->maxR() < attachPoint + sectionTolerance) {
+          if(!section->hasNextSection()) {
+            //TODO: messaggio di errore
+            return;
+          }
+          section = section->nextSection();
+        }
+
+        if (section->minR() < attachPoint - sectionTolerance) {
+          section = splitSection(section, attachPoint);
+        }
+
+        //built two main sections above the layer (one for positive part, one for negative)
+
+        sectionMinZ = safetySpace;
+        sectionMinR = attachPoint;
+        //sectionMaxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
+        sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
+        sectionMaxR = sectionMinR + sectionWidth;
+
+        stationMinZ = sectionMaxZ + safetySpace;
+        stationMinR = sectionMinR -(layerStationWidth/2);
+        stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
+        stationMaxR = sectionMinR + (layerStationWidth/2);
+
         if(barrelConversionStation_->valid()) {
-          //split the right section
-          section = startBarrel;
-          attachPoint = discretize(layer.maxR()) + layerSectionMargin;        //discretize(layer.minR());
-
-          while(section->maxR() < attachPoint + sectionTolerance) {
-            if(!section->hasNextSection()) {
-              //TODO: messaggio di errore
-              return;
-            }
-            section = section->nextSection();
-          }
-
-          if (section->minR() < attachPoint - sectionTolerance) {
-            section = splitSection(section, attachPoint);
-          }
-
-          //built two main sections above the layer (one for positive part, one for negative)
-
-          sectionMinZ = safetySpace;
-          sectionMinR = attachPoint;
-          //sectionMaxZ = discretize(layer.maxZ()) + layerSectionRightMargin;
-          sectionMaxZ = section->minZ() - safetySpace - layerStationLenght;
-          sectionMaxR = sectionMinR + sectionWidth;
-
-          stationMinZ = sectionMaxZ + safetySpace;
-          stationMinR = sectionMinR -(layerStationWidth/2);
-          stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
-          stationMaxR = sectionMinR + (layerStationWidth/2);
-
           station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *barrelConversionStation_, section); //TODO: check if is ok VERTICAL
           sectionsList_.push_back(station);
           stationListFirst_.push_back(station);
           startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, station);
-          sectionsList_.push_back(startLayer);
-          layerRodSections_[currLayer_].addSection(startLayer);
           layerRodSections_[currLayer_].setStation(station);
+        } else {
+          startLayer = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, HORIZONTAL, section);
+          layerRodSections_[currLayer_].setStation(section);
+          logERROR("Flange conversion not defined, bypassed.");
         }
+        sectionsList_.push_back(startLayer);
+        layerRodSections_[currLayer_].addSection(startLayer);
+        
+        
 
         //==========second level conversion station
 
