@@ -117,12 +117,9 @@ namespace material {
       materials_->copyLocalsTo(outputObject);
     }
   }
-
+  
   void MaterialObject::addElementIfService(const Element* inputElement) {
     if (inputElement->service() == true) {
-    //std::cout << "ADDING " << inputElement->elementName() << std::endl;
-      //std::cout << "COMP " << inputElement->componentName() << std::endl;
-      //bool test = (inputElement->elementName().compare("SenSi") == 0);
       if (inputElement->unit().compare("g") != 0) {
         serviceElements_.push_back(inputElement);
       } else {
