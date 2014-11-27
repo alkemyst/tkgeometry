@@ -203,18 +203,40 @@ void Layer::buildTilted() {
 
 void Layer::build() {
   try { 
+    materialObject_.store(propertyTree());
+    materialObject_.build();
+
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
     if (tiltedLayerSpecFile().empty()) buildStraight();
     else buildTilted();
-    
+
+    flangeConversionStation_.store(propertyTree());
+    flangeConversionStation_.build();
+    endCapConversionStation_.store(propertyTree());
+    endCapConversionStation_.build();
+        
     cleanup();
     builtok(true);
+
   } catch (PathfulException& pe) { 
     pe.pushPath(fullid(*this)); 
     throw; 
   }
 }
+
+const MaterialObject& Layer::materialObject() const{
+  return materialObject_;
+}
+
+ConversionStation* Layer::flangeConversionStation() {
+  return &flangeConversionStation_;
+}
+
+ConversionStation* Layer::endCapConversionStation() {
+  return &endCapConversionStation_;
+}
+
 
 define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };

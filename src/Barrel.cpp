@@ -39,3 +39,4 @@ void Barrel::build() {
   cleanup();
   builtok(true);
 }
+

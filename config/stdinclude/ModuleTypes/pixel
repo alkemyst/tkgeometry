@@ -14,3 +14,7 @@ resolutionLocalY 0.028
 zCorrelation multisegment
 
 plotColor 4
+
+@includestd Materials/pixel
+@includestd Materials/rodPixel
+
