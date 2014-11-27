@@ -21,6 +21,7 @@
 #include <Tracker.h>
 #include <MaterialTable.h>
 #include <MaterialBudget.h>
+#include <MaterialObject.h>
 
 namespace insur {
   /**
@@ -77,6 +78,80 @@ namespace insur {
     double fromRim(double r, double w);
     int Z(double x0, double A);
   };
+
+#if 1
+
+  // For flipping one of sensors
+  // This should be moved to tk2CMSSW_strings.h at some point.
+  static const std::string rot_sensor_tag = "SensorFlip";
+
+  class HybridVolumes {
+    public :
+     HybridVolumes(std::string moduleName, ModuleCap& modcap);
+     ~HybridVolumes();
+     void buildVolumes();
+     void addShapeInfo   (std::vector<ShapeInfo>&   vec);
+     void addLogicInfo   (std::vector<LogicalInfo>& vec);
+     void addPositionInfo(std::vector<PosInfo>&     vec);
+     void addMaterialInfo(std::vector<Composite>&   vec);
+     void print() const;
+
+     const double getHybridWidth() const { return hybridWidth; }
+
+    private :
+
+      class Volume {
+        public :
+          Volume(std::string name, std::string pname, 
+                 double dx,   double dy,   double dz,
+                 double posx, double posy, double posz) : fname(name),
+                                                          fparentname(pname),
+                                                          fdx(dx),
+                                                          fdy(dy),
+                                                          fdz(dz),
+                                                          fx(posx),
+                                                          fy(posy),
+                                                          fz(posz),
+                                                          fdxyz(dx*dy*dz),
+                                                          fdensity(-1.){}
+
+          const double      getVolume()    const { return fdxyz; }
+          const double      getDx()        const { return fdx;   }
+          const double      getDy()        const { return fdy;   }
+          const double      getDz()        const { return fdz;   }
+          const double      getX()         const { return fx;    }
+          const double      getY()         const { return fy;    }
+          const double      getZ()         const { return fz;    }
+          const std::string getName()      const { return fname; }
+          const std::string getParentName()const { return fparentname; }
+
+          double getDensity() const { return fdensity; }
+          double setDensity( double density ) { fdensity = density; }
+          void print() const { if (fdensity<0.) std::cout << "!!! Error : please call assignMassToVolumes beforehand to set the density." << std:: endl; 
+                               else             std::cout << "   " << fname << " volume=" << fdxyz << " mm3, density=" << fdensity << " g/cm3" <<std::endl; }
+        private :
+          std::string  fname;
+          std::string  fparentname;
+          const double fdx,fdy,fdz;
+          const double fx,fy,fz;
+          const double fdxyz;
+          double       fdensity;
+      };
+
+      ModuleCap&           modulecap;
+      Module&              module;
+      std::vector<Volume*> volumes;
+      std::string          moduleId;
+      const double         modThickness;
+      const double         modWidth;  // Sensor width
+      const double         modLength; // Sensor length
+      const double         hybridWidth;
+      const double         hybridThickness;
+            double         hybridMass;
+      const std::string    prefix_xmlfile;
+      const std::string    prefix_material;
+  };
+#endif
 }
 #endif	/* _EXTRACTOR_H */
 
