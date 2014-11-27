@@ -123,10 +123,29 @@ namespace material {
     materialObject_ (MaterialObject::SERVICE) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
-    Section(minZ, minR, maxZ, maxR, bearing, nextSection, false) {}
+    Section(minZ,
+            minR,
+            maxZ,
+            maxR,
+            bearing,
+            nextSection,
+            false) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing) :
-    Section(minZ, minR, maxZ, maxR, bearing, nullptr) {}
+    Section(minZ,
+            minR,
+            maxZ,
+            maxR,
+            bearing,
+            nullptr) {}
+
+  Materialway::Section::Section(const Section& other) :
+    Section(other.minZ(),
+            other.minR(),
+            other.maxZ(),
+            other.maxR(),
+            other.bearing()) {} //attention, nextSection is not copied    
+  
   Materialway::Section::~Section() {}
 
   int Materialway::Section::isHit(int z, int r, int end, Direction aDirection) const {
@@ -962,6 +981,8 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end secondStepConversions" << std::endl;
     createModuleCaps(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end createModuleCaps" << std::endl;
+    duplicateSections();
+    std::cout << "TIME " << difftime(time(0), startTime) << " end duplicateSections" << std::endl;
     populateAllMaterialProperties(tracker, weightDistribution);
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
     //calculateMaterialValues(tracker);
@@ -1340,6 +1361,25 @@ namespace material {
     //std::cout << "Barrel " << v.mappaB.size() << " = " << v.totB << "  ----  Endcap " << v.mappaE.size() << " = " << v.totE << std::endl;
   }
  
+  void Materialway::duplicateSections() {
+    SectionVector negativeSections;
+    /*
+    for (Section* section : sectionsList_) {
+      negativeSections.push_back(new Section(*section));
+    }
+    */
+    
+    std::for_each(sectionsList_.begin(), sectionsList_.end(), [negativeSections](Section* section) mutable {
+        negativeSections.push_back(new Section(*section));
+      });
+    
+    std::for_each(negativeSections.begin(), negativeSections.end(), [](Section* section){
+        section->minZ(-1 * section->minZ());
+        section->maxZ(-1 * section->maxZ());
+      });
+    sectionsList_.reserve(sectionsList_.size() + negativeSections.size());
+    sectionsList_.insert(sectionsList_.end(), negativeSections.begin(), negativeSections.end());
+  }
 
   void Materialway::populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution) {
     //sections
@@ -1358,6 +1398,8 @@ namespace material {
         double sectionArea = sectionLength * 2 * M_PI * sectionMinR;
         weightDistribution.addTotalGrams(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, sectionLength, sectionArea, section->materialObject());
         */
+      } else {
+        logERROR("Section without inactiveElement.");
       }
     }
 
@@ -1424,7 +1466,7 @@ namespace material {
         */
         if((section->inactiveElement()->localMassCount() > 0) && (section->minZ() > 0)) {
           inactiveSurface.addBarrelServicePart(*section->inactiveElement());
-          inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
+          // inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
         }
       }
     }
@@ -1464,6 +1506,7 @@ namespace material {
     tracker.accept(visitor);
   }
 
+  /*
   InactiveElement* Materialway::buildOppositeInactiveElement(InactiveElement* inactiveElement) {
     InactiveElement* newInactiveElement = new InactiveElement();
     newInactiveElement->setVertical(inactiveElement->isVertical());
@@ -1477,6 +1520,7 @@ namespace material {
 
     return newInactiveElement;
   }
+  */
 
   //END Materialway
 
