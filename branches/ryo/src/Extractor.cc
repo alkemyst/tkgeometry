@@ -3,6 +3,11 @@
  * @brief This class extracts the tracker geometry and material properties from an existing setup and groups them in preparation for translation to CMSSW XML
  */
 
+
+#define __ADDVOLUMES__
+#define __FLIPSENSORS_OUT__
+//#define __FLIPSENSORS_IN__
+
 #include <Extractor.h>
 namespace insur {
   //public
@@ -69,6 +74,24 @@ namespace insur {
     rot.thetaz = 90.0;
     rot.phiz = 0.0;
     r.push_back(rot);
+
+#if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
+    rot.name = rot_sensor_tag;
+#if 1  // Fix Y axis case
+    rot.thetax = 90.0;
+    rot.phix   = 180.0;
+    rot.thetay = 90.0;
+    rot.phiy   = 90.0;
+#else  // Fix X axis case
+    rot.thetax = 90.0;
+    rot.phix   = 0.0;
+    rot.thetay = 90.0;
+    rot.phiy   = 270.0;
+#endif
+    rot.thetaz = 180.0;
+    rot.phiz   = 0.0;
+    r.push_back(rot);
+#endif
 
     // EndcapRot is not needed any more
     /*
@@ -507,22 +530,38 @@ namespace insur {
             std::vector<ModuleCap>::iterator partner;
             std::ostringstream matname, shapename, specname;
 
+#ifndef __ADDVOLUMES__ 
             // module composite material
             matname << xml_base_actcomp << "L" << layer << "P" << modRing; 
             c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+#endif
 
             // module box
             shapename << modRing << lname.str();
             shape.name_tag = xml_barrel_module + shapename.str();
-
+#ifndef __ADDVOLUMES__
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
+#else
+            // Expand volumes for hybrids
+            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
+            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
+#endif
             shape.dz = iiter->getModule().thickness() / 2.0;
             s.push_back(shape);
+#ifdef __ADDVOLUMES__ 
+            // Get it back for sensors
+            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+            shape.dy = iiter->getModule().length() / 2.0;
+#endif
 
             logic.name_tag = shape.name_tag;
             logic.shape_tag = nspace + ":" + logic.name_tag;
+#if 0
             logic.material_tag = nspace + ":" + matname.str();
+#else
+            logic.material_tag = xml_material_air;
+#endif
             l.push_back(logic);
 
             // name_tag is BModule1Layer1 and it goes into all files
@@ -576,6 +615,19 @@ namespace insur {
               }
             }
             pos.rotref = "";
+
+#ifdef __ADDVOLUMES__ 
+#if 0
+            if (iiter->getModule().numSensors() == 2) { // PS/2S module
+               std::cerr << (*iiter).getModule().length() << " " 
+                         << (*iiter).getModule().area()/(*iiter).getModule().length() << " " 
+                         << (*iiter).getModule().thickness() << std::endl;
+            } 
+#endif
+            std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
+            HybridVolumes hvs(moduleName,*iiter);
+            hvs.buildVolumes();
+#endif
 
             // wafer
             string xml_base_inout = "";
@@ -653,6 +705,9 @@ namespace insur {
 
             pos.child_tag = logic.shape_tag;
             pos.trans.dz = 0.0;
+#ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
+            pos.rotref = nspace + ":" + rot_sensor_tag;
+#endif
             p.push_back(pos);
 
             // topology
@@ -681,6 +736,9 @@ namespace insur {
               l.push_back(logic);
 
               pos.child_tag = logic.shape_tag;
+#ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
+              pos.rotref = nspace + ":" + rot_sensor_tag;
+#endif
               p.push_back(pos);
 
               // topology
@@ -692,6 +750,13 @@ namespace insur {
               minfo.rocy		= any2str<int>(iiter->getModule().outerSensor().numROCY());
 
               mspec.moduletypes.push_back(minfo);
+#ifdef __ADDVOLUMES__
+              hvs.addMaterialInfo(c);
+              hvs.addShapeInfo(s);
+              hvs.addLogicInfo(l);
+              hvs.addPositionInfo(p);
+              //hvs.print();
+#endif
             } // End of replica for Pt-modules
 
             // material properties
@@ -962,9 +1027,11 @@ namespace insur {
             ridx.insert(modRing);
             std::ostringstream matname, rname, mname, specname;
 
+#ifndef __ADDVOLUMES__
             // module composite material
             matname << xml_base_actcomp << "D" << layer << "R" << modRing;
             c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+#endif
 
             rname << xml_ring << modRing << dname.str();
             mname << xml_endcap_module << modRing << dname.str();
@@ -988,20 +1055,44 @@ namespace insur {
             shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
 
             shape.name_tag = mname.str();
+#ifndef __ADDVOLUMES__
             shape.dx = iiter->getModule().minWidth() / 2.0;
             shape.dxx = iiter->getModule().maxWidth() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dyy = iiter->getModule().length() / 2.0;
+#else       // Expand module size for hybrids
+            shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().hybridWidth();
+            shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().hybridWidth();
+            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
+            shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
+#endif
             //shape.dx = iiter->getModule().length() / 2.0;
             //shape.dy = iiter->getModule().minWidth() / 2.0;
             //shape.dyy = iiter->getModule().maxWidth() / 2.0;
             shape.dz = iiter->getModule().thickness() / 2.0;
             s.push_back(shape);
+#ifdef __ADDVOLUMES__ 
+            // Get it back for sensors
+            shape.dx = iiter->getModule().minWidth() / 2.0;
+            shape.dxx = iiter->getModule().maxWidth() / 2.0;
+            shape.dy = iiter->getModule().length() / 2.0;
+            shape.dyy = iiter->getModule().length() / 2.0;
+#endif
 
             logic.name_tag = shape.name_tag;
             logic.shape_tag = nspace + ":" + logic.name_tag;
+#if 0
             logic.material_tag = nspace + ":" + matname.str();
+#else
+            logic.material_tag = xml_material_air;
+#endif
             l.push_back(logic);
+
+#ifdef __ADDVOLUMES__ 
+            std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
+            HybridVolumes hvs(moduleName,*iiter);
+            hvs.buildVolumes();
+#endif
 
 
 
@@ -1086,6 +1177,9 @@ namespace insur {
 
             pos.child_tag = logic.shape_tag;
             pos.trans.dz = 0.0;
+#ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
+            pos.rotref = nspace + ":" + rot_sensor_tag;
+#endif
             p.push_back(pos);
 
             // topology
@@ -1117,6 +1211,9 @@ namespace insur {
 
               pos.child_tag = logic.shape_tag;
               pos.trans.dz = 0.0;
+#ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
+              pos.rotref = nspace + ":" + rot_sensor_tag;
+#endif
               p.push_back(pos);
 
               // topology
@@ -1130,6 +1227,13 @@ namespace insur {
               mspec.moduletypes.push_back(minfo);
               //mspec.moduletypes.push_back(iiter->getModule().getType());
 
+#ifdef __ADDVOLUMES__ 
+              hvs.addMaterialInfo(c);
+              hvs.addShapeInfo(s);
+              hvs.addLogicInfo(l);
+              hvs.addPositionInfo(p);
+              //hvs.print();
+#endif
             }
 
             // material properties
@@ -1285,11 +1389,24 @@ namespace insur {
     std::vector<InactiveElement>::iterator iter, guard;
     std::vector<InactiveElement>& bs = is.getBarrelServices();
     guard = bs.end();
+#if 1
+    int  previousInnerRadius = -1;
+#endif
     for (iter = bs.begin(); iter != guard; iter++) {
+#if 1
+      if ( (int)(iter->getZOffset()) == 0 ) {
+        if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;  
+        else previousInnerRadius = (int)(iter->getInnerRadius());
+      }
+#endif
       std::ostringstream matname, shapename;
       matname << xml_base_serfcomp << iter->getCategory() << "R" << (int)(iter->getInnerRadius()) << "dZ" << (int)(iter->getZLength());
       shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZOffset());
+#if 0
       if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+#else
+      if ((iter->getZOffset() + iter->getZLength()) > 0 && compositeDensity(*iter) > 1.e-6 ) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+#endif
       shape.name_tag = shapename.str();
       shape.dz = iter->getZLength() / 2.0;
       shape.rmin = iter->getInnerRadius();
@@ -1343,8 +1460,13 @@ namespace insur {
       std::ostringstream matname, shapename;
       matname << xml_base_serfcomp << iter->getCategory() << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
+#if 0
       if ((iter->getZOffset() + iter->getZLength()) > 0) { // This is necessary because of replication of Forward volumes!
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+#else
+      if ((iter->getZOffset() + iter->getZLength()) > 0 && compositeDensity(*iter) > 1.e-6 ) { 
+        c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+#endif
         shape.name_tag = shapename.str();
         shape.dz = iter->getZLength() / 2.0;
         shape.rmin = iter->getInnerRadius();
@@ -1404,8 +1526,13 @@ namespace insur {
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
 
       fres = found.find(iter->getCategory());
+#if 0
       if (fres == found.end()) {
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+#else
+      if (fres == found.end() && compositeDensity(*iter) > 1.e-6 ) { 
+        c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+#endif
         found.insert(iter->getCategory());
       }
 
@@ -1731,4 +1858,186 @@ namespace insur {
     if (d > 0) return int(floor((sqrt(d) - 2.0) / 2.0 + 0.5));
     else return -1;
   }
+
+#ifdef __ADDVOLUMES__ 
+  HybridVolumes::HybridVolumes(std::string moduleName,
+                               ModuleCap&  modcap     ) : moduleId(moduleName),
+                                                          modulecap(modcap),
+                                                          module(modcap.getModule()),
+                                                          modWidth(module.area()/module.length()),
+                                                          modLength(module.length()),
+                                                          modThickness(module.thickness()),
+                                                          hybridWidth(module.hybridWidth()),
+                                                          hybridThickness(module.hybridThickness()),
+                                                          prefix_xmlfile("tracker:"),
+                                                          prefix_material("hybridcomposite") {
+    ElementsVector matElements = module.getLocalElements();
+    ElementsVector::const_iterator meit;
+    float mass_wo_sensor = 0.;
+    float mass_tot = 0.;
+    for (meit = matElements.begin(); meit != matElements.end(); meit++) {
+       const MaterialObject::Element* el = *meit;
+       if (el->componentName()!="Sensor") mass_wo_sensor += el->quantity();
+       else mass_tot += el->quantity();
+    }
+    mass_tot += mass_wo_sensor;
+    hybridMass = mass_wo_sensor;
+
+  }
+
+  HybridVolumes::~HybridVolumes() {
+    std::vector<Volume*>::const_iterator vit;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) delete *vit;
+  }
+
+  void HybridVolumes::buildVolumes() {
+  //  ------------------------
+  //  |          L           |
+  //  ------------------------     y
+  //  |  |                |  |     ^
+  //  |B |     Between    | F|     |
+  //  |  |                |  |     |----> x
+  //  ------------------------
+  //  |          R           |
+  //  ------------------------
+    Volume* vol;
+    double dx = hybridWidth;              
+    double dy = modLength; 
+    double dz = hybridThickness;  
+    double posx = (modWidth+hybridWidth)/2.;
+    double posy = 0.;
+    double posz = 0.;
+    // FrontSide Volume
+    vol = new Volume(moduleId+"FSide",moduleId,dx,dy,dz,posx,posy,posz);
+    volumes.push_back(vol);
+
+    posx = -(modWidth+hybridWidth)/2.;
+    posy = 0.;
+    posz = 0.;
+    // BackSide Volume
+    vol = new Volume(moduleId+"BSide",moduleId,dx,dy,dz,posx,posy,posz);
+    volumes.push_back(vol);
+
+    dx = modWidth+2*hybridWidth;  
+    dy = hybridWidth;
+    posx = 0.;
+    posy = (modLength+hybridWidth)/2.;
+    posz = 0.;
+    // LeftSide Volume
+    vol = new Volume(moduleId+"LSide",moduleId,dx,dy,dz,posx,posy,posz);
+    volumes.push_back(vol);
+
+    posx = 0.;
+    posy = -(modLength+hybridWidth)/2.;
+    posz = 0.;
+    // RightSide Volume
+    vol = new Volume(moduleId+"RSide",moduleId,dx,dy,dz,posx,posy,posz);
+    volumes.push_back(vol);
+
+#if 0
+    dx = (modWidth -2*hybridWidth); 
+    dy = (modLength-2*hybridWidth); 
+    posx = 0.;
+    posy = 0.;
+    posz = 0.;
+    // Between Volume
+    vol = new Volume(moduleId+"Between",moduleId,dx,dy,dz,posx,posy,posz);
+    volumes.push_back(vol);
+#endif
+
+    std::vector<Volume*>::const_iterator vit;
+    double totalvolume_mm3 = 0.;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) totalvolume_mm3 += (*vit)->getVolume();
+    const double kmm3Tocm3 = 1.e-3;
+    const double totalvolume_cm3 = totalvolume_mm3*kmm3Tocm3;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) (*vit)->setDensity(hybridMass/totalvolume_cm3);
+  }
+
+  void HybridVolumes::addShapeInfo(std::vector<ShapeInfo>& vec) {
+    ShapeInfo ele;
+    ele.type = bx; // Box 
+    std::vector<Volume*>::const_iterator vit;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      ele.name_tag = (*vit)->getName();
+      ele.dx = (*vit)->getDx()/2.; // half length
+      ele.dy = (*vit)->getDy()/2.; // half length
+      ele.dz = (*vit)->getDz()/2.; // half length
+      vec.push_back(ele);
+    }
+  }
+
+  void HybridVolumes::addLogicInfo(std::vector<LogicalInfo>& vec) {
+    LogicalInfo ele;
+    std::vector<Volume*>::const_iterator vit;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      ele.name_tag     = (*vit)->getName();
+      ele.shape_tag    = prefix_xmlfile + (*vit)->getName(); 
+      ele.material_tag = prefix_xmlfile + prefix_material + (*vit)->getName();
+      vec.push_back(ele);
+    }
+  }
+
+  void HybridVolumes::addPositionInfo(std::vector<PosInfo>& vec) {
+    PosInfo ele;
+    ele.copy = 1;
+    std::vector<Volume*>::const_iterator vit;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      ele.parent_tag = prefix_xmlfile + (*vit)->getParentName();
+      ele.child_tag  = prefix_xmlfile + (*vit)->getName();
+      ele.trans.dx   = (*vit)->getX();
+      ele.trans.dy   = (*vit)->getY();
+      ele.trans.dz   = (*vit)->getZ();
+      vec.push_back(ele);
+    }
+  }
+
+  void HybridVolumes::addMaterialInfo(std::vector<Composite>& vec) {
+    std::vector<Volume*>::const_iterator vit;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      (*vit)->print();
+      Composite comp;
+      comp.name    = prefix_material + (*vit)->getName();
+      comp.density = (*vit)->getDensity();
+      comp.method  = wt;
+
+      double m = 0.0;
+      for (std::map<std::string, double>::const_iterator it = modulecap.getLocalMasses().begin(); 
+                                                         it != modulecap.getLocalMasses().end(); ++it) {
+        if (it->first.compare(xml_sensor_silicon) != 0) {
+          comp.elements.push_back(*it);
+          m += it->second;
+        }
+      }
+   
+      for (std::map<std::string, double>::const_iterator it = modulecap.getExitingMasses().begin(); 
+                                                         it != modulecap.getExitingMasses().end(); ++it) {
+        if (it->first.compare(xml_sensor_silicon) != 0) {
+          std::pair<std::string, double> p = *it;
+          bool found = false;
+          std::vector<std::pair<std::string, double> >::iterator iter, guard = comp.elements.end();
+          for (iter = comp.elements.begin(); iter != guard; iter++) {
+            if (iter->first == p.first) {
+              found = true;
+              break;
+            }
+          }
+          if (found) iter->second = iter->second + p.second;
+          else comp.elements.push_back(p);
+          m += it->second; // mp.getExitingMass(i);
+        }
+      }
+      for (unsigned int i = 0; i < comp.elements.size(); i++)
+        comp.elements.at(i).second = comp.elements.at(i).second / m;
+      
+      vec.push_back(comp);
+    }
+  }
+
+  void HybridVolumes::print() const {
+    std::cout << "HybridVolumes::print():" << std::endl;
+    std::cout << "  Parent Module Name:" << moduleId << std::endl;
+    std::vector<Volume*>::const_iterator vit;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) (*vit)->print();
+  }
+#endif
 }
