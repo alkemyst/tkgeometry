@@ -40,6 +40,7 @@ using insur::MatCalc;
 
 
 namespace material {
+  static const std::string inactiveElementError = "Section without inactiveElement.";
 
   class MaterialObject;
   class ConversionStation;

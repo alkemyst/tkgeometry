@@ -140,11 +140,39 @@ namespace material {
             nullptr) {}
 
   Materialway::Section::Section(const Section& other) :
-    Section(other.minZ(),
-            other.minR(),
-            other.maxZ(),
-            other.maxR(),
-            other.bearing()) {} //attention, nextSection is not copied    
+    minZ_(other.minZ_),
+    minR_(other.minR_),
+    maxZ_(other.maxZ_),
+    maxR_(other.maxR_),
+    bearing_(other.bearing_),
+    nextSection_(nullptr),
+    inactiveElement_(nullptr), //attention, nextSection and inactiveElement are not copied
+    debug_(other.debug_),
+    materialObject_(other.materialObject_) {
+
+    double zLength = undiscretize(other.maxZ() - other.minZ());
+    double zOffset = undiscretize(other.minZ());
+    double innerRadius = undiscretize(other.minR());
+    double rWidth = undiscretize(other.maxR() - other.minR());
+
+    if (other.bearing() == HORIZONTAL) {
+      InactiveTube* tube = new InactiveTube;
+      tube->setZLength(zLength);
+      tube->setZOffset(zOffset);
+      tube->setInnerRadius(innerRadius);
+      tube->setRWidth(rWidth);
+      tube->setFinal(true);
+      inactiveElement(tube);
+    } else {
+      InactiveRing* ring = new InactiveRing;
+      ring->setZLength(zLength);
+      ring->setZOffset(zOffset);
+      ring->setInnerRadius(innerRadius);
+      ring->setRWidth(rWidth);
+      ring->setFinal(true);
+      inactiveElement(ring);
+    }
+  }
   
   Materialway::Section::~Section() {}
 
@@ -1362,21 +1390,23 @@ namespace material {
   }
  
   void Materialway::duplicateSections() {
+
     SectionVector negativeSections;
-    /*
+    
     for (Section* section : sectionsList_) {
       negativeSections.push_back(new Section(*section));
     }
-    */
     
+    /*
     std::for_each(sectionsList_.begin(), sectionsList_.end(), [negativeSections](Section* section) mutable {
         negativeSections.push_back(new Section(*section));
       });
-    
+    */  
     std::for_each(negativeSections.begin(), negativeSections.end(), [](Section* section){
         section->minZ(-1 * section->minZ());
         section->maxZ(-1 * section->maxZ());
       });
+
     sectionsList_.reserve(sectionsList_.size() + negativeSections.size());
     sectionsList_.insert(sectionsList_.end(), negativeSections.begin(), negativeSections.end());
   }
@@ -1399,7 +1429,7 @@ namespace material {
         weightDistribution.addTotalGrams(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, sectionLength, sectionArea, section->materialObject());
         */
       } else {
-        logERROR("Section without inactiveElement.");
+        logERROR(inactiveElementError);
       }
     }
 
@@ -1464,10 +1494,14 @@ namespace material {
           std::cout<<"ERRORE INT LEN"<<std::endl;
         }
         */
-        if((section->inactiveElement()->localMassCount() > 0) && (section->minZ() > 0)) {
+        if((section->inactiveElement()->localMassCount() > 0)) { // && (section->minZ() > 0)) {
           inactiveSurface.addBarrelServicePart(*section->inactiveElement());
           // inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
+        } else {
+          logERROR("Inactive element mass = 0.");
         }
+      } else {
+        logERROR(inactiveElementError);
       }
     }
     /*

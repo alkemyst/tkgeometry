@@ -32,6 +32,12 @@ namespace material {
       // sensorNode_ ("Sensor", parsedOnly()),
       materials_ (nullptr) {}
 
+  MaterialObject::MaterialObject(const MaterialObject& other) :
+    MaterialObject(other.materialType_) {
+    materials_ = other.materials_;
+    serviceElements_ = other.serviceElements_; //do shallow copies
+  }
+
   const std::string MaterialObject::getTypeString() const {
     auto mapIter = typeString.find(materialType_);
     if (mapIter != typeString.end()) {
@@ -151,13 +157,12 @@ namespace material {
   }
 
   void MaterialObject::populateMaterialProperties(MaterialProperties& materialProperties) const {
-    double quantity;
-
+    double quantity = 0;
+    
     for (const Element* currElement : serviceElements_) {
       //currElement.populateMaterialProperties(materialProperties);
       //populate directly because need to skip the control if is a service
       //TODO: check why componentName is not present in no Element
-
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);

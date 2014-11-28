@@ -37,6 +37,7 @@ namespace material {
     enum Type {MODULE, ROD, LAYER, SERVICE};
 
     MaterialObject(Type materialType);
+    MaterialObject(const MaterialObject& other);
     virtual ~MaterialObject() {};
 
     double totalGrams(double length, double surface) const;
