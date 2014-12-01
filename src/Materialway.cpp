@@ -1369,16 +1369,14 @@ namespace material {
       //int totE = 0;
       CapsVisitor() {}
       void visit(BarrelModule& m) {
-        ModuleCap* cap = new ModuleCap(&m);
+        ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::b_mod);
-        m.setModuleCap(cap);
         //mappaB[&m] = 0;
         //totB ++;
       }
       void visit(EndcapModule& m) {
-        ModuleCap* cap = new ModuleCap(&m);
+        ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::e_mod);
-        m.setModuleCap(cap);
         //mappaE[&m] = 0;
         //totE ++;
       }
