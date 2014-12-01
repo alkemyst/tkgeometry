@@ -109,6 +109,7 @@ namespace material {
       Property<std::string, NoDefault> unit;
       Property<bool, Default> debugInactivate;
       Property<std::string, NoDefault> destination;
+      Property<int, Default> targetVolume;
       PropertyNode<int> referenceSensorNode;
 
       Element();
