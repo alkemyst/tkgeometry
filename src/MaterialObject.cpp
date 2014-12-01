@@ -364,7 +364,6 @@ namespace material {
   */
 
   MaterialObject::Element::Element() :
-    destination ("destination", parsedOnly()),
     componentName ("componentName", parsedOnly()),
     //numStripsAcross("numStripsAcross", parsedOnly()),
     //numSegments("numSegments", parsedOnly()),
@@ -377,6 +376,8 @@ namespace material {
     quantity ("quantity", parsedAndChecked()),
     unit ("unit", parsedAndChecked()),
     debugInactivate ("debugInactivate", parsedOnly(), false),
+    destination ("destination", parsedOnly()),
+    targetVolume ("targetVolume", parsedOnly(), 0),
     materialTab_ (MaterialTab::instance()) {};
 
   MaterialObject::Element::Element(const Element& original, double multiplier) : Element() {
