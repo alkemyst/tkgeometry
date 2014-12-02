@@ -660,35 +660,48 @@ namespace material {
 
         //find attach point
         if(endcapConversionStation_->valid()) {
-          attachPoint = discretize((endcapConversionStation_->maxZ_() + endcapConversionStation_->minZ_()) /2);
-         
-          while(section->maxZ() < attachPoint + sectionTolerance) {
-            if(!section->hasNextSection()) {
-              //TODO: messaggio di errore
-              return;
+          bool alreadyBuilt = false;
+          
+          //check if the station is already built
+          for (auto& existentStation : stationListSecond_) {
+            if (existentStation->conversionStation().stationName_().compare(endcapConversionStation_->stationName_()) == 0) {
+              alreadyBuilt = true;
+              break;
             }
-            section = section->nextSection();
           }
 
-          if (section->minZ() < attachPoint - sectionTolerance) {
-            splitSection(section, attachPoint);
+          if (! alreadyBuilt) {
+
+            attachPoint = discretize((endcapConversionStation_->maxZ_() + endcapConversionStation_->minZ_()) /2);
+         
+            while(section->maxZ() < attachPoint + sectionTolerance) {
+              if(!section->hasNextSection()) {
+                //TODO: messaggio di errore
+                return;
+              }
+              section = section->nextSection();
+            }
+
+            if (section->minZ() < attachPoint - sectionTolerance) {
+              splitSection(section, attachPoint);
+            }
+
+            stationMinZ = discretize(endcapConversionStation_->minZ_());
+            stationMinR = section->maxR() + safetySpace;
+            stationMaxZ = discretize(endcapConversionStation_->maxZ_());
+            stationMaxR = stationMinR + layerStationLenght;
+
+            if(!section->hasNextSection()) {
+              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
+            } else {
+              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
+            }
+
+            section->nextSection(station);
+
+            sectionsList_.push_back(station);
+            stationListSecond_.push_back(station);
           }
-
-          stationMinZ = discretize(endcapConversionStation_->minZ_());
-          stationMinR = section->maxR() + safetySpace;
-          stationMaxZ = discretize(endcapConversionStation_->maxZ_());
-          stationMaxR = stationMinR + layerStationLenght;
-
-          if(!section->hasNextSection()) {
-            station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
-          } else {
-            station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
-          }
-
-          section->nextSection(station);
-
-          sectionsList_.push_back(station);
-          stationListSecond_.push_back(station);
         }
 
         /*
