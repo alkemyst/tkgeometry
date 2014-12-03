@@ -37,6 +37,7 @@ namespace material {
         //check if is a comment
         if (material[0] != '#') {
           lineStream >> density >> radiationLength >> interactionLength;
+          density *= 1000; // convert g/cm3 in g/mm3
           insert(make_pair(material, make_tuple(density, radiationLength, interactionLength)));
         }
 
