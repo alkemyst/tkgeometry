@@ -24,6 +24,7 @@ namespace insur {
         ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::b_mod);
         capsbarrelmods_.back().push_back(*cap);
+	m.setModuleCap(& (capsbarrelmods_.back().back()));
 		*/
         capsbarrelmods_.back().push_back(*m.getModuleCap());
       }
@@ -33,6 +34,7 @@ namespace insur {
         ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::e_mod);
         capsendmods_.back().push_back(*cap);
+        m.setModuleCap(& (capsendmods_.back().back()));
 		*/
         capsendmods_.back().push_back(*m.getModuleCap());
       }
