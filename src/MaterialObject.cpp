@@ -473,11 +473,11 @@ namespace material {
       }
       
       if      ((desiredUnitVal == GRAMS) && (elementUnitVal == GRAMS_METER))
-        returnVal = quantity() * length / 1000;
+        returnVal = quantity() * length / 1000.;
       else if ((desiredUnitVal == GRAMS) && (elementUnitVal == MILLIMETERS))
-        returnVal = quantity() * density * length;
+        returnVal = quantity() * density * surface;
       else if ((desiredUnitVal == GRAMS_METER) && (elementUnitVal == MILLIMETERS))
-        returnVal = quantity() * (density * length * 1000)/surface;
+        returnVal = quantity() * (density * surface * 1000.) / length;
 
       if (invert)
         returnVal = 1 / returnVal;
