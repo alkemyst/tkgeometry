@@ -123,10 +123,12 @@ namespace material {
       //void chargeTrain(Materialway::Train& train) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
-      double quantityInGrams(double length, double surface) const;
+      double quantityInGrams(const double length, const double surface) const;
+      double quantityInUnit(const std::string desiredUnit, const MaterialProperties& materialProperties) const;
+      double quantityInUnit(const std::string desiredUnit, const double length, const double surface) const;
       double totalGrams(const DetectorModule& module) const;
       double totalGrams(const MaterialProperties& materialProperties) const;
-      double totalGrams(double length, double surface) const;
+      double totalGrams(const double length, const double surface) const;
       double scalingMultiplier() const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
