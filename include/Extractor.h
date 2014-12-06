@@ -79,12 +79,12 @@ namespace insur {
     int Z(double x0, double A);
   };
 
-#if 1
-
+#if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
   // For flipping one of sensors
   // This should be moved to tk2CMSSW_strings.h at some point.
   static const std::string rot_sensor_tag = "SensorFlip";
-
+#endif
+#ifdef __ADDVOLUMES__
   class HybridVolumes {
     public :
      HybridVolumes(std::string moduleName, ModuleCap& modcap);
@@ -97,8 +97,20 @@ namespace insur {
      void print() const;
 
      const double getHybridWidth() const { return hybridWidth; }
+     double getHybridTotalVolume_mm3() const { return hybridTotalVolume_mm3; }
+     void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
     private :
+      static const int All;
+      static const int InSens;
+      static const int OtSens;
+      static const int Front;
+      static const int Back;
+      static const int Left;
+      static const int Right;
+      static const int Between;
+      static const int nTypes;
+      static const double kmm3Tocm3;
 
       class Volume {
         public :
@@ -112,8 +124,9 @@ namespace insur {
                                                           fx(posx),
                                                           fy(posy),
                                                           fz(posz),
-                                                          fdxyz(dx*dy*dz),
-                                                          fdensity(-1.){}
+                                                          fdxyz(dx*dy*dz*kmm3Tocm3), // mm3 to cm3
+                                                          fdensity(-1.),
+                                                          fmass(0.){}
 
           const double      getVolume()    const { return fdxyz; }
           const double      getDx()        const { return fdx;   }
@@ -125,10 +138,18 @@ namespace insur {
           const std::string getName()      const { return fname; }
           const std::string getParentName()const { return fparentname; }
 
-          double getDensity() const { return fdensity; }
-          double setDensity( double density ) { fdensity = density; }
-          void print() const { if (fdensity<0.) std::cout << "!!! Error : please call assignMassToVolumes beforehand to set the density." << std:: endl; 
-                               else             std::cout << "   " << fname << " volume=" << fdxyz << " mm3, density=" << fdensity << " g/cm3" <<std::endl; }
+          double getDensity() {
+            if ( fdensity < 0. ) fdensity = fmass/fdxyz;
+            return fdensity;
+          }
+          const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
+          void   addMaterial( std::string tag, double val ) { fmatlist[tag] += val; }
+          void   addMass( double dm ) { fmass += dm; }
+          void print() const { 
+            if (fdensity<0.) std::cout << "!!! Error : please call setDensity() before print()." << std:: endl; 
+            else             std::cout << "   " << fname << " mass =" << fmass 
+                                       <<" volume=" << fdxyz << " cm3, density=" << fdensity << " g/cm3" <<std::endl; 
+          }
         private :
           std::string  fname;
           std::string  fparentname;
@@ -136,6 +157,8 @@ namespace insur {
           const double fx,fy,fz;
           const double fdxyz;
           double       fdensity;
+          double       fmass;
+          std::map<std::string, double> fmatlist;
       };
 
       ModuleCap&           modulecap;
@@ -147,7 +170,8 @@ namespace insur {
       const double         modLength; // Sensor length
       const double         hybridWidth;
       const double         hybridThickness;
-            double         hybridMass;
+            double         hybridTotalMass;
+            double         hybridTotalVolume_mm3;
       const std::string    prefix_xmlfile;
       const std::string    prefix_material;
   };
