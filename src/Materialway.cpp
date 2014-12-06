@@ -123,10 +123,57 @@ namespace material {
     materialObject_ (MaterialObject::SERVICE) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection) :
-    Section(minZ, minR, maxZ, maxR, bearing, nextSection, false) {}
+    Section(minZ,
+            minR,
+            maxZ,
+            maxR,
+            bearing,
+            nextSection,
+            false) {}
 
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing) :
-    Section(minZ, minR, maxZ, maxR, bearing, nullptr) {}
+    Section(minZ,
+            minR,
+            maxZ,
+            maxR,
+            bearing,
+            nullptr) {}
+
+  Materialway::Section::Section(const Section& other) :
+    minZ_(other.minZ_),
+    minR_(other.minR_),
+    maxZ_(other.maxZ_),
+    maxR_(other.maxR_),
+    bearing_(other.bearing_),
+    nextSection_(nullptr),
+    inactiveElement_(nullptr), //attention, nextSection and inactiveElement are not copied
+    debug_(other.debug_),
+    materialObject_(other.materialObject_) {
+
+    double zLength = undiscretize(other.maxZ() - other.minZ());
+    double zOffset = undiscretize(other.minZ());
+    double innerRadius = undiscretize(other.minR());
+    double rWidth = undiscretize(other.maxR() - other.minR());
+
+    if (other.bearing() == HORIZONTAL) {
+      InactiveTube* tube = new InactiveTube;
+      tube->setZLength(zLength);
+      tube->setZOffset(zOffset);
+      tube->setInnerRadius(innerRadius);
+      tube->setRWidth(rWidth);
+      tube->setFinal(true);
+      inactiveElement(tube);
+    } else {
+      InactiveRing* ring = new InactiveRing;
+      ring->setZLength(zLength);
+      ring->setZOffset(zOffset);
+      ring->setInnerRadius(innerRadius);
+      ring->setRWidth(rWidth);
+      ring->setFinal(true);
+      inactiveElement(ring);
+    }
+  }
+  
   Materialway::Section::~Section() {}
 
   int Materialway::Section::isHit(int z, int r, int end, Direction aDirection) const {
@@ -613,35 +660,48 @@ namespace material {
 
         //find attach point
         if(endcapConversionStation_->valid()) {
-          attachPoint = discretize((endcapConversionStation_->maxZ_() + endcapConversionStation_->minZ_()) /2);
-         
-          while(section->maxZ() < attachPoint + sectionTolerance) {
-            if(!section->hasNextSection()) {
-              //TODO: messaggio di errore
-              return;
+          bool alreadyBuilt = false;
+          
+          //check if the station is already built
+          for (auto& existentStation : stationListSecond_) {
+            if (existentStation->conversionStation().stationName_().compare(endcapConversionStation_->stationName_()) == 0) {
+              alreadyBuilt = true;
+              break;
             }
-            section = section->nextSection();
           }
 
-          if (section->minZ() < attachPoint - sectionTolerance) {
-            splitSection(section, attachPoint);
+          if (! alreadyBuilt) {
+
+            attachPoint = discretize((endcapConversionStation_->maxZ_() + endcapConversionStation_->minZ_()) /2);
+         
+            while(section->maxZ() < attachPoint + sectionTolerance) {
+              if(!section->hasNextSection()) {
+                //TODO: messaggio di errore
+                return;
+              }
+              section = section->nextSection();
+            }
+
+            if (section->minZ() < attachPoint - sectionTolerance) {
+              splitSection(section, attachPoint);
+            }
+
+            stationMinZ = discretize(endcapConversionStation_->minZ_());
+            stationMinR = section->maxR() + safetySpace;
+            stationMaxZ = discretize(endcapConversionStation_->maxZ_());
+            stationMaxR = stationMinR + layerStationLenght;
+
+            if(!section->hasNextSection()) {
+              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
+            } else {
+              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
+            }
+
+            section->nextSection(station);
+
+            sectionsList_.push_back(station);
+            stationListSecond_.push_back(station);
           }
-
-          stationMinZ = discretize(endcapConversionStation_->minZ_());
-          stationMinR = section->maxR() + safetySpace;
-          stationMaxZ = discretize(endcapConversionStation_->maxZ_());
-          stationMaxR = stationMinR + layerStationLenght;
-
-          if(!section->hasNextSection()) {
-            station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
-          } else {
-            station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
-          }
-
-          section->nextSection(station);
-
-          sectionsList_.push_back(station);
-          stationListSecond_.push_back(station);
         }
 
         /*
@@ -962,6 +1022,8 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end secondStepConversions" << std::endl;
     createModuleCaps(tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end createModuleCaps" << std::endl;
+    duplicateSections();
+    std::cout << "TIME " << difftime(time(0), startTime) << " end duplicateSections" << std::endl;
     populateAllMaterialProperties(tracker, weightDistribution);
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
     //calculateMaterialValues(tracker);
@@ -1320,16 +1382,14 @@ namespace material {
       //int totE = 0;
       CapsVisitor() {}
       void visit(BarrelModule& m) {
-        ModuleCap* cap = new ModuleCap(&m);
+        ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::b_mod);
-        m.setModuleCap(cap);
         //mappaB[&m] = 0;
         //totB ++;
       }
       void visit(EndcapModule& m) {
-        ModuleCap* cap = new ModuleCap(&m);
+        ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::e_mod);
-        m.setModuleCap(cap);
         //mappaE[&m] = 0;
         //totE ++;
       }
@@ -1340,6 +1400,27 @@ namespace material {
     //std::cout << "Barrel " << v.mappaB.size() << " = " << v.totB << "  ----  Endcap " << v.mappaE.size() << " = " << v.totE << std::endl;
   }
  
+  void Materialway::duplicateSections() {
+
+    SectionVector negativeSections;
+    
+    for (Section* section : sectionsList_) {
+      negativeSections.push_back(new Section(*section));
+    }
+    
+    /*
+    std::for_each(sectionsList_.begin(), sectionsList_.end(), [negativeSections](Section* section) mutable {
+        negativeSections.push_back(new Section(*section));
+      });
+    */  
+    std::for_each(negativeSections.begin(), negativeSections.end(), [](Section* section){
+        section->minZ(-1 * section->minZ());
+        section->maxZ(-1 * section->maxZ());
+      });
+
+    sectionsList_.reserve(sectionsList_.size() + negativeSections.size());
+    sectionsList_.insert(sectionsList_.end(), negativeSections.begin(), negativeSections.end());
+  }
 
   void Materialway::populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution) {
     //sections
@@ -1358,6 +1439,8 @@ namespace material {
         double sectionArea = sectionLength * 2 * M_PI * sectionMinR;
         weightDistribution.addTotalGrams(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, sectionLength, sectionArea, section->materialObject());
         */
+      } else {
+        logERROR(inactiveElementError);
       }
     }
 
@@ -1422,10 +1505,14 @@ namespace material {
           std::cout<<"ERRORE INT LEN"<<std::endl;
         }
         */
-        if((section->inactiveElement()->localMassCount() > 0) && (section->minZ() > 0)) {
+        if((section->inactiveElement()->localMassCount() > 0)) { // && (section->minZ() > 0)) {
           inactiveSurface.addBarrelServicePart(*section->inactiveElement());
-          inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
+          // inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
+        } else {
+          logERROR("Inactive element mass = 0.");
         }
+      } else {
+        logERROR(inactiveElementError);
       }
     }
     /*
@@ -1464,6 +1551,7 @@ namespace material {
     tracker.accept(visitor);
   }
 
+  /*
   InactiveElement* Materialway::buildOppositeInactiveElement(InactiveElement* inactiveElement) {
     InactiveElement* newInactiveElement = new InactiveElement();
     newInactiveElement->setVertical(inactiveElement->isVertical());
@@ -1477,6 +1565,7 @@ namespace material {
 
     return newInactiveElement;
   }
+  */
 
   //END Materialway
 

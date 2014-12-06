@@ -56,7 +56,8 @@ namespace material {
           inputElement = currConversion->input->elements[0];
           if (inputElement->elementName().compare(currElement->elementName()) == 0) {
             converted = true;
-            multiplier = currElement->quantityInGrams(inactiveElement) / inputElement->quantityInGrams(inactiveElement);
+            multiplier = currElement->quantityInUnit(inputElement->unit(), inactiveElement) / 
+              inputElement->quantityInUnit(inputElement->unit(), inactiveElement);
           
             for (const MaterialObject::Element* outputElement : currConversion->outputs->elements) {
               MaterialObject::Element * newElement = new MaterialObject::Element(*outputElement, multiplier);

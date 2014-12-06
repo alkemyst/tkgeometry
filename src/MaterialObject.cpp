@@ -32,6 +32,12 @@ namespace material {
       // sensorNode_ ("Sensor", parsedOnly()),
       materials_ (nullptr) {}
 
+  MaterialObject::MaterialObject(const MaterialObject& other) :
+    MaterialObject(other.materialType_) {
+    materials_ = other.materials_;
+    serviceElements_ = other.serviceElements_; //do shallow copies
+  }
+
   const std::string MaterialObject::getTypeString() const {
     auto mapIter = typeString.find(materialType_);
     if (mapIter != typeString.end()) {
@@ -151,13 +157,12 @@ namespace material {
   }
 
   void MaterialObject::populateMaterialProperties(MaterialProperties& materialProperties) const {
-    double quantity;
-
+    double quantity = 0;
+    
     for (const Element* currElement : serviceElements_) {
       //currElement.populateMaterialProperties(materialProperties);
       //populate directly because need to skip the control if is a service
       //TODO: check why componentName is not present in no Element
-
       
       if (currElement->debugInactivate() == false) {
         quantity = currElement->totalGrams(materialProperties);
@@ -397,35 +402,88 @@ namespace material {
   };
 
   double MaterialObject::Element::quantityInGrams(const DetectorModule& module) const {
-    return quantityInGrams(module.length(), module.area());
+    return quantityInUnit("g", module.length(), module.area());
   }
 
   double MaterialObject::Element::quantityInGrams(const MaterialProperties& materialProperties) const {
-    return quantityInGrams(materialProperties.getLength(), materialProperties.getSurface());
+    return quantityInUnit("g", materialProperties.getLength(), materialProperties.getSurface());
   }
 
-  double MaterialObject::Element::quantityInGrams(double length, double surface) const {
-    double returnVal;
+  double MaterialObject::Element::quantityInGrams(const double length, const double surface) const {
+    return quantityInUnit("g", length, surface);
+  }
+
+  double MaterialObject::Element::quantityInUnit(const std::string desiredUnit, const MaterialProperties& materialProperties) const {
+    return quantityInUnit(desiredUnit, materialProperties.getLength(), materialProperties.getSurface());
+  }
+
+  /**
+   * return the quantity in the desired unit quantity
+   * @param desiredUnit the desired unit, one between 'g', 'g/m', 'mm'
+   * @param length the length in mm
+   * @param surface the surface in mm^2
+   */
+     
+  double MaterialObject::Element::quantityInUnit(const std::string desiredUnit, const double length, const double surface) const {
+    double returnVal = 0;
+    double density = materialTab_.density(elementName());
+    bool invert;
+    Unit desiredUnitVal, elementUnitVal, tempUnit;
+
+    //Conversion matrix:
+    //            g              g/m                 mm
+    //      __________________________________________________
+    //  g  |      1             l/1000            rho*S       |
+    // g/m |    1000/l            1           (rho*S*1000)/l  |
+    //  mm |   1/(rho*S)    l/(rho*S*1000)          1         |
+    //
+    // rows:    desired unit
+    // columns: original unit
+    // l:       length
+    // rho:     density
+    // S:       surface
+
+    /*
+    std::map<std::pair<Unit, Unit>, double> conversionMatrix = {
+      {{GRAMS, GRAMS}, 1}, {{GRAMS, GRAMS_METER}, length/1000}, {{GRAMS, MILLIMETERS}, density*surface},
+      {{GRAMS_METER, GRAMS}, 1000/length}, {{GRAMS_METER, GRAMS_METER}, 1}, {{GRAMS_METER, MILLIMETERS}, (density*surface*1000)/length},
+      {{MILLIMETERS, GRAMS}, 1/(density*surface)}, {{MILLIMETERS, GRAMS_METER}, length/(density*surface*1000)}, {{MILLIMETERS, MILLIMETERS}, 1}
+    };
+
     try {
-      switch (unitStringMap.at(unit())) {
-      case Element::GRAMS:
-        returnVal = quantity();
-        break;
-
-      case Element::GRAMS_METER:
-        returnVal = length * quantity() / 1000.0;
-        break;
-
-      case Element::MILLIMETERS:
-        std::string elementNameString = elementName();
-        double elementDensity = materialTab_.density(elementNameString);
-        returnVal = elementDensity * surface * quantity() / 1000.0;
-        break;
-      }
+      returnVal = quantity() * conversionMatrix.at({unitStringMap.at(desiredUnit), unitStringMap.at(unit())});
     } catch (const std::out_of_range& ex) {
-      logERROR(msg_no_valid_unit + unit());
+      logERROR(msg_no_valid_unit + unit() + ", " + desiredUnit + ".");
     }
+    */
 
+    try {
+      desiredUnitVal = unitStringMap.at(desiredUnit);
+      elementUnitVal = unitStringMap.at(unit());
+      
+      if (desiredUnitVal == elementUnitVal) {
+        return quantity();
+      } else if (desiredUnitVal > elementUnitVal) {
+        invert = true;
+        tempUnit = desiredUnitVal;
+        desiredUnitVal = elementUnitVal;
+        elementUnitVal = tempUnit;
+      } else {
+        invert = false;
+      }
+      
+      if      ((desiredUnitVal == GRAMS) && (elementUnitVal == GRAMS_METER))
+        returnVal = quantity() * length / 1000.;
+      else if ((desiredUnitVal == GRAMS) && (elementUnitVal == MILLIMETERS))
+        returnVal = quantity() * density * surface;
+      else if ((desiredUnitVal == GRAMS_METER) && (elementUnitVal == MILLIMETERS))
+        returnVal = quantity() * (density * surface * 1000.) / length;
+
+      if (invert)
+        returnVal = 1 / returnVal;
+    } catch (const std::out_of_range& ex) {
+      logERROR(msg_no_valid_unit + unit() + ", " + desiredUnit + ".");
+    }
     return returnVal;
   }
 

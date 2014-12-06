@@ -40,6 +40,7 @@ using insur::MatCalc;
 
 
 namespace material {
+  static const std::string inactiveElementError = "Section without inactiveElement.";
 
   class MaterialObject;
   class ConversionStation;
@@ -97,6 +98,7 @@ namespace material {
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection);
       Section(int minZ, int minR, int maxZ, int maxR, Direction bearing);
+      Section(const Section& other);
       virtual ~Section();
 
       int isHit(int z, int r, int end, Direction aDirection) const;
@@ -305,11 +307,12 @@ namespace material {
     void firstStepConversions();
     void secondStepConversions();
     void createModuleCaps(Tracker& tracker);
+    void duplicateSections();
     void populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution);
     //void calculateMaterialValues(Tracker& tracker);
     void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
     void calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker);
-    InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);
+    //InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);
 
 
     BarrelBoundaryMap barrelBoundaryAssociations_;
