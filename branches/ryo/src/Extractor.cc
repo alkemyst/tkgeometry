@@ -5,7 +5,7 @@
 
 
 #define __ADDVOLUMES__
-#define __FLIPSENSORS_OUT__
+//#define __FLIPSENSORS_OUT__
 //#define __FLIPSENSORS_IN__
 
 #include <Extractor.h>
@@ -1860,6 +1860,19 @@ namespace insur {
   }
 
 #ifdef __ADDVOLUMES__ 
+  // These value should be consistent with 
+  // the configuration file
+  const int HybridVolumes::All     = 0; 
+  const int HybridVolumes::InSens  = 1; 
+  const int HybridVolumes::OtSens  = 2; 
+  const int HybridVolumes::Front   = 3; 
+  const int HybridVolumes::Back    = 4; 
+  const int HybridVolumes::Left    = 5; 
+  const int HybridVolumes::Right   = 6; 
+  const int HybridVolumes::Between = 7; 
+  const int HybridVolumes::nTypes  = 8; 
+  const double HybridVolumes::kmm3Tocm3 = 1e-3; 
+
   HybridVolumes::HybridVolumes(std::string moduleName,
                                ModuleCap&  modcap     ) : moduleId(moduleName),
                                                           modulecap(modcap),
@@ -1869,20 +1882,10 @@ namespace insur {
                                                           modThickness(module.thickness()),
                                                           hybridWidth(module.hybridWidth()),
                                                           hybridThickness(module.hybridThickness()),
+                                                          hybridTotalMass(0.),
+                                                          hybridTotalVolume_mm3(-1.),
                                                           prefix_xmlfile("tracker:"),
                                                           prefix_material("hybridcomposite") {
-    ElementsVector matElements = module.getLocalElements();
-    ElementsVector::const_iterator meit;
-    float mass_wo_sensor = 0.;
-    float mass_tot = 0.;
-    for (meit = matElements.begin(); meit != matElements.end(); meit++) {
-       const MaterialObject::Element* el = *meit;
-       if (el->componentName()!="Sensor") mass_wo_sensor += el->quantity();
-       else mass_tot += el->quantity();
-    }
-    mass_tot += mass_wo_sensor;
-    hybridMass = mass_wo_sensor;
-
   }
 
   HybridVolumes::~HybridVolumes() {
@@ -1891,16 +1894,29 @@ namespace insur {
   }
 
   void HybridVolumes::buildVolumes() {
-  //  ------------------------
-  //  |          L           |
-  //  ------------------------     y
-  //  |  |                |  |     ^
-  //  |B |     Between    | F|     |
-  //  |  |                |  |     |----> x
-  //  ------------------------
-  //  |          R           |
-  //  ------------------------
-    Volume* vol;
+  //  Top View
+  //  ------------------------------
+  //  |            L(5)            |  
+  //  |----------------------------|     y
+  //  |     |                |     |     ^
+  //  |B(4) |     Between    | F(3)|     |
+  //  |     |       (7)      |     |     |----> x
+  //  |----------------------------|
+  //  |            R(6)            |     
+  //  ------------------------------     
+  //                                            z
+  //  Side View              OuterSensor(2)     ^
+  //         ----------------                   |
+  //  ====== ================ ====== Hybrids    |----> x
+  //         ---------------- 
+  //                         InnerSensor(1)
+  //
+    Volume* vol[nTypes];
+    //Unused pointers
+    vol[All]    = 0;
+    vol[InSens] = 0;
+    vol[OtSens] = 0;
+
     double dx = hybridWidth;              
     double dy = modLength; 
     double dz = hybridThickness;  
@@ -1908,15 +1924,13 @@ namespace insur {
     double posy = 0.;
     double posz = 0.;
     // FrontSide Volume
-    vol = new Volume(moduleId+"FSide",moduleId,dx,dy,dz,posx,posy,posz);
-    volumes.push_back(vol);
+    vol[Front] = new Volume(moduleId+"FSide",moduleId,dx,dy,dz,posx,posy,posz);
 
     posx = -(modWidth+hybridWidth)/2.;
     posy = 0.;
     posz = 0.;
     // BackSide Volume
-    vol = new Volume(moduleId+"BSide",moduleId,dx,dy,dz,posx,posy,posz);
-    volumes.push_back(vol);
+    vol[Back] = new Volume(moduleId+"BSide",moduleId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth+2*hybridWidth;  
     dy = hybridWidth;
@@ -1924,33 +1938,62 @@ namespace insur {
     posy = (modLength+hybridWidth)/2.;
     posz = 0.;
     // LeftSide Volume
-    vol = new Volume(moduleId+"LSide",moduleId,dx,dy,dz,posx,posy,posz);
-    volumes.push_back(vol);
+    vol[Left] = new Volume(moduleId+"LSide",moduleId,dx,dy,dz,posx,posy,posz);
 
     posx = 0.;
     posy = -(modLength+hybridWidth)/2.;
     posz = 0.;
     // RightSide Volume
-    vol = new Volume(moduleId+"RSide",moduleId,dx,dy,dz,posx,posy,posz);
-    volumes.push_back(vol);
+    vol[Right] = new Volume(moduleId+"RSide",moduleId,dx,dy,dz,posx,posy,posz);
 
-#if 0
-    dx = (modWidth -2*hybridWidth); 
-    dy = (modLength-2*hybridWidth); 
+    dx = (modWidth); 
+    dy = (modLength); 
     posx = 0.;
     posy = 0.;
     posz = 0.;
     // Between Volume
-    vol = new Volume(moduleId+"Between",moduleId,dx,dy,dz,posx,posy,posz);
-    volumes.push_back(vol);
-#endif
+    vol[Between] = new Volume(moduleId+"Between",moduleId,dx,dy,dz,posx,posy,posz);
 
-    std::vector<Volume*>::const_iterator vit;
-    double totalvolume_mm3 = 0.;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) totalvolume_mm3 += (*vit)->getVolume();
-    const double kmm3Tocm3 = 1.e-3;
-    const double totalvolume_cm3 = totalvolume_mm3*kmm3Tocm3;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) (*vit)->setDensity(hybridMass/totalvolume_cm3);
+    ElementsVector matElements = module.getLocalElements();
+    ElementsVector::const_iterator meit;
+    for (meit = matElements.begin(); meit != matElements.end(); meit++) {
+       const MaterialObject::Element* el = *meit;
+       if ( el->componentName() == "Sensor") continue; // Only for hybrids
+
+       if ( el->targetVolume() == Front ||
+            el->targetVolume() == Back  ||
+            el->targetVolume() == Left  ||
+            el->targetVolume() == Right ) {
+          vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
+       } else if ( el->targetVolume() == All ) { // Uniformly Distribute
+          vol[Front]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[Back]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[Left]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[Right]->addMaterial(el->elementName(),el->quantityInGrams(module));
+
+          if (hybridTotalVolume_mm3 < 0) { // Need only once
+            hybridTotalVolume_mm3 = vol[Front]->getVolume()
+                                  + vol[Back]->getVolume()
+                                  + vol[Left]->getVolume()
+                                  + vol[Right]->getVolume();
+          }
+
+          // Uniform density distribution and consistent with total mass
+          vol[Front]->addMass(el->quantity()*vol[Front]->getVolume()/hybridTotalVolume_mm3); 
+          vol[Back]->addMass(el->quantity()*vol[Back]->getVolume()/hybridTotalVolume_mm3);   
+          vol[Left]->addMass(el->quantity()*vol[Left]->getVolume()/hybridTotalVolume_mm3);   
+          vol[Right]->addMass(el->quantity()*vol[Right]->getVolume()/hybridTotalVolume_mm3);
+       }
+    }
+
+
+    volumes.push_back(vol[Front]);
+    volumes.push_back(vol[Back]);
+    volumes.push_back(vol[Left]);
+    volumes.push_back(vol[Right]);
+    volumes.push_back(vol[Between]);
+
   }
 
   void HybridVolumes::addShapeInfo(std::vector<ShapeInfo>& vec) {
@@ -1958,6 +2001,7 @@ namespace insur {
     ele.type = bx; // Box 
     std::vector<Volume*>::const_iterator vit;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      if ( !((*vit)->getDensity()>0.) ) continue; 
       ele.name_tag = (*vit)->getName();
       ele.dx = (*vit)->getDx()/2.; // half length
       ele.dy = (*vit)->getDy()/2.; // half length
@@ -1970,6 +2014,7 @@ namespace insur {
     LogicalInfo ele;
     std::vector<Volume*>::const_iterator vit;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      if ( !((*vit)->getDensity()>0.) ) continue; 
       ele.name_tag     = (*vit)->getName();
       ele.shape_tag    = prefix_xmlfile + (*vit)->getName(); 
       ele.material_tag = prefix_xmlfile + prefix_material + (*vit)->getName();
@@ -1982,6 +2027,7 @@ namespace insur {
     ele.copy = 1;
     std::vector<Volume*>::const_iterator vit;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      if ( !((*vit)->getDensity()>0.) ) continue; 
       ele.parent_tag = prefix_xmlfile + (*vit)->getParentName();
       ele.child_tag  = prefix_xmlfile + (*vit)->getName();
       ele.trans.dx   = (*vit)->getX();
@@ -1994,44 +2040,26 @@ namespace insur {
   void HybridVolumes::addMaterialInfo(std::vector<Composite>& vec) {
     std::vector<Volume*>::const_iterator vit;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
-      (*vit)->print();
+      if ( !((*vit)->getDensity()>0.) ) continue; 
       Composite comp;
       comp.name    = prefix_material + (*vit)->getName();
       comp.density = (*vit)->getDensity();
       comp.method  = wt;
 
       double m = 0.0;
-      for (std::map<std::string, double>::const_iterator it = modulecap.getLocalMasses().begin(); 
-                                                         it != modulecap.getLocalMasses().end(); ++it) {
-        if (it->first.compare(xml_sensor_silicon) != 0) {
+      for (std::map<std::string, double>::const_iterator it = (*vit)->getMaterialList().begin(); 
+                                                         it != (*vit)->getMaterialList().end(); ++it) {
           comp.elements.push_back(*it);
           m += it->second;
-        }
       }
    
-      for (std::map<std::string, double>::const_iterator it = modulecap.getExitingMasses().begin(); 
-                                                         it != modulecap.getExitingMasses().end(); ++it) {
-        if (it->first.compare(xml_sensor_silicon) != 0) {
-          std::pair<std::string, double> p = *it;
-          bool found = false;
-          std::vector<std::pair<std::string, double> >::iterator iter, guard = comp.elements.end();
-          for (iter = comp.elements.begin(); iter != guard; iter++) {
-            if (iter->first == p.first) {
-              found = true;
-              break;
-            }
-          }
-          if (found) iter->second = iter->second + p.second;
-          else comp.elements.push_back(p);
-          m += it->second; // mp.getExitingMass(i);
-        }
-      }
       for (unsigned int i = 0; i < comp.elements.size(); i++)
         comp.elements.at(i).second = comp.elements.at(i).second / m;
       
       vec.push_back(comp);
     }
   }
+
 
   void HybridVolumes::print() const {
     std::cout << "HybridVolumes::print():" << std::endl;
