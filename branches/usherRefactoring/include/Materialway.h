@@ -138,10 +138,10 @@ namespace material {
       Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation);
       virtual ~Station();
 
-      enum Type { LAYER, TERMINUS };
-      struct ConversionRule {
+      // enum Type { LAYER, TERMINUS };
+      /*struct ConversionRule {
 
-      };
+        };*/
 
       virtual void getServicesAndPass(const MaterialObject& source);
 
@@ -310,7 +310,7 @@ namespace material {
     void duplicateSections();
     void populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution);
     //void calculateMaterialValues(Tracker& tracker);
-    void buildInactiveSurface(InactiveSurfaces& inactiveSurface);
+    void buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface);
     void calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker);
     //InactiveElement* buildOppositeInactiveElement(InactiveElement* inactiveElement);
 
