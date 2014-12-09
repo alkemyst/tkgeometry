@@ -138,7 +138,6 @@ namespace material {
         for(const Layer& layer : barrel.layers()) {
           layerRadiuses.insert(layer.minR() - autoLayerMarginUpper);
           layerRadiuses.insert(layer.maxR() + autoLayerMarginLower);
-          std::cout << "Inserted: " << layer.minR() << "-" << autoLayerMarginUpper << "; " << layer.maxR() << "+" << autoLayerMarginLower << std::endl;
         }
 
         if(layerRadiuses.size() < 4) {
@@ -162,7 +161,6 @@ namespace material {
         
           populateMaterialProperties(*inactiveElement);
           inactiveElements.push_back(inactiveElement);
-          std::cout << "Built " << *minIter << "; " << *maxIter << std::endl;
         }
       } else {
         logERROR("Property autoPosition not set.");
