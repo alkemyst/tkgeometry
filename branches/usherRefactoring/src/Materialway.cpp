@@ -1506,13 +1506,13 @@ namespace material {
     
       void visit (Tracker& tracker) {
         for (auto& supportStructure : tracker.supportStructures()) {
-          inactiveSurface_.addSupportPart(*supportStructure.inactiveElement());
+          supportStructure.updateInactiveSurfaces(inactiveSurface_);
         }
       }
       
       void visit (Barrel& barrel) {
         for (auto& supportStructure : barrel.supportStructures()) {
-          inactiveSurface_.addSupportPart(*supportStructure.inactiveElement());
+          supportStructure.updateInactiveSurfaces(inactiveSurface_);
         }
       }
     };

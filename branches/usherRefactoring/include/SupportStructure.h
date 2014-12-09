@@ -11,13 +11,18 @@
 #include <vector>
 #include <string>
 #include "Property.h"
+#include "global_constants.h"
 
 namespace insur {
   class MaterialProperties;
   class InactiveElement;
+  class InactiveSurfaces;
 }
 using insur::MaterialProperties;
 using insur::InactiveElement;
+using insur::InactiveSurfaces;
+
+class Barrel;
 
 namespace material {
   class MaterialTab;
@@ -46,21 +51,25 @@ namespace material {
     
     SupportStructure();
     virtual ~SupportStructure() {};
-    void build();
+    void buildCustoms();
+    void buildAutos(Barrel& barrel);
 
-    InactiveElement* inactiveElement();
+    void updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces);
     
   private:
-    const double inactiveElementWidth = 1.;
+    const double inactiveElementWidth = insur::volume_width;
+    const double autoLayerMarginUpper = 1.; //margins for the auto barrel support
+    const double autoLayerMarginLower = 2. + insur::volume_width; //upper is upper for the support (is lower for the layer) and viceversa
+
     PropertyNodeUnique<std::string> componentsNode;
 
     ComponentsVector components_;
-    InactiveElement* inactiveElement_;
+    std::vector<InactiveElement*> inactiveElements;
     Type supportType_;
     Direction direction_;
 
+    void buildBase();
     void populateMaterialProperties(MaterialProperties& materialPropertie) const;
-
 
 
     class Component : public PropertyObject {

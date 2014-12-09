@@ -40,7 +40,7 @@ void Barrel::build() {
     SupportStructure* s = new SupportStructure();
     s->store(propertyTree());
     s->store(mapel.second);
-    s->build();
+    s->buildAutos(*this);
     supportStructures_.push_back(s);
   }
 
