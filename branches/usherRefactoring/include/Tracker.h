@@ -59,7 +59,7 @@ private:
 
   PropertyNode<string> barrelNode;
   PropertyNode<string> endcapNode;
-  PropertyNode<string> supportNode;
+  PropertyNodeUnique<string> supportNode;
 
   MultiProperty<set<string>, ','> containsOnly;
 
