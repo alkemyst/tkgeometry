@@ -23,7 +23,9 @@ namespace material {
   //=============== begin class SupportStructure
   const std::map<std::string, SupportStructure::Type> SupportStructure::typeStringMap = {
     {"custom", CUSTOM},
-    {"auto", AUTO}
+    {"auto", AUTO},
+    {"top", TOP},
+    {"bottom", BOTTOM}
   };
   const std::map<std::string, SupportStructure::Direction> SupportStructure::directionStringMap = {
     {"horizontal", HORIZONTAL},
@@ -41,7 +43,7 @@ namespace material {
     customDir("customDir", parsedOnly())
   {}
   
-  void SupportStructure::buildCustoms() {
+  void SupportStructure::buildInTracker() {
     InactiveElement* inactiveElement;
 
     buildBase();
@@ -62,39 +64,20 @@ namespace material {
           return;
         }
 
-        if (direction_ == HORIZONTAL) {
-          inactiveElement = new InactiveTube;
-          inactiveElement->setZLength(customLength());
-          inactiveElement->setZOffset(customZMin());
-          inactiveElement->setInnerRadius(customRMin());
-          inactiveElement->setRWidth(inactiveElementWidth);
-          inactiveElement->setFinal(true);
-          inactiveElement->setCategory(insur::MaterialProperties::u_sup);
-        } else {
-          inactiveElement = new InactiveRing;
-          inactiveElement->setZLength(inactiveElementWidth);
-          inactiveElement->setZOffset(customZMin());
-          inactiveElement->setInnerRadius(customRMin());
-          inactiveElement->setRWidth(customLength());
-          inactiveElement->setFinal(true);
-          inactiveElement->setCategory(insur::MaterialProperties::u_sup);
-        }
-        
-        populateMaterialProperties(*inactiveElement);
-        inactiveElements.push_back(inactiveElement);
+        buildInactiveElementPair(direction_, customZMin(), customRMin(), customLength());
       } else {
         logERROR("Property customZMin, customRMin, customLength, or customDir not set.");
         return;
       }
     } else {
-      logERROR("Support defined in wrong place.");
+      logERROR("Support type \"" + type() + "\" defined in wrong place.");
       return;
     }
 
     cleanup();
   }
 
-  void SupportStructure::buildAutos(Barrel& barrel) {
+  void SupportStructure::buildInBarrel(Barrel& barrel) {
     InactiveElement* inactiveElement;
 
     buildBase();
@@ -106,7 +89,8 @@ namespace material {
       return;
     }
 
-    if (supportType_ == AUTO) {
+    switch(supportType_) {
+    case AUTO :
       if (autoPosition.state()) {
         direction_ = VERTICAL; //AUTO supports are only for barrels, and vertical
 
@@ -151,23 +135,32 @@ namespace material {
 
         //build inactiveElements inside spaces
         for(std::set<double>::iterator minIter = layerRadiuses.begin(), maxIter = ++ layerRadiuses.begin(); minIter != layerRadiuses.end(); std::advance(minIter,2), std::advance(maxIter,2)) {
-          inactiveElement = new InactiveRing;
-          inactiveElement->setZLength(inactiveElementWidth);
-          inactiveElement->setZOffset(autoPosition());
-          inactiveElement->setInnerRadius(*minIter);
-          inactiveElement->setRWidth(*maxIter - *minIter);
-          inactiveElement->setFinal(true);
-          inactiveElement->setCategory(insur::MaterialProperties::u_sup);
-        
-          populateMaterialProperties(*inactiveElement);
-          inactiveElements.push_back(inactiveElement);
+          buildInactiveElementPair(direction_, autoPosition(), *minIter, *maxIter - *minIter);
         }
       } else {
         logERROR("Property autoPosition not set.");
         return;
       }
-    } else {
-      logERROR("Support defined in wrong place.");
+      break;
+
+    case TOP :
+      direction_ = HORIZONTAL; //TOP and BOTTOM supports are only for barrels, and horizontal
+      buildInactiveElementPair(direction_,
+                               MAX(0, barrel.minZ()),
+                               barrel.maxR() + autoLayerMarginLower,
+                               barrel.maxZ() - MAX(0, barrel.minZ()));
+      break;
+
+    case BOTTOM :
+      direction_ = HORIZONTAL;
+      buildInactiveElementPair(direction_,
+                               MAX(0, barrel.minZ()),
+                               barrel.minR() - inactiveElementWidth - autoLayerMarginUpper,
+                               barrel.maxZ() - MAX(0, barrel.minZ()));
+      break;
+
+    default :
+      logERROR("Support type \"" + type() + "\" defined in wrong place.");
       return;
     }
 
@@ -197,6 +190,51 @@ namespace material {
       currComponent->populateMaterialProperties(materialProperties);
     }
   }
+
+  void SupportStructure::buildInactiveElementPair(Direction direction, double startZ, double startR, double length) {
+    InactiveElement* zPositiveElement;
+    InactiveElement* zNegativeElement;
+
+    if(direction == HORIZONTAL) {
+      zPositiveElement = new InactiveTube;
+      zPositiveElement->setZLength(length);
+      zPositiveElement->setZOffset(startZ);
+      zPositiveElement->setInnerRadius(startR);
+      zPositiveElement->setRWidth(inactiveElementWidth);
+      zPositiveElement->setFinal(true);
+      zPositiveElement->setCategory(insur::MaterialProperties::u_sup);      
+
+      zNegativeElement = new InactiveTube;
+      zNegativeElement->setZLength(length);
+      zNegativeElement->setZOffset(-1 * startZ - length);
+      zNegativeElement->setInnerRadius(startR);
+      zNegativeElement->setRWidth(inactiveElementWidth);
+      zNegativeElement->setFinal(true);
+      zNegativeElement->setCategory(insur::MaterialProperties::u_sup);      
+    } else {
+      zPositiveElement = new InactiveRing;
+      zPositiveElement->setZLength(inactiveElementWidth);
+      zPositiveElement->setZOffset(startZ);
+      zPositiveElement->setInnerRadius(startR);
+      zPositiveElement->setRWidth(length);
+      zPositiveElement->setFinal(true);
+      zPositiveElement->setCategory(insur::MaterialProperties::u_sup);
+
+      zNegativeElement = new InactiveRing;
+      zNegativeElement->setZLength(inactiveElementWidth);
+      zNegativeElement->setZOffset(-1 * startZ);
+      zNegativeElement->setInnerRadius(startR);
+      zNegativeElement->setRWidth(length);
+      zNegativeElement->setFinal(true);
+      zNegativeElement->setCategory(insur::MaterialProperties::u_sup);
+    }
+
+      populateMaterialProperties(*zPositiveElement);
+      populateMaterialProperties(*zNegativeElement);
+      inactiveElements.push_back(zPositiveElement);
+      inactiveElements.push_back(zNegativeElement);
+  }
+
 
   //=============== end class SupportStructure
 

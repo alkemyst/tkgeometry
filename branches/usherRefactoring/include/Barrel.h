@@ -55,7 +55,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   
   void setup() {
     maxZ.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; });
-    minZ.setup([this]() { double min = 0; for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
+    minZ.setup([this]() { double min = 99999; for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
     maxR.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
     minR.setup([this]() { double min = 99999; for (const auto& l : layers_) { min = MIN(min, l.minR()); } return min; });
   }
