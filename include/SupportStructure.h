@@ -33,7 +33,7 @@ namespace material {
     class Element;
 
   public:
-    enum Type {CUSTOM, AUTO};
+    enum Type {CUSTOM, AUTO, TOP, BOTTOM};
     enum Direction {HORIZONTAL, VERTICAL};
 
     static const std::map<std::string, Type> typeStringMap;
@@ -51,8 +51,8 @@ namespace material {
     
     SupportStructure();
     virtual ~SupportStructure() {};
-    void buildCustoms();
-    void buildAutos(Barrel& barrel);
+    void buildInTracker();
+    void buildInBarrel(Barrel& barrel);
 
     void updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces);
     
@@ -70,6 +70,7 @@ namespace material {
 
     void buildBase();
     void populateMaterialProperties(MaterialProperties& materialPropertie) const;
+    void buildInactiveElementPair(Direction direction, double zStart, double rStart, double length);
 
 
     class Component : public PropertyObject {
