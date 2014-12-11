@@ -1416,6 +1416,7 @@ namespace material {
     std::for_each(negativeSections.begin(), negativeSections.end(), [](Section* section){
         section->minZ(-1 * section->minZ());
         section->maxZ(-1 * section->maxZ());
+        section->inactiveElement()->setZOffset(-1 * section->inactiveElement()->getZOffset() - section->inactiveElement()->getZLength());
       });
 
     sectionsList_.reserve(sectionsList_.size() + negativeSections.size());
