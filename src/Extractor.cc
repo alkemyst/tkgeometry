@@ -135,7 +135,7 @@ namespace insur {
     analyseElements(mt, e);
     std::cout << "Elementary materials done." << std::endl;
     // Analyse barrel
-    analyseLayers(mt, bc, tr, c, l, s, p, a, r, t, ri, wt);
+    analyseLayers(mt, tr, c, l, s, p, a, r, t, ri, wt);
     std::cout << "Barrel layers done." << std::endl;
     // Analyse endcaps
     analyseDiscs(mt, ec, tr, c, l, s, p, a, r, t, ri, wt);
@@ -403,7 +403,7 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
    */
-  void Extractor::analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
+  void Extractor::analyseLayers(MaterialTable& mt/*, std::vector<std::vector<ModuleCap> >& bc*/, Tracker& tr,
                                 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
                                 std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
     int layer;
@@ -469,10 +469,12 @@ namespace insur {
     // a: rods within layer (twice in case of a short layer)
     layer = 1;
     alg.name = xml_tobalgo;
-    oguard = bc.end();
 
     LayerAggregator lagg;
     tr.accept(lagg);
+    lagg.postVisit();
+    std::vector<std::vector<ModuleCap> >& bc = lagg.getBarrelCap();
+    oguard = bc.end();
 
     // barrel caps layer loop
     for (oiter = bc.begin(); oiter != oguard; oiter++) {

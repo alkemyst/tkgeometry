@@ -273,7 +273,7 @@ $(LIBDIR)/Usher.o: $(SRCDIR)/Usher.cc $(INCDIR)/Usher.h
 	@echo "Built target Usher.o"
 
 #MATERIALWAY
-materialways: $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o
+materialways: $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o
 	@echo "Built target 'Materialways'."
 
 $(LIBDIR)/Materialway.o: $(SRCDIR)/Materialway.cpp $(INCDIR)/Materialway.h
@@ -300,6 +300,11 @@ $(LIBDIR)/ConversionStation.o: $(SRCDIR)/ConversionStation.cpp $(INCDIR)/Convers
 	@echo "Building target ConversionStation.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ConversionStation.o $(SRCDIR)/ConversionStation.cpp
 	@echo "Built target ConversionStation.o"
+
+$(LIBDIR)/SupportStructure.o: $(SRCDIR)/SupportStructure.cpp $(INCDIR)/SupportStructure.h
+	@echo "Building target SupportStructure.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/SupportStructure.o $(SRCDIR)/SupportStructure.cpp
+	@echo "Built target SupportStructure.o"
 
 #DRESSERS
 dressers: $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o
@@ -405,7 +410,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
   $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o getRevisionDefine
 	#
@@ -422,7 +427,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o \
 	$(LIBDIR)/SvnRevision.o \

@@ -1028,7 +1028,7 @@ namespace material {
     std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
     //calculateMaterialValues(tracker);
     //std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
-    buildInactiveSurface(inactiveSurface);
+    buildInactiveSurface(tracker, inactiveSurface);
     std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << std::endl;
     calculateMaterialValues(inactiveSurface, tracker);
     std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
@@ -1416,6 +1416,7 @@ namespace material {
     std::for_each(negativeSections.begin(), negativeSections.end(), [](Section* section){
         section->minZ(-1 * section->minZ());
         section->maxZ(-1 * section->maxZ());
+        section->inactiveElement()->setZOffset(-1 * section->inactiveElement()->getZOffset() - section->inactiveElement()->getZLength());
       });
 
     sectionsList_.reserve(sectionsList_.size() + negativeSections.size());
@@ -1497,7 +1498,30 @@ namespace material {
   }
   */
 
-  void Materialway::buildInactiveSurface(InactiveSurfaces& inactiveSurface) {
+  void Materialway::buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface) {
+    class SupportVisitor : public GeometryVisitor {
+    private:
+      InactiveSurfaces& inactiveSurface_;
+    public:
+      SupportVisitor(InactiveSurfaces& inactiveSurface) : inactiveSurface_(inactiveSurface) {}
+    
+      void visit (Tracker& tracker) {
+        for (auto& supportStructure : tracker.supportStructures()) {
+          supportStructure.updateInactiveSurfaces(inactiveSurface_);
+        }
+      }
+      
+      void visit (Barrel& barrel) {
+        for (auto& supportStructure : barrel.supportStructures()) {
+          supportStructure.updateInactiveSurfaces(inactiveSurface_);
+        }
+      }
+    };
+
+    SupportVisitor supportVisitor(inactiveSurface);
+    tracker.accept(supportVisitor);
+    
+    
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
         /*
@@ -1526,6 +1550,13 @@ namespace material {
   }
 
   void Materialway::calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker) {
+    //supports
+    for (InactiveElement& currElem : inactiveSurface.getSupports()) {
+      currElem.calculateTotalMass();
+      currElem.calculateRadiationLength();
+      currElem.calculateInteractionLength();
+    }
+
     //sections
     for (InactiveElement& currElem : inactiveSurface.getBarrelServices()) {
       currElem.calculateTotalMass();

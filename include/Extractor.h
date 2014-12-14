@@ -36,11 +36,43 @@ namespace insur {
     class LayerAggregator : public GeometryVisitor { // CUIDADO quick'n'dirty visitor-based adaptor to interface with legacy spaghetti code
       std::vector<Layer*> barrelLayers_;
       std::vector<Disk*> endcapLayers_;
+      std::vector<std::vector<ModuleCap> > layerCap_;
     public:
       void visit(Layer& l) { barrelLayers_.push_back(&l); }
       void visit(Disk& d) { endcapLayers_.push_back(&d); }
+      void postVisit() {
+        //std::cout << "I am post-visiting" << std::endl;
+        std::sort (barrelLayers_.begin(), barrelLayers_.end(), [ ]( Layer* lhs, Layer* rhs )
+                   {
+                      return lhs->minR() < rhs->minR();
+                   });
+        //for (auto it : barrelLayers_ ) {
+        //  std::cout << "HERE layer " << it->minR() << std::endl;
+        //}
+      }
       std::vector<Layer*>* getBarrelLayers() { return &barrelLayers_; }
       std::vector<Disk*>* getEndcapLayers() { return &endcapLayers_; }
+      std::vector<std::vector<ModuleCap> >& getBarrelCap() {
+        if (layerCap_.size()) return layerCap_;
+        //std:cout << "Computing my layerCap_ for the first time" << std::endl;
+        for (auto it : barrelLayers_ ) {
+          class ModuleVisitor : public GeometryVisitor {
+          public:
+             std::vector<ModuleCap> *myLayerModuleCaps_;
+             ModuleVisitor() { myLayerModuleCaps_ = new std::vector<ModuleCap>(); }
+             void visit(BarrelModule& bm) { myLayerModuleCaps_->push_back(*bm.getModuleCap()) ; }
+          };
+          ModuleVisitor mv;
+          it->accept(mv);
+          //std::cout << "Added a layer with " << mv.myLayerModuleCaps_->size() << " modules" << std::endl;
+          layerCap_.push_back(*mv.myLayerModuleCaps_);
+          //std::cout << "layerCap_.size()=" << layerCap_.size() << std::endl;
+          auto lastLayerCap = layerCap_.end();
+          lastLayerCap--;
+          //std::cout << "last layer cap has " << lastLayerCap->size() << " modules" << std::endl;
+        }
+        return layerCap_;
+      }
     };
   public:
     void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool wt = false);
@@ -50,7 +82,7 @@ namespace insur {
                                 std::vector<std::pair<double, double> >& down);
     void analyseEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
-    void analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr, std::vector<Composite>& c,
+    void analyseLayers(MaterialTable& mt, Tracker& tr, std::vector<Composite>& c,
                        std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
                        std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
     void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, std::vector<Composite>& c,
