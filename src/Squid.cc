@@ -6,6 +6,7 @@
 
 #include "SvnRevision.h"
 #include "Squid.h"
+#include "StopWatch.h"
 
 namespace insur {
   // public
@@ -239,7 +240,7 @@ namespace insur {
 
     if (tr) {
         std::string trackm = getMaterialFile();
-        if (trackm=="") return false;
+        if (trackm=="") { stopTaskClock(); return false; }
         if (!is) is = new InactiveSurfaces();
         //if (mb) delete mb;
         //mb  = new MaterialBudget(*tr, *is);
@@ -279,8 +280,11 @@ namespace insur {
         */
       } else {
         logERROR(err_no_tracker);
+        stopTaskClock();
         return false;
       }
+    stopTaskClock();
+    return true;
   }
 
 
@@ -451,10 +455,10 @@ namespace insur {
    * @return a boolean with the operation success
    */
   bool Squid::makeSite(bool addLogPage /* = true */) {
-    std::cerr << "Creating website cerr" << std::endl;
     startTaskClock("Creating website");
     if (!prepareWebsite()) {
       logERROR("Problem in preparing website");
+      stopTaskClock();
       return false;
     }
 
@@ -464,7 +468,6 @@ namespace insur {
 
     bool result = site.makeSite(false);
     stopTaskClock();
-    std::cerr << "done cerr" << std::endl;
     return result;
   }
 

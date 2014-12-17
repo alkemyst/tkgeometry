@@ -21,6 +21,7 @@
 #include "Disk.h"
 #include "Layer.h"
 #include "WeightDistributionGrid.h"
+#include "StopWatch.h"
 
 #include <ctime>
 
@@ -1000,39 +1001,22 @@ namespace material {
     bool retValue = false;
 
     int startTime = time(0);
+    startTaskClock("Building boundaries");
     if (buildBoundaries(tracker)) {
-      std::cout << "TIME " << difftime(time(0), startTime) << " end buildBoundaries" << std::endl;
-      buildExternalSections(tracker);
-      std::cout << "TIME " << difftime(time(0), startTime) << " end buildExternalSections" << std::endl;
-      buildInternalSections(tracker);
-      std::cout << "TIME " << difftime(time(0), startTime) << " end buildInternalSections" << std::endl;
-    }
+      stopTaskClock();
+      startTaskClock("Building external sections"); buildExternalSections(tracker); stopTaskClock();
+      startTaskClock("Building internal sections"); buildInternalSections(tracker); stopTaskClock();
+    } else stopTaskClock();
 
-    buildInactiveElements();
-    std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveElements" << std::endl;
-    routeServices(tracker);
-    std::cout << "TIME " << difftime(time(0), startTime) << " end routeServices" << std::endl;
-    //routeModuleServices();
-    //std::cout << "TIME " << difftime(time(0), startTime) << " end routeModuleServices" << std::endl;
-    //routeRodMaterials();
-    //std::cout << "TIME " << difftime(time(0), startTime) << " end routeRodMaterials" << std::endl;
-    firstStepConversions();
-    std::cout << "TIME " << difftime(time(0), startTime) << " end firstStepConversions" << std::endl;
-    secondStepConversions();
-    std::cout << "TIME " << difftime(time(0), startTime) << " end secondStepConversions" << std::endl;
-    createModuleCaps(tracker);
-    std::cout << "TIME " << difftime(time(0), startTime) << " end createModuleCaps" << std::endl;
-    duplicateSections();
-    std::cout << "TIME " << difftime(time(0), startTime) << " end duplicateSections" << std::endl;
-    populateAllMaterialProperties(tracker, weightDistribution);
-    std::cout << "TIME " << difftime(time(0), startTime) << " end populateMaterialProperties" << std::endl;
-    //calculateMaterialValues(tracker);
-    //std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
-    buildInactiveSurface(tracker, inactiveSurface);
-    std::cout << "TIME " << difftime(time(0), startTime) << " end buildInactiveSurface" << std::endl;
-    calculateMaterialValues(inactiveSurface, tracker);
-    std::cout << "TIME " << difftime(time(0), startTime) << " end calculateMaterialValues" << std::endl;
-
+    startTaskClock("Building inactive elements"); buildInactiveElements(); stopTaskClock();
+    startTaskClock("Rounting services"); routeServices(tracker); stopTaskClock();
+    startTaskClock("First step conversions"); firstStepConversions(); stopTaskClock();
+    startTaskClock("Second step conversions"); secondStepConversions(); stopTaskClock();
+    startTaskClock("Creating ModuleCaps"); createModuleCaps(tracker); stopTaskClock();
+    startTaskClock("Duplicating sections"); duplicateSections(); stopTaskClock();
+    startTaskClock("Populating MaterialProperties"); populateAllMaterialProperties(tracker, weightDistribution); stopTaskClock();
+    startTaskClock("Building inactive surfaces"); buildInactiveSurface(tracker, inactiveSurface); stopTaskClock();
+    startTaskClock("Computing material amounts"); calculateMaterialValues(inactiveSurface, tracker); stopTaskClock();
     return retValue;
   }
 
