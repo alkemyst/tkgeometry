@@ -1736,7 +1736,7 @@ namespace insur {
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
     createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
     if (name=="pixel") {
-      std::cerr << "PIXEL HACK for beam pipe!! :) ";
+      logINFO("PIXEL HACK for beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
       beampipe->SetPoint(0, 0, 45/2.);
       beampipe->SetPoint(1, 2915/2., 45/2.);
