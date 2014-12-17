@@ -28,8 +28,6 @@ public:
 protected:
   Container zPlusModules_, zMinusModules_;
   MaterialObject materialObject_;
-public:  
-public:
 public:
   enum class BuildDir { RIGHT = 1, LEFT = -1 };
   enum class StartZMode { MODULECENTER, MODULEEDGE };
