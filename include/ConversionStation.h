@@ -22,16 +22,14 @@ namespace material {
   
   class ConversionStation :public PropertyObject { //MaterialObject {
   public:
-    enum Type {FLANGE, SECOND};
+    enum Type {ERROR, FLANGE, SECOND};
     
-    ConversionStation(Type stationType) :
-      stationType_ (stationType),
-      valid_(false),
+    ConversionStation() :
+      stationType_ (ERROR),
       stationName_ ("stationName", parsedAndChecked()),
       type_ ("type", parsedAndChecked()),
       minZ_ ("minZ", parsedOnly()),
       maxZ_ ("maxZ", parsedOnly()),
-      stationsNode_ ("Station", parsedOnly()),
       conversionsNode_ ("Conversion", parsedOnly()) {} ;
     virtual ~ConversionStation() {};
 
@@ -40,21 +38,19 @@ namespace material {
     //void routeConvertedServicesTo(MaterialObject& outputObject) const;
     //void routeConvertedLocalsTo(MaterialObject& outputObject) const;
     void addElementIfService(const MaterialObject::Element* inputElement);
-
-    bool valid();
+    Type stationType() const;
 
     ReadonlyProperty<std::string, NoDefault> stationName_;
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<double, NoDefault> minZ_;
     ReadonlyProperty<double, NoDefault> maxZ_;
+
   private:
-    static const std::map<Type, const std::string> typeString;
+    static const std::map<std::string, Type> typeString;
     Type stationType_;
     bool valid_;
-    PropertyNodeUnique<std::string> stationsNode_;
     PropertyNodeUnique<std::string> conversionsNode_;
 
-    const std::string getTypeString() const;
     void buildConversions();
 
     /*

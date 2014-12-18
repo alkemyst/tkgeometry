@@ -1,6 +1,7 @@
 #include "Layer.h"
 #include "RodPair.h"
 #include "messageLogger.h"
+#include "ConversionStation.h"
 
 void Layer::check() {
   PropertyObject::check();
@@ -202,6 +203,8 @@ void Layer::buildTilted() {
 }
 
 void Layer::build() {
+  ConversionStation* conversionStation;
+
   try { 
     materialObject_.store(propertyTree());
     materialObject_.build();
@@ -212,10 +215,21 @@ void Layer::build() {
     if (tiltedLayerSpecFile().empty()) buildStraight();
     else buildTilted();
 
-    flangeConversionStation_.store(propertyTree());
-    flangeConversionStation_.build();
-    secondConversionStation_.store(propertyTree());
-    secondConversionStation_.build();
+    for (auto& currentStationNode : stationsNode) {
+      conversionStation = new ConversionStation();
+      conversionStation->store(currentStationNode.second);
+      conversionStation->check();
+      conversionStation->build();
+      
+      if(conversionStation->stationType() == ConversionStation::Type::FLANGE) {
+        if(flangeConversionStation_ == nullptr) { //take only first defined flange station
+          flangeConversionStation_ = conversionStation;
+        }
+      }else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
+        secondConversionStations_.push_back(conversionStation);
+      }
+    }
+
         
     cleanup();
     builtok(true);
@@ -230,12 +244,12 @@ const MaterialObject& Layer::materialObject() const{
   return materialObject_;
 }
 
-ConversionStation* Layer::flangeConversionStation() {
-  return &flangeConversionStation_;
+ConversionStation* Layer::flangeConversionStation() const {
+  return flangeConversionStation_;
 }
 
-ConversionStation* Layer::secondConversionStation() {
-  return &secondConversionStation_;
+const std::vector<ConversionStation*>& Layer::secondConversionStations() const {
+  return secondConversionStations_;
 }
 
 
