@@ -5,6 +5,7 @@
 
 
 #define __ADDVOLUMES__
+//#define __DEBUGPRINT__
 //#define __FLIPSENSORS_OUT__
 //#define __FLIPSENSORS_IN__
 
@@ -757,7 +758,9 @@ namespace insur {
               hvs.addShapeInfo(s);
               hvs.addLogicInfo(l);
               hvs.addPositionInfo(p);
-              //hvs.print();
+#ifdef __DEBUGPRINT__
+              hvs.print();
+#endif
 #endif
             } // End of replica for Pt-modules
 
@@ -1234,7 +1237,9 @@ namespace insur {
               hvs.addShapeInfo(s);
               hvs.addLogicInfo(l);
               hvs.addPositionInfo(p);
-              //hvs.print();
+#ifdef __DEBUGPRINT__
+              hvs.print();
+#endif
 #endif
             }
 
@@ -1886,6 +1891,7 @@ namespace insur {
                                                           hybridThickness(module.hybridThickness()),
                                                           hybridTotalMass(0.),
                                                           hybridTotalVolume_mm3(-1.),
+                                                          moduleMassWithoutSensors_expected(0.),
                                                           prefix_xmlfile("tracker:"),
                                                           prefix_material("hybridcomposite") {
   }
@@ -1961,6 +1967,7 @@ namespace insur {
     for (meit = matElements.begin(); meit != matElements.end(); meit++) {
        const MaterialObject::Element* el = *meit;
        if ( el->componentName() == "Sensor") continue; // Only for hybrids
+       moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
        if ( el->targetVolume() == Front ||
             el->targetVolume() == Back  ||
@@ -1982,13 +1989,12 @@ namespace insur {
           }
 
           // Uniform density distribution and consistent with total mass
-          vol[Front]->addMass(el->quantity()*vol[Front]->getVolume()/hybridTotalVolume_mm3); 
-          vol[Back]->addMass(el->quantity()*vol[Back]->getVolume()/hybridTotalVolume_mm3);   
-          vol[Left]->addMass(el->quantity()*vol[Left]->getVolume()/hybridTotalVolume_mm3);   
-          vol[Right]->addMass(el->quantity()*vol[Right]->getVolume()/hybridTotalVolume_mm3);
+          vol[Front]->addMass(el->quantityInGrams(module)*vol[Front]->getVolume()/hybridTotalVolume_mm3); 
+          vol[Back]->addMass(el->quantityInGrams(module)*vol[Back]->getVolume()/hybridTotalVolume_mm3);   
+          vol[Left]->addMass(el->quantityInGrams(module)*vol[Left]->getVolume()/hybridTotalVolume_mm3);   
+          vol[Right]->addMass(el->quantityInGrams(module)*vol[Right]->getVolume()/hybridTotalVolume_mm3);
        }
     }
-
 
     volumes.push_back(vol[Front]);
     volumes.push_back(vol[Back]);
@@ -2067,7 +2073,13 @@ namespace insur {
     std::cout << "HybridVolumes::print():" << std::endl;
     std::cout << "  Parent Module Name:" << moduleId << std::endl;
     std::vector<Volume*>::const_iterator vit;
-    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) (*vit)->print();
+    double moduleTotalMass = 0.;
+    for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
+      (*vit)->print();
+      moduleTotalMass += (*vit)->getMass();
+    }
+    std::cerr << "  Module Total Mass = " << moduleTotalMass 
+              << " (" << moduleMassWithoutSensors_expected << " is expected.)" << std::endl; 
   }
 #endif
 }

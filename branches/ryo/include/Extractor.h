@@ -177,6 +177,7 @@ namespace insur {
           const std::map<std::string, double>& getMaterialList() const { return fmatlist; }
           void   addMaterial( std::string tag, double val ) { fmatlist[tag] += val; }
           void   addMass( double dm ) { fmass += dm; }
+          double getMass() const { return fmass; }
           void print() const { 
             if (fdensity<0.) std::cout << "!!! Error : please call setDensity() before print()." << std:: endl; 
             else             std::cout << "   " << fname << " mass =" << fmass 
@@ -204,6 +205,7 @@ namespace insur {
       const double         hybridThickness;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
+            double         moduleMassWithoutSensors_expected;
       const std::string    prefix_xmlfile;
       const std::string    prefix_material;
   };
