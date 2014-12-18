@@ -2,7 +2,7 @@
 
 Station {
   stationName endcap1
-  type endcap
+  type second
 
   minZ 1500
   maxZ 1600

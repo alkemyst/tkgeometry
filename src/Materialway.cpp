@@ -575,6 +575,7 @@ namespace material {
         startEndcap(nullptr),
         startDisk(nullptr),
         barrelConversionStation_(nullptr),
+        barrelSecondConversionStation_(nullptr),
         endcapConversionStation_(nullptr),
         currLayer_(nullptr),
         currDisk_(nullptr) {}
@@ -596,7 +597,7 @@ namespace material {
 
       void visit(Layer& layer) {
         barrelConversionStation_ = layer.flangeConversionStation();
-        endcapConversionStation_ = layer.endCapConversionStation();
+        barrelSecondConversionStation_ = layer.secondConversionStation();
         currLayer_ = &layer;
         Section* section = nullptr;
         Station* station = nullptr;
@@ -637,9 +638,9 @@ namespace material {
         sectionMaxR = sectionMinR + sectionWidth;
 
         stationMinZ = sectionMaxZ + safetySpace;
-        stationMinR = sectionMinR -(layerStationWidth/2);
+        stationMinR = sectionMinR - (layerStationWidth / 2);
         stationMaxZ = sectionMaxZ + safetySpace + layerStationLenght;
-        stationMaxR = sectionMinR + (layerStationWidth/2);
+        stationMaxR = sectionMinR + (layerStationWidth / 2);
 
         if(barrelConversionStation_->valid()) {
           station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, VERTICAL, *barrelConversionStation_, section); //TODO: check if is ok VERTICAL
@@ -660,12 +661,12 @@ namespace material {
         //==========second level conversion station
 
         //find attach point
-        if(endcapConversionStation_->valid()) {
+        if(barrelSecondConversionStation_->valid()) {
           bool alreadyBuilt = false;
           
           //check if the station is already built
           for (auto& existentStation : stationListSecond_) {
-            if (existentStation->conversionStation().stationName_().compare(endcapConversionStation_->stationName_()) == 0) {
+            if (existentStation->conversionStation().stationName_().compare(barrelSecondConversionStation_->stationName_()) == 0) {
               alreadyBuilt = true;
               break;
             }
@@ -673,7 +674,7 @@ namespace material {
 
           if (! alreadyBuilt) {
 
-            attachPoint = discretize((endcapConversionStation_->maxZ_() + endcapConversionStation_->minZ_()) /2);
+            attachPoint = discretize((barrelSecondConversionStation_->maxZ_() + barrelSecondConversionStation_->minZ_()) /2);
          
             while(section->maxZ() < attachPoint + sectionTolerance) {
               if(!section->hasNextSection()) {
@@ -687,15 +688,15 @@ namespace material {
               splitSection(section, attachPoint);
             }
 
-            stationMinZ = discretize(endcapConversionStation_->minZ_());
+            stationMinZ = discretize(barrelSecondConversionStation_->minZ_());
             stationMinR = section->maxR() + safetySpace;
-            stationMaxZ = discretize(endcapConversionStation_->maxZ_());
+            stationMaxZ = discretize(barrelSecondConversionStation_->maxZ_());
             stationMaxR = stationMinR + layerStationLenght;
 
             if(!section->hasNextSection()) {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_);
+              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *barrelSecondConversionStation_);
             } else {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section->nextSection());
+              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *barrelSecondConversionStation_, section->nextSection());
             }
 
             section->nextSection(station);
@@ -781,6 +782,7 @@ namespace material {
       }
 
       void visit(Disk& disk) {
+        endcapConversionStation_ = disk.flangeConversionStation();        
         currDisk_ = &disk;
         //if(currEndcapPosition == POSITIVE) {
         if (disk.minZ() >= 0) {
@@ -802,17 +804,30 @@ namespace material {
 
           //built two main sections above the layer
 
-          int minZ = attachPoint;
-          int minR = discretize(disk.minR());
-          int maxZ = minZ + sectionWidth;
-          //int maxR = discretize(disk.maxR()) + diskSectionUpMargin;
-          int maxR = section->minR() - safetySpace;
+          int sectionMinZ = attachPoint;
+          int sectionMinR = discretize(disk.minR());
+          int sectionMaxZ = sectionMinZ + sectionWidth;
+          //int sectionMaxR = discretize(disk.maxR()) + diskSectionUpMargin;
+          int sectionMaxR = section->minR() - safetySpace - layerStationLenght;
 
-          startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL, section);
-          //startDisk = new Section(minZ, minR, maxZ, maxR, VERTICAL);
+          int stationMinZ = sectionMinZ - (layerStationWidth / 2);
+          int stationMinR = sectionMaxR + safetySpace;
+          int stationMaxZ = sectionMinZ + (layerStationWidth / 2);
+          int stationMaxR = sectionMaxR + safetySpace + layerStationLenght;
+
+          if(endcapConversionStation_->valid()) {
+            Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *endcapConversionStation_, section);
+            sectionsList_.push_back(station);
+            stationListFirst_.push_back(station);
+            startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station);
+            diskRodSections_[currDisk_].setStation(station);
+          } else {
+            startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, section);
+            //startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL);
+            diskRodSections_[currDisk_].setStation(section);
+          }
           sectionsList_.push_back(startDisk);
           diskRodSections_[currDisk_].addSection(startDisk);
-          diskRodSections_[currDisk_].setStation(section);
 
           //TODO:aggiungi riferimento della rod a startZ...
         }
@@ -860,6 +875,7 @@ namespace material {
       Section* startEndcap;
       //ZPosition currEndcapPosition;
       ConversionStation* barrelConversionStation_;
+      ConversionStation* barrelSecondConversionStation_;
       ConversionStation* endcapConversionStation_;
       Layer* currLayer_;
       Disk* currDisk_;
