@@ -11,7 +11,11 @@
 #include "Property.h"
 #include "Ring.h"
 #include "Visitable.h"
-#include "ConversionStation.h"
+#include "MaterialObject.h"
+
+namespace material {
+  class ConversionStation;
+}
 
 using material::MaterialObject;
 using material::ConversionStation;
@@ -26,7 +30,7 @@ private:
   Container rings_;
   RingIndexMap ringIndexMap_;
   MaterialObject materialObject_;
-  ConversionStation flangeConversionStation_;
+  ConversionStation* flangeConversionStation_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -35,6 +39,7 @@ private:
   Property<int, Default> bigParity;
 
   PropertyNode<int> ringNode;
+  PropertyNodeUnique<std::string> stationsNode;
 
   inline double getDsDistance(const vector<double>& buildDsDistances, int rindex) const;
   void buildTopDown(const vector<double>& buildDsDistances);
@@ -53,7 +58,7 @@ public:
 
   Disk() :
     materialObject_(MaterialObject::LAYER),
-    flangeConversionStation_(ConversionStation::FLANGE),
+    flangeConversionStation_(nullptr),
     numRings("numRings", parsedAndChecked()),
     innerRadius("innerRadius", parsedAndChecked()),
     outerRadius("outerRadius", parsedAndChecked()),
@@ -63,7 +68,8 @@ public:
     bigParity("bigParity", parsedOnly(), 1),
     buildZ("buildZ", parsedOnly()),
     placeZ("placeZ", parsedOnly()),
-    ringNode("Ring", parsedOnly())
+    ringNode("Ring", parsedOnly()),
+    stationsNode("Station", parsedOnly())
   {}
 
   void setup() {
@@ -96,7 +102,7 @@ public:
     for (const auto& r : rings_) { r.accept(v); }
   }
   const MaterialObject& materialObject() const;
-  ConversionStation* flangeConversionStation();
+  ConversionStation* flangeConversionStation() const;
 };
 
 #endif

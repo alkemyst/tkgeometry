@@ -1,5 +1,6 @@
 #include "Disk.h"
 #include "messageLogger.h"
+#include "ConversionStation.h"
 
 void Disk::check() {
   PropertyObject::check();
@@ -83,6 +84,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
 }
 
 void Disk::build(const vector<double>& buildDsDistances) {
+  ConversionStation* conversionStation;
   materialObject_.store(propertyTree());
   materialObject_.build();
 
@@ -93,8 +95,18 @@ void Disk::build(const vector<double>& buildDsDistances) {
     translateZ(placeZ());
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
-  flangeConversionStation_.store(propertyTree());
-  flangeConversionStation_.build();
+  for (auto& currentStationNode : stationsNode) {
+    conversionStation = new ConversionStation();
+    conversionStation->store(currentStationNode.second);
+    conversionStation->check();
+    conversionStation->build();
+      
+    if(conversionStation->stationType() == ConversionStation::Type::FLANGE) {
+      if(flangeConversionStation_ == nullptr) { //take only first defined flange station
+        flangeConversionStation_ = conversionStation;
+      }
+    }
+  }
 
   cleanup();
   builtok(true);
@@ -108,11 +120,11 @@ void Disk::mirrorZ() {
   for (auto& r : rings_) r.mirrorZ();
 }
 
-const MaterialObject& Disk::materialObject() const{
+const MaterialObject& Disk::materialObject() const {
   return materialObject_;
 }
 
-ConversionStation* Disk::flangeConversionStation() {
-  return &flangeConversionStation_;
+ConversionStation* Disk::flangeConversionStation() const {
+  return flangeConversionStation_;
 }
 

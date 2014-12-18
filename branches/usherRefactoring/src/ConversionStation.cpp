@@ -12,31 +12,17 @@
 
 namespace material {
 
-  const std::map<ConversionStation::Type, const std::string> ConversionStation::typeString = {
-      {FLANGE, "flange"},
-      {SECOND, "second"}
+  const std::map<std::string, ConversionStation::Type> ConversionStation::typeString = {
+    {"flange", FLANGE},
+    {"second", SECOND}
   };
 
-  const std::string ConversionStation::getTypeString() const {
-    auto mapIter = typeString.find(stationType_);
-    if (mapIter != typeString.end()) {
-      return mapIter->second;
-    } else {
-      return "";
-    }
-  }
-
   void ConversionStation::build() {
-    for (auto& currentStationNode : stationsNode_) {
-      store(currentStationNode.second);
-      check();
-      if (type_().compare(getTypeString()) == 0) {
-        conversionsNode_.clear();
-        store(currentStationNode.second);
-        buildConversions();
-        valid_ = true;
-        break; //alert, if multiple stations defined, build only the first
-      }
+    try {
+      stationType_ = typeString.at(type_());
+      buildConversions();
+    } catch (const std::out_of_range& ex) {
+      logERROR("Station type \"" + type_() + "\" not recognized.");
     }
     cleanup();
   }
@@ -130,8 +116,8 @@ namespace material {
     }
   }
 
-  bool ConversionStation::valid() {
-    return valid_;
+  ConversionStation::Type ConversionStation::stationType() const {
+    return stationType_;
   }
 
   void ConversionStation::buildConversions() {
