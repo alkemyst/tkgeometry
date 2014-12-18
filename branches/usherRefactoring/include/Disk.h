@@ -11,8 +11,10 @@
 #include "Property.h"
 #include "Ring.h"
 #include "Visitable.h"
+#include "ConversionStation.h"
 
 using material::MaterialObject;
+using material::ConversionStation;
 
 class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
@@ -24,6 +26,7 @@ private:
   Container rings_;
   RingIndexMap ringIndexMap_;
   MaterialObject materialObject_;
+  ConversionStation flangeConversionStation_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -50,6 +53,7 @@ public:
 
   Disk() :
     materialObject_(MaterialObject::LAYER),
+    flangeConversionStation_(ConversionStation::FLANGE),
     numRings("numRings", parsedAndChecked()),
     innerRadius("innerRadius", parsedAndChecked()),
     outerRadius("outerRadius", parsedAndChecked()),
@@ -92,6 +96,7 @@ public:
     for (const auto& r : rings_) { r.accept(v); }
   }
   const MaterialObject& materialObject() const;
+  ConversionStation* flangeConversionStation();
 };
 
 #endif

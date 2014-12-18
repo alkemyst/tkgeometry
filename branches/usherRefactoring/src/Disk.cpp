@@ -92,6 +92,10 @@ void Disk::build(const vector<double>& buildDsDistances) {
     else buildBottomUp(buildDsDistances);
     translateZ(placeZ());
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+
+  flangeConversionStation_.store(propertyTree());
+  flangeConversionStation_.build();
+
   cleanup();
   builtok(true);
 }
@@ -106,5 +110,9 @@ void Disk::mirrorZ() {
 
 const MaterialObject& Disk::materialObject() const{
   return materialObject_;
+}
+
+ConversionStation* Disk::flangeConversionStation() {
+  return &flangeConversionStation_;
 }
 

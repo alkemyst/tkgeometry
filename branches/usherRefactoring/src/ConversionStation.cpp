@@ -14,7 +14,7 @@ namespace material {
 
   const std::map<ConversionStation::Type, const std::string> ConversionStation::typeString = {
       {FLANGE, "flange"},
-      {ENDCAP, "endcap"}
+      {SECOND, "second"}
   };
 
   const std::string ConversionStation::getTypeString() const {
@@ -51,7 +51,7 @@ namespace material {
     for (const MaterialObject::Element* currElement : inputElements) {
       converted = false;
       //if the material need to be converted (flange station, or endcap station with right destination)
-      if ((stationType_ == FLANGE) || (stationType_ == ENDCAP && currElement->destination.state() && currElement->destination().compare(stationName_()) == 0)) {
+      if ((stationType_ == FLANGE) || (stationType_ == SECOND && currElement->destination.state() && currElement->destination().compare(stationName_()) == 0)) {
         for (const Conversion* currConversion : conversions) {
           inputElement = currConversion->input->elements[0];
           if (inputElement->elementName().compare(currElement->elementName()) == 0) {

@@ -214,8 +214,8 @@ void Layer::build() {
 
     flangeConversionStation_.store(propertyTree());
     flangeConversionStation_.build();
-    endCapConversionStation_.store(propertyTree());
-    endCapConversionStation_.build();
+    secondConversionStation_.store(propertyTree());
+    secondConversionStation_.build();
         
     cleanup();
     builtok(true);
@@ -234,8 +234,8 @@ ConversionStation* Layer::flangeConversionStation() {
   return &flangeConversionStation_;
 }
 
-ConversionStation* Layer::endCapConversionStation() {
-  return &endCapConversionStation_;
+ConversionStation* Layer::secondConversionStation() {
+  return &secondConversionStation_;
 }
 
 

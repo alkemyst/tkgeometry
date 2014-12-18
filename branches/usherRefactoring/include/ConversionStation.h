@@ -22,7 +22,7 @@ namespace material {
   
   class ConversionStation :public PropertyObject { //MaterialObject {
   public:
-    enum Type {FLANGE, ENDCAP};
+    enum Type {FLANGE, SECOND};
     
     ConversionStation(Type stationType) :
       stationType_ (stationType),
