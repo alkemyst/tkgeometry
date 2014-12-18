@@ -128,7 +128,8 @@ namespace insur {
      void addMaterialInfo(std::vector<Composite>&   vec);
      void print() const;
 
-     const double getHybridWidth() const { return hybridWidth; }
+     const double getServiceHybridWidth() const { return serviceHybridWidth; }
+     const double getFrontEndHybridWidth() const { return frontEndHybridWidth; }
      double getHybridTotalVolume_mm3() const { return hybridTotalVolume_mm3; }
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
@@ -142,6 +143,8 @@ namespace insur {
       static const int Right;
       static const int Between;
       static const int nTypes;
+      static const int FrontAndBack;
+      static const int LeftAndRight;
       static const double kmm3Tocm3;
 
       class Volume {
@@ -201,10 +204,13 @@ namespace insur {
       const double         modThickness;
       const double         modWidth;  // Sensor width
       const double         modLength; // Sensor length
-      const double         hybridWidth;
+      const double         frontEndHybridWidth;
+      const double         serviceHybridWidth;
       const double         hybridThickness;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
+            double         hybridFrontAndBackVolume_mm3;
+            double         hybridLeftAndRightVolume_mm3;
             double         moduleMassWithoutSensors_expected;
       const std::string    prefix_xmlfile;
       const std::string    prefix_material;

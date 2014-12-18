@@ -547,8 +547,8 @@ namespace insur {
             shape.dy = iiter->getModule().length() / 2.0;
 #else
             // Expand volumes for hybrids
-            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
-            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
+            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().serviceHybridWidth();
+            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
 #endif
             shape.dz = iiter->getModule().thickness() / 2.0;
             s.push_back(shape);
@@ -1066,10 +1066,10 @@ namespace insur {
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dyy = iiter->getModule().length() / 2.0;
 #else       // Expand module size for hybrids
-            shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().hybridWidth();
-            shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().hybridWidth();
-            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
-            shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().hybridWidth();
+            shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+            shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+            shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
 #endif
             //shape.dx = iiter->getModule().length() / 2.0;
             //shape.dy = iiter->getModule().minWidth() / 2.0;
@@ -1878,6 +1878,10 @@ namespace insur {
   const int HybridVolumes::Right   = 6; 
   const int HybridVolumes::Between = 7; 
   const int HybridVolumes::nTypes  = 8; 
+  // extras
+  const int HybridVolumes::FrontAndBack = 34; 
+  const int HybridVolumes::LeftAndRight = 56; 
+
   const double HybridVolumes::kmm3Tocm3 = 1e-3; 
 
   HybridVolumes::HybridVolumes(std::string moduleName,
@@ -1887,10 +1891,13 @@ namespace insur {
                                                           modWidth(module.area()/module.length()),
                                                           modLength(module.length()),
                                                           modThickness(module.thickness()),
-                                                          hybridWidth(module.hybridWidth()),
+                                                          frontEndHybridWidth(module.frontEndHybridWidth()),
+                                                          serviceHybridWidth(module.serviceHybridWidth()),
                                                           hybridThickness(module.hybridThickness()),
                                                           hybridTotalMass(0.),
                                                           hybridTotalVolume_mm3(-1.),
+                                                          hybridFrontAndBackVolume_mm3(-1.),
+                                                          hybridLeftAndRightVolume_mm3(-1.),
                                                           moduleMassWithoutSensors_expected(0.),
                                                           prefix_xmlfile("tracker:"),
                                                           prefix_material("hybridcomposite") {
@@ -1919,37 +1926,41 @@ namespace insur {
   //         ---------------- 
   //                         InnerSensor(1)
   //
+  //  R(6) and L(5) are Front-End Hybrids
+  //  B(4) and F(3) are Service Hybdrids
+  //
+  //
     Volume* vol[nTypes];
     //Unused pointers
     vol[All]    = 0;
     vol[InSens] = 0;
     vol[OtSens] = 0;
 
-    double dx = hybridWidth;              
+    double dx = serviceHybridWidth;              
     double dy = modLength; 
     double dz = hybridThickness;  
-    double posx = (modWidth+hybridWidth)/2.;
+    double posx = (modWidth+serviceHybridWidth)/2.;
     double posy = 0.;
     double posz = 0.;
     // FrontSide Volume
     vol[Front] = new Volume(moduleId+"FSide",moduleId,dx,dy,dz,posx,posy,posz);
 
-    posx = -(modWidth+hybridWidth)/2.;
+    posx = -(modWidth+serviceHybridWidth)/2.;
     posy = 0.;
     posz = 0.;
     // BackSide Volume
     vol[Back] = new Volume(moduleId+"BSide",moduleId,dx,dy,dz,posx,posy,posz);
 
-    dx = modWidth+2*hybridWidth;  
-    dy = hybridWidth;
+    dx = modWidth+2*serviceHybridWidth;  
+    dy = frontEndHybridWidth;
     posx = 0.;
-    posy = (modLength+hybridWidth)/2.;
+    posy = (modLength+frontEndHybridWidth)/2.;
     posz = 0.;
     // LeftSide Volume
     vol[Left] = new Volume(moduleId+"LSide",moduleId,dx,dy,dz,posx,posy,posz);
 
     posx = 0.;
-    posy = -(modLength+hybridWidth)/2.;
+    posy = -(modLength+frontEndHybridWidth)/2.;
     posz = 0.;
     // RightSide Volume
     vol[Right] = new Volume(moduleId+"RSide",moduleId,dx,dy,dz,posx,posy,posz);
@@ -1972,9 +1983,28 @@ namespace insur {
        if ( el->targetVolume() == Front ||
             el->targetVolume() == Back  ||
             el->targetVolume() == Left  ||
-            el->targetVolume() == Right ) {
+            el->targetVolume() == Right ||
+            el->targetVolume() == Between ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
+       } else if ( el->targetVolume() == FrontAndBack ) { 
+          if (hybridFrontAndBackVolume_mm3 < 0) { // Need only once
+            hybridFrontAndBackVolume_mm3 = vol[Front]->getVolume()
+                                         + vol[Back]->getVolume();
+          }
+          vol[Front]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[Back]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[Front]->addMass(el->quantityInGrams(module)*vol[Front]->getVolume()/hybridFrontAndBackVolume_mm3);
+          vol[Back]->addMass(el->quantityInGrams(module)*vol[Back]->getVolume()/hybridFrontAndBackVolume_mm3);
+       } else if ( el->targetVolume() == LeftAndRight ) { 
+          if (hybridLeftAndRightVolume_mm3 < 0) { // Need only once
+            hybridLeftAndRightVolume_mm3 = vol[Left]->getVolume()
+                                         + vol[Right]->getVolume();
+          }
+          vol[Left]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[Right]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[Left]->addMass(el->quantityInGrams(module)*vol[Left]->getVolume()/hybridLeftAndRightVolume_mm3);
+          vol[Right]->addMass(el->quantityInGrams(module)*vol[Right]->getVolume()/hybridLeftAndRightVolume_mm3);
        } else if ( el->targetVolume() == All ) { // Uniformly Distribute
           vol[Front]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[Back]->addMaterial(el->elementName(),el->quantityInGrams(module));
