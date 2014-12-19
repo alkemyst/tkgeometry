@@ -18,36 +18,35 @@ Materials module-pt2S {
   // Sensor
   Component {
     componentName Sensor
-    //service true
-    //CHECK WHY WAS TRUE
     service false
     scaleOnSensor 0
     Element {
       elementName SenSi
       quantity 0.2
       unit mm
+      targetVolume 1
     }
   }
 
   // Sensor
   Component {
     componentName Sensor
-    //service true
-    //CHECK WHY WAS TRUE
     service false
     scaleOnSensor 0
     Element {
       elementName SenSi
       quantity 0.2
       unit mm
+      targetVolume 2
     }
   }
 
   // Two hybrids
   Component {
-    componentName Hybrid
+    componentName FEHybrids
     service false
     scaleOnSensor 1
+    targetVolume 56
     Element {
       elementName G10
       quantity 1.60
@@ -65,6 +64,7 @@ Materials module-pt2S {
     componentName ASICs
     service false
     scaleOnSensor 1
+    targetVolume 56
     Element {
       elementName Si
       quantity 0.46
@@ -72,36 +72,21 @@ Materials module-pt2S {
     }
   }
 
-  // One pairs (male+female)
-  Component {
-    componentName NaIS
-    service false
-    scaleOnSensor 0
-    Element {
-      elementName Cu
-      quantity 0.0976
-      unit g
-    }
-    Element {
-      elementName G10
-      quantity 0.1967
-      unit g
-    }
-  }
 
-  // One pairs (male+female)
+  // Two NaIS pairs (male+female)
   Component {
-    componentName NaIS
+    componentName 2NaISPairs
     service false
     scaleOnSensor 0
+    targetVolume 3
     Element {
       elementName Cu
-      quantity 0.0976
+      quantity 0.1952
       unit g
     }
     Element {
       elementName G10
-      quantity 0.1967
+      quantity 0.3934
       unit g
     }
   }
@@ -113,6 +98,7 @@ Materials module-pt2S {
     service false
     scaleOnSensor 0
     // Service board PCB
+    targetVolume 3
     Element {
       elementName G10
       quantity 0.25
@@ -144,13 +130,13 @@ Materials module-pt2S {
     }
   }
 
-  // LP-GBT with its fiber pair
   // DC/DC converter
   Component {
     componentName DC/DC
     service false
     scaleOnSensor 0
     // Service board PCB
+    targetVolume 3
     Element {
       elementName G10
       quantity 0.25
@@ -247,6 +233,7 @@ Materials module-pt2S {
       unit g
     }
   }
+
   // Power for the converter (10V)
   // 2 wires
   Component {
@@ -265,35 +252,22 @@ Materials module-pt2S {
     }
   }
 
-  // Kapton tail for the HV of one sensor
+  // 2 Kapton tails for the HV of one sensor
   Component {
-    componentName "HV lines"
+    componentName "HV tails"
     service false
     scaleOnSensor 0
+    targetVolume 7
     Element {
       elementName Kapton
-      quantity 0.085
+      quantity 0.170
       unit g
     }
   }
 
-  // TODO: RC filter missing here
-  // Kapton tail for the HV of one sensor
-  Component {
-    componentName "HV lines"
-    service false
-    scaleOnSensor 0
-    Element {
-      elementName Kapton
-      quantity 0.085
-      unit g
-    }
-  }
-
-  // TODO: RC filter missing here
   // Module mechanics (for 10 cm-long modules)
   Component {
-    componentName Mechanics
+    componentName "Module Mechanics"
     service false
     scaleOnSensor 0
     // Module frame
@@ -301,30 +275,35 @@ Materials module-pt2S {
       elementName CF
       quantity 5.35
       unit g
+      targetVolume 0
     }
     // Sensors supports
     Element {
       elementName CF
       quantity 3.28
       unit g
+      targetVolume 7
     }
     // PGS Thermal conductor
     Element {
       elementName CF
       quantity 0.69
       unit g
+      targetVolume 7
     }
     // Cooling blocks
     Element {
       elementName Al
       quantity 2.41
       unit g
+      targetVolume 0
     }
     // Screws
     Element {
       elementName Steel
       quantity 0.48
       unit g
+      targetVolume 0
     }
   }
   
