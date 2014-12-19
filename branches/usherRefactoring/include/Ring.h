@@ -17,6 +17,7 @@ using std::string;
 
 #define MAX_WEDGE_CALC_LOOPS 100
 
+
 class Ring : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
   typedef PtrVector<EndcapModule> Container;
   Container modules_;
