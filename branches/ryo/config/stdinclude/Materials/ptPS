@@ -22,6 +22,7 @@ Materials module-ptPS {
     componentName Sensor
     service false
     scaleOnSensor 0
+    targetVolume 1
     Element {
       elementName SenSi
       quantity 0.2
@@ -34,6 +35,7 @@ Materials module-ptPS {
     componentName Sensor
     service false
     scaleOnSensor 0
+    targetVolume 2
     Element {
       elementName SenSi
       quantity 0.2
@@ -46,6 +48,7 @@ Materials module-ptPS {
     componentName Hybrid
     service false
     scaleOnSensor 1
+    targetVolume 56
     Element {
       elementName G10
       quantity 1.3952
@@ -64,6 +67,7 @@ Materials module-ptPS {
     componentName ASICs
     service false
     scaleOnSensor 1
+    targetVolume 56
     Element {
       elementName Si
       quantity 0.45
@@ -76,6 +80,7 @@ Materials module-ptPS {
     componentName ASICs
     service false
     scaleOnSensor 0
+    targetVolume 7
     Element {
       elementName Si
       quantity 0.2
@@ -88,6 +93,7 @@ Materials module-ptPS {
     componentName NaIS
     service false
     scaleOnSensor 0
+    targetVolume 3
     Element {
       elementName Cu
       quantity 0.0976
@@ -105,6 +111,7 @@ Materials module-ptPS {
     componentName NaIS
     service false
     scaleOnSensor 0
+    targetVolume 3
     Element {
       elementName Cu
       quantity 0.0976
@@ -124,6 +131,7 @@ Materials module-ptPS {
     service false
     scaleOnSensor 0
     // Service board PCB
+    targetVolume 4
     Element {
       elementName G10
       quantity 0.25
@@ -155,12 +163,12 @@ Materials module-ptPS {
     }
   }
 
-  // LP-GBT with its fiber pair
   // DC/DC converter
   Component {
     componentName DC/DC
     service false
     scaleOnSensor 0
+    targetVolume 3
     // Service board PCB
     Element {
       elementName G10
@@ -282,6 +290,7 @@ Materials module-ptPS {
     componentName DC/DC
     service false
     scaleOnSensor 0
+    targetVolume 3
     // Service board PCB
     Element {
       elementName G10
@@ -382,30 +391,17 @@ Materials module-ptPS {
 
   // Kapton tail for the HV of one sensor
   Component {
-    componentName "HV lines"
+    componentName "HV tails"
     service false
     scaleOnSensor 0
+    targetVolume 7
     Element {
       elementName Kapton
-      quantity 0.085
+      quantity 0.170
       unit g
     }
   }
 
-  // TODO: RC filter missing here
-  // Kapton tail for the HV of one sensor
-  Component {
-    componentName "HV lines"
-    service false
-    scaleOnSensor 0
-    Element {
-      elementName Kapton
-      quantity 0.085
-      unit g
-    }
-  }
-
-  // TODO: RC filter missing here
   // Module mechanics
   Component {
     componentName Mechanics
@@ -416,30 +412,35 @@ Materials module-ptPS {
       elementName CF
       quantity 4.28
       unit g
+      targetVolume 0
     }
     // Sensors supports
     Element {
       elementName CF
       quantity 3.31
       unit g
+      targetVolume 7
     }
     // PGS + Pyroid Thermal conductor in CF equivalent TODO: split into real materials
     Element {
       elementName CF
       quantity 3.67
       unit g
+      targetVolume 7
     }
     // Cooling blocks
     Element {
       elementName Al
       quantity 2.44
       unit g
+      targetVolume 0
     }
     // Screws
     Element {
       elementName Steel
       quantity 0.48
       unit g
+      targetVolume 0
     }
   }
 

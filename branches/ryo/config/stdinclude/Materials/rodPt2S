@@ -6,9 +6,5 @@
 
 Materials rodPt2S {
   type rod
-
-  //nStripsAcross 1016
-  //nSegments 2
-//}
   @includestd Materials/rodBase
 }
