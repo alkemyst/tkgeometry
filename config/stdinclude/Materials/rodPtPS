@@ -2,13 +2,8 @@
 // In rod service true means that exit from the rod
 //        service false means that stay in the rod (but in the service cylinder)
 
-//  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
-
 Materials rodPtPS {
   type rod
 
-//  nStripsAcross 960
-//  nSegments 2
-//}
   @includestd Materials/rodBase
 }

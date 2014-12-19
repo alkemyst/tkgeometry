@@ -2,25 +2,6 @@
 // In rod service true means that exit from the rod
 //        service false means that stay in the rod (but in the service cylinder)
 
-//  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
-
-//Materials rodBase {
-//  type rod
-
-  //DUMMY!!!!!!!!!!!!!
-  //Component {
-  //  componentName Cooling
-  //  service true
-//    service false
-  //  scaleOnSensor 0
-  //  Element {
-  //    elementName Steel
-  //    quantity 10000
-  //    unit g/m
-  //  }
- // }
-    
-
   // Cooling for the module
   Component {
     componentName Cooling
@@ -196,18 +177,6 @@
     }
   }
 
-  // I acknowledge that there are no GBTs at the end of the rod
-  // Component {
-  //   componentName "Twisted pairs"
-  //   service true
-  //   scaleOnSensor 0
-  //   Element {
-  //     elementName Cu_twp
-  //     quantity 0
-  //     unit g
-  //   }
-  // }
-
   // Support Mechanics
   //Mechanics
   Component {
@@ -225,4 +194,3 @@
       unit g/m
     }
   }
-//}
