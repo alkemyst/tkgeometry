@@ -105,6 +105,8 @@ void Disk::build(const vector<double>& buildDsDistances) {
       if(flangeConversionStation_ == nullptr) { //take only first defined flange station
         flangeConversionStation_ = conversionStation;
       }
+    } else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
+      secondConversionStations_.push_back(conversionStation);
     }
   }
 
@@ -126,5 +128,9 @@ const MaterialObject& Disk::materialObject() const {
 
 ConversionStation* Disk::flangeConversionStation() const {
   return flangeConversionStation_;
+}
+
+const std::vector<ConversionStation*>& Disk::secondConversionStations() const {
+  return secondConversionStations_;
 }
 

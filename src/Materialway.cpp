@@ -660,23 +660,28 @@ namespace material {
 
         //find attach point
         for(ConversionStation* secondConversionStation : secondConversionStations) {
-          bool alreadyBuilt = false;
+          bool validConversion = true;
+          
+          if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+            logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too low.");
+            continue;
+          }
           
           //check if the station is already built
           for (auto& existentStation : stationListSecond_) {
             if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
-              alreadyBuilt = true;
+              validConversion = false;
               break;
             }
           }
 
-          if (! alreadyBuilt) {
+          if (validConversion) {
 
             attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
          
             while(section->maxZ() < attachPoint + sectionTolerance) {
               if(!section->hasNextSection()) {
-                //TODO: messaggio di errore
+                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too hight.");
                 return;
               }
               section = section->nextSection();
@@ -691,10 +696,10 @@ namespace material {
             stationMaxZ = discretize(secondConversionStation->maxZ_());
             stationMaxR = stationMinR + layerStationLenght;
 
-            if(!section->hasNextSection()) {
-              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
-            } else {
+            if(section->hasNextSection()) {
               station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
+            } else {
+              station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
             }
 
             section->nextSection(station);
@@ -780,12 +785,17 @@ namespace material {
       }
 
       void visit(Disk& disk) {
+        Section* section = nullptr;
+        Station* station = nullptr;
+
         ConversionStation* flangeConversionStation = disk.flangeConversionStation();        
+        const std::vector<ConversionStation*>& secondConversionStations = disk.secondConversionStations();
+
         currDisk_ = &disk;
         //if(currEndcapPosition == POSITIVE) {
         if (disk.minZ() >= 0) {
           //split the right section
-          Section* section = startEndcap;
+          section = startEndcap;
           int attachPoint = discretize(disk.maxZ()) + diskSectionMargin;
 
           while(section->maxZ() < attachPoint + sectionTolerance) {
@@ -814,7 +824,7 @@ namespace material {
           int stationMaxR = sectionMaxR + safetySpace + layerStationLenght;
 
           if(flangeConversionStation != nullptr) {
-            Station* station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *flangeConversionStation, section);
+            station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *flangeConversionStation, section);
             sectionsList_.push_back(station);
             stationListFirst_.push_back(station);
             startDisk = new Section(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, VERTICAL, station);
@@ -828,6 +838,61 @@ namespace material {
           diskRodSections_[currDisk_].addSection(startDisk);
 
           //TODO:aggiungi riferimento della rod a startZ...
+
+        
+
+        //==========second level conversion station
+
+          //find attach point
+          for(ConversionStation* secondConversionStation : secondConversionStations) {
+            bool validConversion = true;
+          
+            if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
+              logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too low.");
+              continue;
+            }
+
+            //check if the station is already built
+            for (auto& existentStation : stationListSecond_) {
+              if (existentStation->conversionStation().stationName_().compare(secondConversionStation->stationName_()) == 0) {
+                validConversion = false;
+                break;
+              }
+            }
+
+            if (validConversion) {
+
+              attachPoint = discretize((secondConversionStation->maxZ_() + secondConversionStation->minZ_()) /2);
+         
+              while(section->maxZ() < attachPoint + sectionTolerance) {
+                if(!section->hasNextSection()) {
+                  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too hight");
+                  return;
+                }
+                section = section->nextSection();
+              }
+
+              if (section->minZ() < attachPoint - sectionTolerance) {
+                splitSection(section, attachPoint);
+              }
+
+              stationMinZ = discretize(secondConversionStation->minZ_());
+              stationMinR = section->maxR() + safetySpace;
+              stationMaxZ = discretize(secondConversionStation->maxZ_());
+              stationMaxR = stationMinR + layerStationLenght;
+
+              if(section->hasNextSection()) {
+                station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation, section->nextSection());
+              } else {
+                station = new Station(stationMinZ, stationMinR, stationMaxZ, stationMaxR, HORIZONTAL, *secondConversionStation);
+              }
+
+              section->nextSection(station);
+
+              sectionsList_.push_back(station);
+              stationListSecond_.push_back(station);
+            }
+          }
         }
       }
 

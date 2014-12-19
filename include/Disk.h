@@ -31,6 +31,7 @@ private:
   RingIndexMap ringIndexMap_;
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
+  std::vector<ConversionStation*> secondConversionStations_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -103,6 +104,7 @@ public:
   }
   const MaterialObject& materialObject() const;
   ConversionStation* flangeConversionStation() const;
+  const std::vector<ConversionStation*>& secondConversionStations() const;
 };
 
 #endif
