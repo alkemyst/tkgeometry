@@ -42,6 +42,7 @@ namespace material {
           inputElement = currConversion->input->elements[0];
           if (inputElement->elementName().compare(currElement->elementName()) == 0) {
             converted = true;
+
             multiplier = currElement->quantityInUnit(inputElement->unit(), inactiveElement) / 
               inputElement->quantityInUnit(inputElement->unit(), inactiveElement);
           
@@ -147,6 +148,10 @@ namespace material {
       input->store(inputNode_.begin()->second);
       input->check();
       input->build();
+
+      if(input->elements[0]->unit().compare("g") == 0) {
+        logWARNING("Converted element unit is 'g' in conversion rule.");
+      }
     }
 
     if (outputNode_.size() > 0) {
