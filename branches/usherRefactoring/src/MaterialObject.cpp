@@ -26,7 +26,8 @@ namespace material {
 
   MaterialObject::MaterialObject(Type materialType) :
       materialType_ (materialType),
-      type_ ("type", parsedAndChecked()),
+      type_ ("type", parsedOnly()),
+      destination_ ("destination", parsedOnly()),
       debugInactivate_ ("debugInactivate", parsedOnly(), false),
       materialsNode_ ("Materials", parsedOnly()),
       // sensorNode_ ("Sensor", parsedOnly()),
@@ -59,6 +60,7 @@ namespace material {
   }
 
   void MaterialObject::build() {
+    check();
     if (!debugInactivate_()) {
       // for (auto& currentSensor : sensorNode_) {
       //   ReferenceSensor temporarySensor;
@@ -75,12 +77,21 @@ namespace material {
       static std::map<MaterialObjectKey, Materials*> materialsMap_; //for saving memory
       for (auto& currentMaterialNode : materialsNode_) {
         store(currentMaterialNode.second);
+
         check();
         if (type_().compare(getTypeString()) == 0) {
-          MaterialObjectKey myKey(currentMaterialNode.first, sensorChannels);
+          MaterialObjectKey myKey(currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
           if (materialsMap_.count(myKey) == 0) {
             Materials * newMaterials  = new Materials();
             newMaterials->store(currentMaterialNode.second);
+
+            //pass destination to newMaterials
+            if(destination_.state()) {
+              PropertyTree destinationPt;
+              destinationPt.add(destination_.name(), destination_());
+              newMaterials->store(destinationPt);
+            }
+
             newMaterials->build(sensorChannels);
             materialsMap_[myKey] = newMaterials;
           }
@@ -206,7 +217,7 @@ namespace material {
   }
 
   void MaterialObject::Materials::build(const std::map<int, int>& newSensorChannels) {
-        
+    check();        
     for (auto& currentComponentNode : componentsNode_) {
       Component* newComponent = new Component();
       newComponent->store(propertyTree());
@@ -272,6 +283,7 @@ namespace material {
   }
 
   void MaterialObject::Component::build(const std::map<int, int>& newSensorChannels) {
+    check();
     //std::cout << "COMPONENT " << componentName() << std::endl;
 
     //sub components
@@ -513,6 +525,9 @@ namespace material {
   }
 
   void MaterialObject::Element::build(const std::map<int, int>& newSensorChannels) {
+    check();
+    // if(destination.state())
+    //   std::cout << "DESTINATION " << destination() << " for " << elementName() << std::endl;
     for (const auto& aSensorChannel : newSensorChannels ) {
       sensorChannels_[aSensorChannel.first] = aSensorChannel.second;
     }

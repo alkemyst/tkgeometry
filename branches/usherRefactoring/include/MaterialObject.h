@@ -61,6 +61,7 @@ namespace material {
     static const std::map<Type, const std::string> typeString;
     Type materialType_;
     ReadonlyProperty<std::string, NoDefault> type_;
+    ReadonlyProperty<std::string, NoDefault> destination_;
     ReadonlyProperty<bool, Default> debugInactivate_;
     PropertyNodeUnique<std::string> materialsNode_;
     //    PropertyNode<int> sensorNode_;
@@ -80,23 +81,30 @@ namespace material {
       {}
       int numChannels() const { return numStripsAcross() * numSegments(); }
     };
+
     // The index of module types, including channel count per sensor
     class MaterialObjectKey {
     public:
       // TODO embed sensorChannel map into a fancier object?...?
-      MaterialObjectKey(const std::string& newName, std::map<int, int> newSensorChannels)
-        : name(newName), 
-        sensorChannels(newSensorChannels) {}
+      MaterialObjectKey(const std::string& newName, std::map<int, int> newSensorChannels, const std::string& newDestination) : 
+        name(newName), 
+        sensorChannels(newSensorChannels),
+        destination(newDestination)  {}
+
       bool operator<(const MaterialObjectKey& r ) const {
         if (this->sensorChannels < r.sensorChannels) return true;
         if (this->sensorChannels > r.sensorChannels) return false;
         if (this->name < r.name) return true;
+        if (this->name > r.name) return false;
+        if (this->destination < r.destination) return true;
         return false;
       }
     private:
       std::string name;
       std::map<int, int> sensorChannels;
+      std::string destination;
     };
+
     class Element : public PropertyObject {
     public:
       enum Unit{GRAMS, MILLIMETERS, GRAMS_METER};
