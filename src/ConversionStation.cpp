@@ -50,6 +50,10 @@ namespace material {
               if(currElement->debugInactivate()) {  //apply the inactivation also to converteds
                 newElement->debugInactivate(true);
               }
+              //TODO: check if is ok to do this
+              if(currElement->destination.state() && !newElement->destination.state()) {  //apply the same destination of converted element (only if not defined in output conversion rule)
+                newElement->destination(currElement->destination());
+              }
               if (newElement->service()) {
                 if (newElement->unit().compare("g") != 0) {
                   serviceOutput.addElement(newElement);
