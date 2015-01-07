@@ -12,8 +12,8 @@ Station {
     Input {
       Element {
         elementName Cu
-        quantity 16
-        unit g
+        quantity 160
+        unit g/m
       }
     }
     Output {
@@ -42,8 +42,8 @@ Station {
     Input {
       Element {
         elementName Cu
-        quantity 16
-        unit g
+        quantity 160
+        unit g/m
       }
     }
     Output {
@@ -66,8 +66,8 @@ Station {
     Input {
       Element {
         elementName Cu
-        quantity 16
-        unit g
+        quantity 160
+        unit g/m
       }
     }
     Output {
@@ -96,8 +96,8 @@ Station {
     Input {
       Element {
         elementName Cu
-        quantity 7.2
-        unit g
+        quantity 72
+        unit g/m
       }
     }
     Output {
@@ -126,8 +126,8 @@ Station {
     Input {
       Element {
         elementName Cu
-        quantity 7.2
-        unit g
+        quantity 72
+        unit g/m
       }
     }
     Output {
@@ -150,8 +150,8 @@ Station {
     Input {
       Element {
         elementName Cu
-        quantity 7.2
-        unit g
+        quantity 72
+        unit g/m
       }
     }
     Output {
