@@ -5,6 +5,7 @@
  * @author Stefano Martina
  */
 
+#include <set>
 #include "ConversionStation.h"
 //#include "MaterialObject.h"
 #include "InactiveElement.h"
@@ -32,7 +33,7 @@ namespace material {
     //double totalGrams = 0.0;
     double multiplier = 0.0;
     bool converted = false;
-
+    std::set<std::string> warningMaterials;
     
     for (const MaterialObject::Element* currElement : inputElements) {
       converted = false;
@@ -70,10 +71,13 @@ namespace material {
       }
       if (!converted) {
         serviceOutput.addElement(currElement);
-        logWARNING("Passed element \"" + currElement->elementName() + "\" without conversion in station \"" + stationName_() + "\".");
+        warningMaterials.insert(currElement->elementName());
       }
     }
-    
+
+    for(auto& warningMaterial : warningMaterials) {
+      logWARNING("Passed element \"" + warningMaterial + "\" without conversion in station \"" + stationName_() + "\".");
+    }    
 
     /*
     for (const Conversion* currConversion : conversions) {
