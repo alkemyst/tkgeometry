@@ -70,6 +70,7 @@ namespace material {
       }
       if (!converted) {
         serviceOutput.addElement(currElement);
+        logWARNING("Passed element \"" + currElement->elementName() + "\" without conversion in station \"" + stationName_() + "\".");
       }
     }
     

@@ -49,7 +49,7 @@ namespace material {
   }
 
 
-  //=====================================================================================================================
+  //=================================================================================
   //START Materialway::Boundary
   Materialway::Boundary::Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR) :
       containedElement_(containedElement),
@@ -110,7 +110,7 @@ namespace material {
     return outgoingSection_;
   }
   //END Materialway::Boundary
-  //=====================================================================================================================
+  //=================================================================================
   //START Materialway::Section
   Materialway::Section::Section(int minZ, int minR, int maxZ, int maxR, Direction bearing, Section* nextSection, bool debug) :
     minZ_(minZ),
@@ -267,7 +267,7 @@ namespace material {
     }
   }
   //END Materialway::Section
-  //=====================================================================================================================
+  //=================================================================================
   //START Materialway::Station
 
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation, Section* nextSection) :
@@ -290,7 +290,7 @@ namespace material {
 
 
   //END Materialway::Station
-  //=====================================================================================================================
+  //=================================================================================
   //START Materialway::OuterUsher
   Materialway::OuterUsher::OuterUsher(SectionVector& sectionsList, BoundariesSet& boundariesList) :
     sectionsList_(sectionsList),
@@ -527,7 +527,7 @@ namespace material {
     }
   }
   //END Materialway::OuterUsher
-  //=====================================================================================================================
+  //=================================================================================
   //START Materialway::InnerUsher
   Materialway::InnerUsher::InnerUsher(
       SectionVector& sectionsList,
@@ -978,7 +978,7 @@ namespace material {
   }
 
   //END Materialway::InnerUsher
-  //=====================================================================================================================
+  //=================================================================================
   //START Materialway
 
   const double Materialway::gridFactor = 1000.0;                                     /**< the conversion factor for using integers in the algorithm (helps finding collisions),
