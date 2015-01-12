@@ -76,7 +76,7 @@ namespace material {
     }
 
     for(auto& warningMaterial : warningMaterials) {
-      logWARNING("Passed element \"" + warningMaterial + "\" without conversion in station \"" + stationName_() + "\".");
+      logWARNING("Element \"" + warningMaterial + "\" ignored by station \"" + stationName_() + "\".");
     }    
 
     /*
