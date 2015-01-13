@@ -589,7 +589,7 @@ namespace material {
         int maxZ = minZ + sectionWidth;
         int maxR = boundary->maxR() - safetySpace;
 
-        startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection()); //TODO:build other segment in other direction?
+        startBarrel = new Section(minZ, minR, maxZ, maxR, VERTICAL, boundary->outgoingSection());
       }
 
       void visit(Layer& layer) {
@@ -617,7 +617,7 @@ namespace material {
 
         while(section->maxR() < attachPoint + sectionTolerance) {
           if(!section->hasNextSection()) {
-            //TODO: messaggio di errore
+            logERROR("Error in finding attach point during construction of services");
             return;
           }
           section = section->nextSection();
