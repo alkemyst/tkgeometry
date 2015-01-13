@@ -63,7 +63,7 @@ namespace material {
     ReadonlyProperty<std::string, NoDefault> type_;
     ReadonlyProperty<std::string, NoDefault> destination_;
     ReadonlyProperty<bool, Default> debugInactivate_;
-    PropertyNodeUnique<std::string> materialsNode_;
+    PropertyNodeUnique<std::string> materialsNode_; //TODO:see if is better PropertyNode instead
     //    PropertyNode<int> sensorNode_;
 
     const std::string getTypeString() const;
