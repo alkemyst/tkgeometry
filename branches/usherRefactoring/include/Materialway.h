@@ -146,10 +146,12 @@ namespace material {
       virtual void getServicesAndPass(const MaterialObject& source);
 
       ConversionStation& conversionStation();
+      MaterialObject& outgoingMaterialObject();
 
     private:
       size_t labelHash;
       ConversionStation& conversionStation_;
+      MaterialObject outgoingMaterialObject_;
     };
 
     typedef std::vector<Section*> SectionVector;
