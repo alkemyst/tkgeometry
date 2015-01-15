@@ -272,7 +272,8 @@ namespace material {
 
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation, Section* nextSection) :
       Section(minZ, minR, maxZ, maxR, bearing, nextSection),
-      conversionStation_ (conversionStation) {}
+      conversionStation_ (conversionStation),
+      outgoingMaterialObject_ (MaterialObject::SERVICE) {}
 
   Materialway::Station::Station(int minZ, int minR, int maxZ, int maxR, Direction bearing, ConversionStation& conversionStation) :
       Station(minZ, minR, maxZ, maxR, bearing, conversionStation, nullptr) {}
@@ -286,6 +287,10 @@ namespace material {
 
   ConversionStation& Materialway::Station::conversionStation() {
     return conversionStation_;
+  }
+
+  MaterialObject& Materialway::Station::outgoingMaterialObject() {
+    return outgoingMaterialObject_;
   }
 
 
@@ -1393,10 +1398,10 @@ namespace material {
       if ((station->nextSection() != nullptr) && (station->inactiveElement() != nullptr)) {
         //put local materials in the materialObject of the station
         //put exiting services in the materialObject of the adiacent section of station
-        station->conversionStation().routeConvertedElements(station->materialObject(), station->nextSection()->materialObject(), *station->inactiveElement());
-        if (station->nextSection()->nextSection() != nullptr) {
-          //route from the adiacent section of the adiacent section of the station, the materials of the adiacent section of the station
-          station->nextSection()->nextSection()->getServicesAndPass(station->nextSection()->materialObject());
+        station->conversionStation().routeConvertedElements(station->materialObject(), station->outgoingMaterialObject(), *station->inactiveElement());
+        if (station->nextSection() != nullptr) {
+          //route converted materials
+          station->nextSection()->getServicesAndPass(station->outgoingMaterialObject());
         }
       }
       /*
@@ -1423,10 +1428,10 @@ namespace material {
       if ((station->nextSection() != nullptr) && (station->inactiveElement() != nullptr)) {
         //put local materials in the materialObject of the station
         //put exiting services in the materialObject of the adiacent section of station
-        station->conversionStation().routeConvertedElements(station->materialObject(), station->nextSection()->materialObject(), *station->inactiveElement());
-        if (station->nextSection()->nextSection() != nullptr) {
-          //route from the adiacent section of the adiacent section of the station the materials of the adiacent section of the station
-          station->nextSection()->nextSection()->getServicesAndPass(station->nextSection()->materialObject());
+        station->conversionStation().routeConvertedElements(station->materialObject(), station->outgoingMaterialObject(), *station->inactiveElement());
+        if (station->nextSection() != nullptr) {
+          //route converted materials
+          station->nextSection()->getServicesAndPass(station->outgoingMaterialObject());
         }
       }
     }
