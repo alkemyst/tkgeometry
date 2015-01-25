@@ -632,7 +632,7 @@ namespace material {
           section = splitSection(section, attachPoint);
         }
 
-        //built two main sections above the layer (one for positive part, one for negative)
+        //built main sections above the layer
 
         sectionMinZ = safetySpace;
         sectionMinR = attachPoint;
@@ -1311,6 +1311,20 @@ namespace material {
 
       void visit(const Disk& disk) {
         currDisk_ = &disk;
+        const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
+        if(disk.maxZ() > 0) {
+          try {
+            for(int i=0; i<ringIndexMap.at(1)->numModules(); ++i) {
+              for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+                ringIndexMap.at(1)->materialObject().copyServicesTo(currSection->materialObject());
+                ringIndexMap.at(1)->materialObject().copyLocalsTo(currSection->materialObject());
+              }
+              diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ringIndexMap.at(1)->materialObject());
+            }
+          } catch (const std::out_of_range& ex) {
+            logERROR("No rings in disk.");
+          }
+        }
 
         /*
         if(currDisk_->minZ() > 0) {
@@ -1326,6 +1340,7 @@ namespace material {
         */
       }
 
+      /*
       void visit(const Ring& ring) {
         //route disk rod services
         if(ring.minZ() > 0) {
@@ -1336,6 +1351,7 @@ namespace material {
           diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject());
         }
       }
+      */
 
       void visit(const EndcapModule& module) {
         if (module.minZ() >= 0) {

@@ -202,7 +202,8 @@ namespace material {
       zPositiveElement->setInnerRadius(startR);
       zPositiveElement->setRWidth(inactiveElementWidth);
       zPositiveElement->setFinal(true);
-      zPositiveElement->setCategory(insur::MaterialProperties::o_sup);      
+      //zPositiveElement->setCategory(insur::MaterialProperties::o_sup);      
+      zPositiveElement->setCategory(insur::MaterialProperties::b_sup);      
 
       zNegativeElement = new InactiveTube;
       zNegativeElement->setZLength(length);
@@ -210,7 +211,8 @@ namespace material {
       zNegativeElement->setInnerRadius(startR);
       zNegativeElement->setRWidth(inactiveElementWidth);
       zNegativeElement->setFinal(true);
-      zNegativeElement->setCategory(insur::MaterialProperties::o_sup);      
+      //zNegativeElement->setCategory(insur::MaterialProperties::o_sup);      
+      zNegativeElement->setCategory(insur::MaterialProperties::b_sup);      
     } else {
       zPositiveElement = new InactiveRing;
       zPositiveElement->setZLength(inactiveElementWidth);
@@ -218,7 +220,8 @@ namespace material {
       zPositiveElement->setInnerRadius(startR);
       zPositiveElement->setRWidth(length);
       zPositiveElement->setFinal(true);
-      zPositiveElement->setCategory(insur::MaterialProperties::u_sup);
+      //zPositiveElement->setCategory(insur::MaterialProperties::u_sup);
+      zPositiveElement->setCategory(insur::MaterialProperties::b_sup);
 
       zNegativeElement = new InactiveRing;
       zNegativeElement->setZLength(inactiveElementWidth);
@@ -226,7 +229,8 @@ namespace material {
       zNegativeElement->setInnerRadius(startR);
       zNegativeElement->setRWidth(length);
       zNegativeElement->setFinal(true);
-      zNegativeElement->setCategory(insur::MaterialProperties::u_sup);
+      //zNegativeElement->setCategory(insur::MaterialProperties::u_sup);
+      zNegativeElement->setCategory(insur::MaterialProperties::b_sup);
     }
 
       populateMaterialProperties(*zPositiveElement);
