@@ -185,12 +185,12 @@
     scaleOnSensor 0
     Element {
       elementName CF
-      quantity 81.12
-      unit g/m
+      quantity 0.48
+      unit mm
     }
     Element {
       elementName PE
-      quantity 6.05895727
-      unit g/m
+      quantity 0.063778498
+      unit mm
     }
   }
