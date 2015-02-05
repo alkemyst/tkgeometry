@@ -82,7 +82,7 @@ namespace material {
         if (type_().compare(getTypeString()) == 0) {
           MaterialObjectKey myKey(currentMaterialNode.first, sensorChannels, destination_.state()? destination_() : std::string(""));
           if (materialsMap_.count(myKey) == 0) {
-            Materials * newMaterials  = new Materials();
+            Materials * newMaterials  = new Materials(materialType_);
             newMaterials->store(currentMaterialNode.second);
 
             //pass destination to newMaterials
@@ -105,66 +105,20 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::copyServicesTo(MaterialObject& outputObject) const {
+  void MaterialObject::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices) const {
     for(const Element * currElement : serviceElements_) {
-      outputObject.addElementIfService(currElement);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices);
     }
     
     if (materials_ != nullptr) {
-      materials_->copyServicesTo(outputObject);
-    }
+      materials_->deployMaterialTo(outputObject, unitsToDeploy, onlyServices);
+    }    
   }
 
-  void MaterialObject::copyServicesTo(ConversionStation& outputObject) const {
-    for(const Element * currElement : serviceElements_) {
-      outputObject.addElementIfService(currElement);
+  void MaterialObject::addElement(const MaterialObject::Element* element) {
+    if(element != nullptr) {
+      serviceElements_.push_back(element);
     }
-
-    if (materials_ != nullptr) {
-      materials_->copyServicesTo(outputObject);
-    }
-  }
-
-  void MaterialObject::copyLocalsTo(MaterialObject& outputObject) const {
-    for(const Element * currElement : serviceElements_) {
-      outputObject.addElementIfLocal(currElement);
-    }
-
-    if (materials_ != nullptr) {
-      materials_->copyLocalsTo(outputObject);
-    }
-  }
-  
-  void MaterialObject::addElementIfService(const Element* inputElement) {
-    if (inputElement->service() == true) {
-      if (inputElement->unit().compare("g") != 0) {
-        serviceElements_.push_back(inputElement);
-      } else {
-        logERROR(err_service1 + inputElement->elementName() + err_service2);
-      }        
-    }
-  }
-
-  void MaterialObject::addElementIfLocal(const Element* inputElement) {
-    if (inputElement->service() == false) {      
-      if (inputElement->unit().compare("g") != 0) {
-        serviceElements_.push_back(inputElement);
-      } else {
-        logERROR(err_service1 + inputElement->elementName() + err_service2);
-      }        
-    }
-  }
-
-  void MaterialObject::addElement(const Element* inputElement) {
-    if (inputElement->unit().compare("g") != 0) {
-      serviceElements_.push_back(inputElement);
-    } else {
-      logERROR(err_service1 + inputElement->elementName() + err_service2);
-    }        
-  }
-
-  void MaterialObject::addElementNoUnitCheck(const Element* inputElement) {
-    serviceElements_.push_back(inputElement);
   }
 
   void MaterialObject::populateMaterialProperties(MaterialProperties& materialProperties) const {
@@ -204,8 +158,9 @@ namespace material {
   //  materials_->chargeTrain(train);
   //}
 
-  MaterialObject::Materials::Materials() :
-    componentsNode_ ("Component", parsedOnly()) {};
+  MaterialObject::Materials::Materials(MaterialObject::Type newMaterialType) :
+    componentsNode_ ("Component", parsedOnly()),
+    materialType_(newMaterialType) {};
   
 
   double MaterialObject::Materials::totalGrams(double length, double surface) const {
@@ -219,7 +174,7 @@ namespace material {
   void MaterialObject::Materials::build(const std::map<int, int>& newSensorChannels) {
     check();        
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component();
+      Component* newComponent = new Component(materialType_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -230,29 +185,11 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Materials::copyServicesTo(MaterialObject& outputObject) const {
+  void MaterialObject::Materials::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices) const {
     for (const Component* currComponent : components_) {
-      currComponent->copyServicesTo(outputObject);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices);
     }
   }
-
-  void MaterialObject::Materials::copyServicesTo(ConversionStation& outputObject) const {
-    for (const Component* currComponent : components_) {
-      currComponent->copyServicesTo(outputObject);
-    }
-  }
-
-  void MaterialObject::Materials::copyLocalsTo(MaterialObject& outputObject) const {
-    for (const Component* currComponent : components_) {
-      currComponent->copyLocalsTo(outputObject);
-    }
-  }
-
-//  void MaterialObject::Materials::chargeTrain(Materialway::Train& train) const {
-//    for (const Component& currComp : components_) {
-//      currComp.chargeTrain(train);
-//    }
-//  }
 
   void MaterialObject::Materials::populateMaterialProperties(MaterialProperties& materialProperties) const {
     for (const Component* currComponent : components_) {
@@ -266,10 +203,11 @@ namespace material {
     }
   }
 
-  MaterialObject::Component::Component() :
+  MaterialObject::Component::Component(MaterialObject::Type& newMaterialType) :
     //componentName ("componentName", parsedAndChecked()),
     componentsNode_ ("Component", parsedOnly()),
-    elementsNode_ ("Element", parsedOnly()) {};
+    elementsNode_ ("Element", parsedOnly()),
+    materialType_(newMaterialType) {};
 
   double MaterialObject::Component::totalGrams(double length, double surface) const {
     double result = 0.0;
@@ -288,7 +226,7 @@ namespace material {
 
     //sub components
     for (auto& currentComponentNode : componentsNode_) {
-      Component* newComponent = new Component();
+      Component* newComponent = new Component(materialType_);
       newComponent->store(propertyTree());
       newComponent->store(currentComponentNode.second);
       newComponent->check();
@@ -298,7 +236,7 @@ namespace material {
     }
     //elements
     for (auto& currentElementNode : elementsNode_) {
-      Element* newElement = new Element();
+      Element* newElement = new Element(materialType_);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();
@@ -312,41 +250,14 @@ namespace material {
     cleanup();
   }
 
-  void MaterialObject::Component::copyServicesTo(MaterialObject& outputObject) const {
+  void MaterialObject::Component::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices) const {
     for(const Element* currElement : elements_) {
-      outputObject.addElementIfService(currElement);
+      currElement->deployMaterialTo(outputObject, unitsToDeploy, onlyServices);
     }
     for (const Component* currComponent : components_) {
-      currComponent->copyServicesTo(outputObject);
+      currComponent->deployMaterialTo(outputObject, unitsToDeploy, onlyServices);
     }
   }
-
-  void MaterialObject::Component::copyServicesTo(ConversionStation& outputObject) const {
-    for(const Element* currElement : elements_) {
-      outputObject.addElementIfService(currElement);
-    }
-    for (const Component* currComponent : components_) {
-      currComponent->copyServicesTo(outputObject);
-    }
-  }
-
-  void MaterialObject::Component::copyLocalsTo(MaterialObject& outputObject) const {
-    for(const Element* currElement : elements_) {
-      outputObject.addElementIfLocal(currElement);
-    }
-    for (const Component* currComponent : components_) {
-      currComponent->copyLocalsTo(outputObject);
-    }
-  }
-
-//  void MaterialObject::Component::chargeTrain(Materialway::Train& train) const {
-//    for (const Component& currComp : components_) {
-//      currComp.chargeTrain(train);
-//    }
-//    for (const Element& currElem : elements_) {
-//      currElem.chargeTrain(train);
-//    }
-//  }
 
   void MaterialObject::Component::populateMaterialProperties(MaterialProperties& materialProperties) const {
     for (const Component* currComponent : components_) {
@@ -375,7 +286,7 @@ namespace material {
   };
   */
 
-  MaterialObject::Element::Element() :
+  MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
     componentName ("componentName", parsedOnly()),
     //numStripsAcross("numStripsAcross", parsedOnly()),
     //numSegments("numSegments", parsedOnly()),
@@ -390,9 +301,10 @@ namespace material {
     debugInactivate ("debugInactivate", parsedOnly(), false),
     destination ("destination", parsedOnly()),
     targetVolume ("targetVolume", parsedOnly(), 0),
-    materialTab_ (MaterialTab::instance()) {};
+    materialTab_ (MaterialTab::instance()),
+    materialType_(newMaterialType) {};
 
-  MaterialObject::Element::Element(const Element& original, double multiplier) : Element() {
+  MaterialObject::Element::Element(const Element& original, double multiplier) : Element(original.materialType_) {
     if(original.destination.state())
       destination(original.destination());
     if(original.componentName.state())
@@ -412,6 +324,31 @@ namespace material {
       {"mm", MILLIMETERS},
       {"g/m", GRAMS_METER}
   };
+
+  void MaterialObject::Element::deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices) const {
+    bool valid = false;
+    if ((! onlyServices) || (onlyServices && (service() == true))) {
+      if ((materialType_ == ROD) || (materialType_ == STATION)) {
+        if(unit().compare("g") == 0) { 
+          logERROR(err_service1 + elementName() + err_service2);
+        } else {
+          valid = true;
+        }
+      } else if (materialType_ == MODULE) {
+        if (service() == true) {
+          valid = true;
+        }      
+      } 
+      if(valid) {
+        for(const std::string& unitToDeploy : unitsToDeploy) {
+          if (unit().compare(unitToDeploy) == 0) {
+            outputObject.addElement(this);
+            break;
+          }
+        }
+      }
+    }
+  }
 
   double MaterialObject::Element::quantityInGrams(const DetectorModule& module) const {
     return quantityInUnit("g", module.length(), module.area());

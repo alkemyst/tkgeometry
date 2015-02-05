@@ -35,7 +35,7 @@ namespace material {
     bool converted = false;
     std::set<std::string> warningMaterials;
     
-    for (const MaterialObject::Element* currElement : inputElements) {
+    for (const MaterialObject::Element* currElement : serviceElements_) { //inputElements) {
       converted = false;
       //if the material need to be converted (flange station, or endcap station with right destination)
       if ((stationType_ == FLANGE) || (stationType_ == SECOND && currElement->destination.state() && currElement->destination().compare(stationName_()) == 0)) {
@@ -63,7 +63,7 @@ namespace material {
                   logERROR(err_service1 + newElement->elementName() + err_service2);
                 }        
               } else {
-                localOutput.addElementNoUnitCheck(newElement);
+                localOutput.addElement(newElement);
               }
             }
           }
@@ -116,15 +116,6 @@ namespace material {
   }
   */
 
-  void ConversionStation::addElementIfService(const MaterialObject::Element* inputElement) {
-    if (inputElement->service() == true) {
-      if (inputElement->unit().compare("g") != 0) {
-        inputElements.push_back(inputElement);
-      } else {
-        logERROR(err_service1 + inputElement->elementName() + err_service2);
-      }        
-    }
-  }
 
   ConversionStation::Type ConversionStation::stationType() const {
     return stationType_;
@@ -173,7 +164,7 @@ namespace material {
     //std::cout << "    INPUT/OUTPUT" << std::endl;
 
     for  (auto& currentElementNode : elementsNode_) {
-      MaterialObject::Element* newElement = new MaterialObject::Element();
+      MaterialObject::Element* newElement = new MaterialObject::Element(elementMaterialType);
       newElement->store(propertyTree());
       newElement->store(currentElementNode.second);
       newElement->check();

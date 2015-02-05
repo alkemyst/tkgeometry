@@ -20,7 +20,7 @@ using insur::InactiveElement;
 namespace material {
   //class MaterialObject;
   
-  class ConversionStation :public PropertyObject { //MaterialObject {
+  class ConversionStation :public MaterialObject {
   public:
     enum Type {ERROR, FLANGE, SECOND};
     
@@ -30,14 +30,14 @@ namespace material {
       type_ ("type", parsedAndChecked()),
       minZ_ ("minZ", parsedOnly()),
       maxZ_ ("maxZ", parsedOnly()),
-      conversionsNode_ ("Conversion", parsedOnly()) {} ;
+      conversionsNode_ ("Conversion", parsedOnly()),
+      MaterialObject(MaterialObject::Type::STATION)    {} ;
     virtual ~ConversionStation() {};
 
     void build();
     void routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement);
     //void routeConvertedServicesTo(MaterialObject& outputObject) const;
     //void routeConvertedLocalsTo(MaterialObject& outputObject) const;
-    void addElementIfService(const MaterialObject::Element* inputElement);
     Type stationType() const;
 
     ReadonlyProperty<std::string, NoDefault> stationName_;
@@ -77,12 +77,15 @@ namespace material {
       PropertyNodeUnique<std::string> elementsNode_;
 
       Inoutput() :
-        elementsNode_ ("Element", parsedOnly()) {};
-      virtual ~Inoutput() {};
+        elementsNode_ ("Element", parsedOnly()),
+        elementMaterialType(MaterialObject::Type::STATION) {};
+
+        virtual ~Inoutput() {};
 
       void build();
 
       std::vector<MaterialObject::Element*> elements;
+      MaterialObject::Type elementMaterialType;
     };
 
     class Conversion : public PropertyObject {
@@ -102,7 +105,6 @@ namespace material {
     };
 
     std::vector<Conversion *> conversions;
-    std::vector<const MaterialObject::Element *> inputElements;
   };
 
 } /* namespace material */

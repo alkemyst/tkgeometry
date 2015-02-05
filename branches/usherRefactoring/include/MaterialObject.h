@@ -34,7 +34,7 @@ namespace material {
     typedef std::vector<Component*> ComponentsVector;
     typedef std::vector<const Element*> ElementsVector;
 
-    enum Type {MODULE, ROD, LAYER, SERVICE};
+    enum Type {MODULE, ROD, LAYER, SERVICE, STATION};
 
     MaterialObject(Type materialType);
     MaterialObject(const MaterialObject& other);
@@ -43,14 +43,9 @@ namespace material {
     double totalGrams(double length, double surface) const;
 
     virtual void build();
-
-    virtual void copyServicesTo(MaterialObject& outputObject) const;
-    virtual void copyServicesTo(ConversionStation& outputObject) const;
-    void copyLocalsTo(MaterialObject& outputObject) const;
-    void addElementIfService(const Element* inputElement);
-    void addElementIfLocal(const Element* inputElement);
-    void addElement(const Element* inputElement);
-    void addElementNoUnitCheck(const Element* inputElement);
+    
+    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
+    void addElement(const MaterialObject::Element* element);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
     ElementsVector& getLocalElements() const;
@@ -121,14 +116,14 @@ namespace material {
       Property<int, Default> targetVolume;
       PropertyNode<int> referenceSensorNode;
 
-      Element();
+      Element(MaterialObject::Type& newMaterialType);
       Element(const Element& original, double multiplier = 1.0);
       //Element(const Element& originElement);
       std::map<int, ReferenceSensor*> referenceSensors_;
 
       virtual ~Element() {};
       void build(const std::map<int, int>& newSensorChannels);
-      //void chargeTrain(Materialway::Train& train) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(const double length, const double surface) const;
@@ -145,6 +140,7 @@ namespace material {
     private:
       const MaterialTab& materialTab_;
       static const std::string msg_no_valid_unit;
+      MaterialObject::Type& materialType_;
       //static const std::map<std::string, Materialway::Train::UnitType> unitTypeMap;
     };
 
@@ -153,37 +149,35 @@ namespace material {
       //Property<std::string, NoDefault> componentName;
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
-      Component();
+      Component(MaterialObject::Type& newMaterialType);
       virtual ~Component() {};
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void copyServicesTo(MaterialObject& outputObject) const;
-      void copyServicesTo(ConversionStation& outputObject) const;
-      void copyLocalsTo(MaterialObject& outputObject) const;
-      //void chargeTrain(Materialway::Train& train) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
       void getLocalElements(ElementsVector& elementsList) const;
 
       ComponentsVector components_;
       ElementsVector elements_;
+
+      MaterialObject::Type& materialType_;
     };
 
     class Materials : public PropertyObject {
     public:
       PropertyNodeUnique<std::string> componentsNode_;
       //Property<double, Computable> radiationLength, interactionLenght;
-      Materials();
+      Materials(MaterialObject::Type newMaterialType);
       virtual ~Materials() {};
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void copyServicesTo(MaterialObject& outputObject) const;
-      void copyServicesTo(ConversionStation& outputObject) const;
-      void copyLocalsTo(MaterialObject& outputObject) const;
-      //void chargeTrain(Materialway::Train& train) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
 
       ComponentsVector components_;
+
+      MaterialObject::Type materialType_;
     };
 
     //ATTENTION: Materials objects of the same structure are shared between MaterialObject objects

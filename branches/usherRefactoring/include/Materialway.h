@@ -122,6 +122,7 @@ namespace material {
       //Section* appendNewSection
 
       virtual void getServicesAndPass(const MaterialObject& source);
+      virtual void getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass);
 
       bool debug_;
     private:
@@ -130,6 +131,8 @@ namespace material {
       Direction bearing_;
       MaterialObject materialObject_;
       InactiveElement* inactiveElement_; /**< The InactiveElement for hooking up to the existing infrastructure */
+    protected:
+      const std::vector<std::string> unitsToPass_ = {"g/m", "mm"};
     }; //class Section
 
     class Station : public Section {
@@ -144,6 +147,7 @@ namespace material {
         };*/
 
       virtual void getServicesAndPass(const MaterialObject& source);
+      virtual void getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass);
 
       ConversionStation& conversionStation();
       MaterialObject& outgoingMaterialObject();
