@@ -261,11 +261,19 @@ namespace material {
     return inactiveElement_;
   }
   void Materialway::Section::getServicesAndPass(const MaterialObject& source) {
-    source.copyServicesTo(materialObject());
+    source.deployMaterialTo(materialObject(), unitsToPass_, true);
     if(hasNextSection()) {
       nextSection()->getServicesAndPass(source);
     }
   }
+
+  void Materialway::Section::getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass) {
+    source.deployMaterialTo(materialObject(), unitsToPass, true);
+    if(hasNextSection()) {
+      nextSection()->getServicesAndPass(source);
+    }
+  }
+
   //END Materialway::Section
   //=================================================================================
   //START Materialway::Station
@@ -280,8 +288,12 @@ namespace material {
   Materialway::Station::~Station() {}
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
-    //return; //PROVA!
-    source.copyServicesTo(conversionStation_);
+    source.deployMaterialTo(conversionStation_, unitsToPass_, true);
+    //don't pass
+  }
+
+  void Materialway::Station::getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass) {
+    source.deployMaterialTo(conversionStation_, unitsToPass, true);
     //don't pass
   }
 
@@ -1211,6 +1223,10 @@ namespace material {
 
       bool printGuard;
       int printCounter;
+      bool firstRod;
+      
+      const std::vector<std::string> unitsToPassRod = {"g/m"};
+      const std::vector<std::string> unitsToPassLayer = {"mm"};
     public:
       ServiceVisitor(ModuleSectionMap& moduleSectionAssociations, LayerRodSectionsMap& layerRodSections, DiskRodSectionsMap& diskRodSections) :
         moduleSectionAssociations_(moduleSectionAssociations),
@@ -1219,15 +1235,21 @@ namespace material {
 
       void visit(const Layer& layer) {
         currLayer_ = &layer;
+        firstRod = true;
       }
 
       void visit(const RodPair& rod) {
-        for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-          rod.materialObject().copyServicesTo(currSection->materialObject());
-          rod.materialObject().copyLocalsTo(currSection->materialObject());
+        if (firstRod) {
+          for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
+            rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer);
+          }
+          firstRod = false;
+          layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassLayer);
         }
-        //return; //PROVA!
-        layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject());
+        for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
+          rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRod);
+        }
+        layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassRod);
       }
 
       void visit(const BarrelModule& module) {
@@ -1235,6 +1257,7 @@ namespace material {
           moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
 
           return;
+
           if (printGuard) {
             std::cout << "MODULO:\t\t< "
                       << std::setw(9) << module.minZ() << ";\tv " 
@@ -1270,7 +1293,7 @@ namespace material {
           }
           */
 
-          //  /* NO
+            /* BOH
           for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
             currLayer_->materialObject().copyServicesTo(currSection->materialObject());
             currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
@@ -1282,7 +1305,7 @@ namespace material {
                         << std::setw(9) << undiscretize(currSection->maxR()) << std::endl;
             }
           }
-          // */
+           */
 
           /* NO
           RodSectionsStation& rodSectionsStation = layerRodSections_.at(currLayer_);
@@ -1313,13 +1336,18 @@ namespace material {
         currDisk_ = &disk;
         const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
         if(disk.maxZ() > 0) {
+          //for the mm
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+            ringIndexMap.at(1)->materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer);
+          }
+          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ringIndexMap.at(1)->materialObject(), unitsToPassLayer);
+          //for the g/m
           try {
             for(int i=0; i<ringIndexMap.at(1)->numModules(); ++i) {
               for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-                ringIndexMap.at(1)->materialObject().copyServicesTo(currSection->materialObject());
-                ringIndexMap.at(1)->materialObject().copyLocalsTo(currSection->materialObject());
+                ringIndexMap.at(1)->materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRod);
               }
-              diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ringIndexMap.at(1)->materialObject());
+              diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ringIndexMap.at(1)->materialObject(), unitsToPassRod);
             }
           } catch (const std::out_of_range& ex) {
             logERROR("No rings in disk.");
