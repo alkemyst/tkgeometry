@@ -33,6 +33,7 @@ namespace material {
 
     typedef std::vector<Component*> ComponentsVector;
     typedef std::vector<const Element*> ElementsVector;
+    static const bool ONLYSERVICES = true;
 
     enum Type {MODULE, ROD, LAYER, SERVICE, STATION};
 
