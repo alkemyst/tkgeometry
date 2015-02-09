@@ -261,14 +261,14 @@ namespace material {
     return inactiveElement_;
   }
   void Materialway::Section::getServicesAndPass(const MaterialObject& source) {
-    source.deployMaterialTo(materialObject(), unitsToPass_, true);
+    source.deployMaterialTo(materialObject(), unitsToPass_, MaterialObject::ONLYSERVICES);
     if(hasNextSection()) {
       nextSection()->getServicesAndPass(source);
     }
   }
 
   void Materialway::Section::getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass) {
-    source.deployMaterialTo(materialObject(), unitsToPass, true);
+    source.deployMaterialTo(materialObject(), unitsToPass, MaterialObject::ONLYSERVICES);
     if(hasNextSection()) {
       nextSection()->getServicesAndPass(source);
     }
@@ -288,12 +288,12 @@ namespace material {
   Materialway::Station::~Station() {}
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
-    source.deployMaterialTo(conversionStation_, unitsToPass_, true);
+    source.deployMaterialTo(conversionStation_, unitsToPass_, MaterialObject::ONLYSERVICES);
     //don't pass
   }
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass) {
-    source.deployMaterialTo(conversionStation_, unitsToPass, true);
+    source.deployMaterialTo(conversionStation_, unitsToPass, MaterialObject::ONLYSERVICES);
     //don't pass
   }
 
@@ -1550,7 +1550,7 @@ namespace material {
         weightDistribution.addTotalGrams(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, sectionLength, sectionArea, section->materialObject());
         */
       } else {
-        logERROR(inactiveElementError);
+        logUniqueERROR(inactiveElementError);
       }
     }
 
@@ -1642,10 +1642,10 @@ namespace material {
           inactiveSurface.addBarrelServicePart(*section->inactiveElement());
           // inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
         } else {
-          logERROR("Inactive element mass = 0.");
+          logUniqueERROR("Inactive element mass = 0.");
         }
       } else {
-        logERROR(inactiveElementError);
+        logUniqueERROR(inactiveElementError);
       }
     }
     /*

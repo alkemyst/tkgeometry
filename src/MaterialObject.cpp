@@ -342,6 +342,9 @@ namespace material {
       if(valid) {
         for(const std::string& unitToDeploy : unitsToDeploy) {
           if (unit().compare(unitToDeploy) == 0) {
+            if ((service()==true) && (unit().compare("mm") == 0)) {
+              logUniqueWARNING("Definition of services in \"mm\" is deprecated");
+            }
             outputObject.addElement(this);
             break;
           }
