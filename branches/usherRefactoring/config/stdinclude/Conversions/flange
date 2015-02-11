@@ -7,16 +7,22 @@ Station {
   stationName flange
   type flange
 
-  // Block PE and Al
+  // PE and Al
   Conversion {
     Input {
       Element {
         elementName PE
-        quantity 1
+        quantity 10
         unit g/m
       }
     }
     Output {
+      Element {
+        elementName PE
+        quantity 10
+        unit g/m
+        service true
+      }
     }  
   }
 
@@ -24,11 +30,17 @@ Station {
     Input {
       Element {
         elementName Al
-        quantity 1
+        quantity 10
         unit g/m
       }
     }
     Output {
+      Element {
+        elementName Al
+        quantity 10
+        unit g/m
+        service true
+      }
     }  
   }
 
