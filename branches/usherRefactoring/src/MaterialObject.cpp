@@ -455,10 +455,16 @@ namespace material {
     int sensorIndex = scaleOnSensor();
 
     if(sensorIndex != 0) {
-      try {
-        return sensorChannels_.at(sensorIndex) / referenceSensors_.at(sensorIndex)->numChannels();
-      } catch (std::out_of_range& e) {
-        std::cerr << "Sensor " << sensorIndex <<" don't exists." << std::endl;
+      if(materialType_ == MODULE) {
+        try {
+          return sensorChannels_.at(sensorIndex) / referenceSensors_.at(sensorIndex)->numChannels();
+        } catch (std::out_of_range& e) {
+          std::stringstream error;
+          error << "Sensor " << sensorIndex << " don't exists." << std::endl;
+          logERROR(error.str());
+        }
+      } else {
+        logUniqueERROR("Is not possible to define scaling for materials not in module.");
       }
     }
     return 1.;
