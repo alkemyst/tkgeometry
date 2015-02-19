@@ -753,7 +753,7 @@ namespace material {
           section = startLayer;
           while (section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
-              //TODO: messaggio di errore
+              logERROR("No section above the module found.");
               return;
             }
             section = section->nextSection();
@@ -923,7 +923,7 @@ namespace material {
           section = startDisk;
           while (section->maxR() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
-              //TODO: messaggio di errore
+              logERROR("No section next to module found.");
               return;
             }
             section = section->nextSection();
@@ -1224,6 +1224,8 @@ namespace material {
       bool printGuard;
       int printCounter;
       bool firstRod;
+      bool firstRing;
+      
       
       const std::vector<std::string> unitsToPassRod = {"g/m"};
       const std::vector<std::string> unitsToPassLayer = {"mm"};
@@ -1231,7 +1233,7 @@ namespace material {
       ServiceVisitor(ModuleSectionMap& moduleSectionAssociations, LayerRodSectionsMap& layerRodSections, DiskRodSectionsMap& diskRodSections) :
         moduleSectionAssociations_(moduleSectionAssociations),
         layerRodSections_(layerRodSections),
-        diskRodSections_(diskRodSections), printGuard(true), printCounter(0) {}
+        diskRodSections_(diskRodSections), printGuard(true), printCounter(0), firstRing(false) {}
 
       void visit(const Layer& layer) {
         currLayer_ = &layer;
@@ -1334,24 +1336,9 @@ namespace material {
 
       void visit(const Disk& disk) {
         currDisk_ = &disk;
-        const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
+        //const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
         if(disk.maxZ() > 0) {
-          //for the mm
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            ringIndexMap.at(1)->materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer);
-          }
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ringIndexMap.at(1)->materialObject(), unitsToPassLayer);
-          //for the g/m
-          try {
-            for(int i=0; i<ringIndexMap.at(1)->numModules(); ++i) {
-              for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-                ringIndexMap.at(1)->materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRod);
-              }
-              diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ringIndexMap.at(1)->materialObject(), unitsToPassRod);
-            }
-          } catch (const std::out_of_range& ex) {
-            logERROR("No rings in disk.");
-          }
+          firstRing = true;
         }
 
         /*
@@ -1368,6 +1355,25 @@ namespace material {
         */
       }
 
+      void visit(const Ring& ring) {
+        if(firstRing) {
+          //for the mm
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+            ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer);
+          }
+          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassLayer);
+          //for the g/m
+       
+          for(int i=0; i<ring.modules().size(); ++i) {
+            for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+              ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRod);
+            }
+            diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassRod);
+          }
+      
+          firstRing = false;
+        }
+      }
       /*
       void visit(const Ring& ring) {
         //route disk rod services

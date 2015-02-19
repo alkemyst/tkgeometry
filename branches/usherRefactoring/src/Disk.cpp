@@ -15,8 +15,13 @@ double Disk::getDsDistance(const vector<double>& buildDsDistances, int rindex) c
 
 void Disk::cutAtEta(double eta) { 
   for (auto& r : rings_) r.cutAtEta(eta); 
-  rings_.erase_if([](const Ring& r) { return r.numModules() == 0; }); // get rid of rods which have been completely pruned
+  //  rings_.erase_if([](const Ring& r) { return r.numModules() == 0; }); // get rid of rods which have been completely pruned
+  rings_.erase_if([](const Ring& r) { return r.modules().size() == 0; }); // get rid of rods which have been completely pruned
   numRings(rings_.size());
+  minZ.clear();
+  minR.clear();
+  maxZ.clear();
+  maxR.clear();
 }
 
 void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
@@ -45,8 +50,8 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
     rings_.push_back(ring);
-    //ringIndexMap_.insert(i, ring);
-    ringIndexMap_[i] = ring;
+    ////ringIndexMap_.insert(i, ring);
+    //ringIndexMap_[i] = ring;
     lastRho = ring->maxR();
     lastSmallDelta = ring->smallDelta();
   }
@@ -75,9 +80,10 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
     ring->myid(i);
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
-    rings_.push_back(ring);
-    //ringIndexMap_.insert(i, ring);
-    ringIndexMap_[i] = ring;
+    //rings_.push_back(ring);
+    rings_.insert(rings_.begin(), ring);
+    ////ringIndexMap_.insert(i, ring);
+    //ringIndexMap_[i] = ring;
     lastRho = ring->minR();
     lastSmallDelta = ring->smallDelta();
   }
