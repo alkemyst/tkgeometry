@@ -33,19 +33,20 @@ namespace material {
 
     typedef std::vector<Component*> ComponentsVector;
     typedef std::vector<const Element*> ElementsVector;
-    static const bool ONLYSERVICES = true;
+    static const bool ONLY_SERVICES = true;
+    static const bool SERVICES_AND_LOCALS = false;
 
     enum Type {MODULE, ROD, LAYER, SERVICE, STATION};
 
     MaterialObject(Type materialType);
     MaterialObject(const MaterialObject& other);
-    virtual ~MaterialObject() {};
+    virtual ~MaterialObject();
 
     double totalGrams(double length, double surface) const;
 
     virtual void build();
     
-    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
+    void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
     void addElement(const MaterialObject::Element* element);
     void populateMaterialProperties(MaterialProperties& materialProperties) const;
 
@@ -122,9 +123,9 @@ namespace material {
       //Element(const Element& originElement);
       std::map<int, ReferenceSensor*> referenceSensors_;
 
-      virtual ~Element() {};
+      virtual ~Element();
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
       double quantityInGrams(const DetectorModule& module) const;
       double quantityInGrams(const MaterialProperties& materialProperties) const;
       double quantityInGrams(const double length, const double surface) const;
@@ -151,10 +152,10 @@ namespace material {
       PropertyNodeUnique<std::string> componentsNode_;
       PropertyNodeUnique<std::string> elementsNode_;
       Component(MaterialObject::Type& newMaterialType);
-      virtual ~Component() {};
+      virtual ~Component();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
       void getLocalElements(ElementsVector& elementsList) const;
 
@@ -169,10 +170,10 @@ namespace material {
       PropertyNodeUnique<std::string> componentsNode_;
       //Property<double, Computable> radiationLength, interactionLenght;
       Materials(MaterialObject::Type newMaterialType);
-      virtual ~Materials() {};
+      virtual ~Materials();
       double totalGrams(double length, double surface) const;
       void build(const std::map<int, int>& newSensorChannels);
-      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false) const;
+      void deployMaterialTo(MaterialObject& outputObject, const std::vector<std::string>& unitsToDeploy, bool onlyServices = false, double gramsMultiplier = 1.) const;
       void populateMaterialProperties(MaterialProperties& materialProperties) const;
       void getLocalElements(ElementsVector& elementsList) const;
 
