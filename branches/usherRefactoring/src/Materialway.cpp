@@ -261,14 +261,14 @@ namespace material {
     return inactiveElement_;
   }
   void Materialway::Section::getServicesAndPass(const MaterialObject& source) {
-    source.deployMaterialTo(materialObject(), unitsToPass_, MaterialObject::ONLYSERVICES);
+    source.deployMaterialTo(materialObject(), unitsToPass_, MaterialObject::ONLY_SERVICES);
     if(hasNextSection()) {
       nextSection()->getServicesAndPass(source);
     }
   }
 
   void Materialway::Section::getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass) {
-    source.deployMaterialTo(materialObject(), unitsToPass, MaterialObject::ONLYSERVICES);
+    source.deployMaterialTo(materialObject(), unitsToPass, MaterialObject::ONLY_SERVICES);
     if(hasNextSection()) {
       nextSection()->getServicesAndPass(source);
     }
@@ -288,12 +288,12 @@ namespace material {
   Materialway::Station::~Station() {}
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source) {
-    source.deployMaterialTo(conversionStation_, unitsToPass_, MaterialObject::ONLYSERVICES);
+    source.deployMaterialTo(conversionStation_, unitsToPass_, MaterialObject::ONLY_SERVICES);
     //don't pass
   }
 
   void Materialway::Station::getServicesAndPass(const MaterialObject& source, const std::vector<std::string>& unitsToPass) {
-    source.deployMaterialTo(conversionStation_, unitsToPass, MaterialObject::ONLYSERVICES);
+    source.deployMaterialTo(conversionStation_, unitsToPass, MaterialObject::ONLY_SERVICES);
     //don't pass
   }
 
@@ -794,7 +794,7 @@ namespace material {
           int minR = discretize(endcap.maxR())  + diskSectionUpMargin + safetySpace;
           int maxZ = boundary->maxZ() - safetySpace;
           int maxR = minR + sectionWidth;
-          startEndcap = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, boundary->outgoingSection()); //TODO:build other segment in other direction?
+          startEndcap = new Section(minZ, minR, maxZ, maxR, HORIZONTAL, boundary->outgoingSection());
         }
         //else {
           //currEndcapPosition = NEGATIVE;
@@ -817,7 +817,7 @@ namespace material {
 
           while(section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
-              //TODO: messaggio di errore
+              logERROR("No section over the disk module found.");
               return;
             }
             section = section->nextSection();
@@ -1225,33 +1225,50 @@ namespace material {
       int printCounter;
       bool firstRod;
       bool firstRing;
+      int rodSectionsSize;
       
       
-      const std::vector<std::string> unitsToPassRod = {"g/m"};
-      const std::vector<std::string> unitsToPassLayer = {"mm"};
+      const std::vector<std::string> unitsToPassRodGGM = {"g", "g/m"};
+      const std::vector<std::string> unitsToPassRodGM = {"g/m"};
+      const std::vector<std::string> unitsToPassRodMM = {"mm"};
+      const std::vector<std::string> unitsToPassLayer = {"g", "g/m", "mm"};
+      const std::vector<std::string> unitsToPassLayerServ = {"g/m", "mm"};
     public:
       ServiceVisitor(ModuleSectionMap& moduleSectionAssociations, LayerRodSectionsMap& layerRodSections, DiskRodSectionsMap& diskRodSections) :
         moduleSectionAssociations_(moduleSectionAssociations),
         layerRodSections_(layerRodSections),
-        diskRodSections_(diskRodSections), printGuard(true), printCounter(0), firstRing(false) {}
+        diskRodSections_(diskRodSections), printGuard(true), printCounter(0), firstRing(false), rodSectionsSize(0) {}
 
       void visit(const Layer& layer) {
         currLayer_ = &layer;
         firstRod = true;
+        if(layer.maxZ() > 0.) {
+          int totalLength = 0;
+          for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
+            totalLength += currSection->maxZ() - currSection->minZ();
+          }
+
+          for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
+            layer.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, (currSection->maxZ()-currSection->minZ()) / totalLength);
+          }
+          layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(layer.materialObject(), unitsToPassLayerServ);
+        }
       }
 
       void visit(const RodPair& rod) {
         if (firstRod) {
+          rodSectionsSize = 0;
           for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-            rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer);
+            rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodMM);
+            rodSectionsSize += currSection->maxZ() - currSection->minZ();
           }
           firstRod = false;
-          layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassLayer);
+          layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassRodMM);
         }
         for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-          rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRod);
+          rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodGGM, MaterialObject::SERVICES_AND_LOCALS, (currSection->maxZ()-currSection->minZ()) / rodSectionsSize);
         }
-        layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassRod);
+        layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassRodGM);
       }
 
       void visit(const BarrelModule& module) {
@@ -1339,6 +1356,14 @@ namespace material {
         //const Disk::RingIndexMap& ringIndexMap = disk.ringsMap();
         if(disk.maxZ() > 0) {
           firstRing = true;
+          int totalLength = 0;
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+            totalLength += currSection->maxR() - currSection->minR();
+          }
+          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+            disk.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, (currSection->maxZ()-currSection->minZ()) / totalLength);
+          }          
+          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), unitsToPassLayerServ);
         }
 
         /*
@@ -1358,18 +1383,20 @@ namespace material {
       void visit(const Ring& ring) {
         if(firstRing) {
           //for the mm
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer);
-          }
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassLayer);
+          // for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+          //   ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodMM);
+          // }
+          //diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassRodMM);
           //for the g/m
        
-          for(int i=0; i<ring.modules().size(); ++i) {
-            for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-              ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRod);
-            }
-            diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassRod);
-          }
+          // for(int i=0; i<ring.modules().size(); ++i) {
+          //   for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
+          //     ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodGM);
+          //   }
+          //   diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassRodGM);
+          // }
+
+          //TODO: ADD A WARNING IF MATERIAL DEFINED FOR RODS
       
           firstRing = false;
         }

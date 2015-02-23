@@ -17,4 +17,5 @@ plotColor 4
 
 @includestd Materials/pixel
 @includestd Materials/rodPixel
+@includestd Materials/diskPixel
 
