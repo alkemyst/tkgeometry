@@ -1249,7 +1249,7 @@ namespace material {
           }
 
           for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-            layer.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, (currSection->maxZ()-currSection->minZ()) / totalLength);
+            layer.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, double(currSection->maxZ()-currSection->minZ()) / totalLength);
           }
           layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(layer.materialObject(), unitsToPassLayerServ);
         }
@@ -1361,7 +1361,7 @@ namespace material {
             totalLength += currSection->maxR() - currSection->minR();
           }
           for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            disk.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, (currSection->maxZ()-currSection->minZ()) / totalLength);
+            disk.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassLayer, MaterialObject::SERVICES_AND_LOCALS, double(currSection->maxR()-currSection->minR()) / totalLength);
           }          
           diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(disk.materialObject(), unitsToPassLayerServ);
         }
