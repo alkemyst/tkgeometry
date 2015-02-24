@@ -192,6 +192,10 @@ void Ring::build() {
   materialObject_.store(propertyTree());
   materialObject_.build();
 
+  if(materialObject_.isPopulated()) {
+    logUniqueWARNING("Is not possible to define rod material for disks, material ignored.");
+  }
+
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
