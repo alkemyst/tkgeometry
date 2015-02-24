@@ -161,6 +161,11 @@ namespace material {
     return *elementsList;
   }
 
+  bool MaterialObject::isPopulated() const {
+    return (materials_ != nullptr);
+  }
+
+
   //void MaterialObject::chargeTrain(Materialway::Train& train) const {
   //  materials_->chargeTrain(train);
   //}

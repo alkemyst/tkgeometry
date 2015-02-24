@@ -52,6 +52,8 @@ namespace material {
 
     ElementsVector& getLocalElements() const;
 
+    bool isPopulated() const;
+
     //TODO: do methods for interrogate/get materials
 
   private:
