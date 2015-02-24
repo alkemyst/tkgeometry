@@ -33,7 +33,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   Property<double, Default> supportMarginInner;
   Property<bool, Default> innerRadiusFixed;
   Property<bool, Default> outerRadiusFixed;
-
+  
   PropertyNode<int> layerNode;
   PropertyNodeUnique<std::string> supportNode;
  public:
