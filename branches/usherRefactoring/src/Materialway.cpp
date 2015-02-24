@@ -1266,7 +1266,7 @@ namespace material {
           layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassRodMM);
         }
         for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-          rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodGGM, MaterialObject::SERVICES_AND_LOCALS, (currSection->maxZ()-currSection->minZ()) / rodSectionsSize);
+          rod.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodGGM, MaterialObject::SERVICES_AND_LOCALS, double(currSection->maxZ()-currSection->minZ()) / rodSectionsSize);
         }
         layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(rod.materialObject(), unitsToPassRodGM);
       }
