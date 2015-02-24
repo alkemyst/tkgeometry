@@ -25,13 +25,15 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   Container layers_;
   SupportStructures supportStructures_;
 
-  Property<int, NoDefault> innerRadius;
-  Property<int, NoDefault> outerRadius;
+  Property<double, NoDefault> innerRadius;
+  Property<double, NoDefault> outerRadius;
   Property<bool, Default> sameRods;
   Property<double, Default> barrelRotation;
   Property<double, Default> supportMarginOuter;
   Property<double, Default> supportMarginInner;
-  
+  Property<bool, Default> innerRadiusFixed;
+  Property<bool, Default> outerRadiusFixed;
+
   PropertyNode<int> layerNode;
   PropertyNodeUnique<std::string> supportNode;
  public:
@@ -44,6 +46,8 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
       numLayers("numLayers", parsedAndChecked()),
       innerRadius("innerRadius", parsedAndChecked()),
       outerRadius("outerRadius", parsedAndChecked()),
+      innerRadiusFixed("innerRadiusFixed", parsedAndChecked(), true),
+      outerRadiusFixed("outerRadiusFixed", parsedAndChecked(), true),
       sameRods("sameRods", parsedAndChecked(), false),
       barrelRotation("barrelRotation", parsedOnly(), 0.),
       supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),

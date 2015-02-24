@@ -168,13 +168,13 @@ std::set<int> StraightRodPair::solveCollisionsZMinus() {
 }
 
 
-double StraightRodPair::computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity) {
+double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity) {
   double d = smallDelta();
   double dz = zError();
   double ov = zOverlap();
   double maxr = maxBuildRadius();
   double minr = minBuildRadius();
-
+ 
   double newR = (parity > 0 ? maxr + d : minr - d) - newDsDistance/2;
   double lastR = (parity > 0 ? maxr - d : minr + d) + lastDsDistance/2;
 
@@ -186,12 +186,41 @@ double StraightRodPair::computeNextZ(double newDsDistance, double lastDsDistance
     double newZshifted = (newZ - originZ) * newR/lastR + originZ;
     if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted);
     else newZ = newZorigin;
-  } else {
+    if (forbiddenRange.state()) {
+      double forbiddenRange_begin,forbiddenRange_end; 
+      forbiddenRange_begin=(forbiddenRange[0]+forbiddenRange[1])/2;
+      forbiddenRange_end=forbiddenRange[1];
+      if (newZ-lastZ >= (forbiddenRange_begin - newDsLength) && newZ - lastZ <= (forbiddenRange_end - newDsLength)) {
+        newZ = lastZ + forbiddenRange_begin - newDsLength;
+      } else {
+         forbiddenRange_begin=forbiddenRange[0];
+         forbiddenRange_end=(forbiddenRange[0]+forbiddenRange[1])/2;
+	 if (newZ-lastZ >= (forbiddenRange_begin - newDsLength) && newZ - lastZ <= (forbiddenRange_end - newDsLength)) {
+            newZ = lastZ + forbiddenRange_begin - newDsLength;
+	 }
+      }
+    }
+  } 
+  else {
     double originZ = parity > 0 ? -dz : dz;
     double newZorigin = (newZ + ov) * newR/lastR;
     double newZshifted = (newZ - originZ) * newR/lastR + originZ;
     if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
     else newZ = newZorigin;
+    if (forbiddenRange.state()) {
+      double forbiddenRange_begin,forbiddenRange_end;              
+      forbiddenRange_begin=(forbiddenRange[0]+forbiddenRange[1])/2;
+      forbiddenRange_end=forbiddenRange[1];
+      if (lastZ - newZ >= (forbiddenRange_begin - newDsLength) && lastZ - newZ <= (forbiddenRange_end - newDsLength)){
+        newZ = lastZ - forbiddenRange_begin + newDsLength;
+      } else {
+        forbiddenRange_begin=forbiddenRange[0];
+        forbiddenRange_end=(forbiddenRange[0]+forbiddenRange[1])/2;
+        if (lastZ - newZ >= (forbiddenRange_begin - newDsLength) && lastZ - newZ <= (forbiddenRange_end - newDsLength)){
+          newZ = lastZ - forbiddenRange_begin + newDsLength;
+        }
+      }
+    }
   }
   return newZ;
 }
@@ -224,7 +253,8 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
 
   for (auto& curm : pair2range(make_pair(begin, end))) {
     if (abs(newZ) >= targetZ || n++ >= targetMods) break;
-    newZ = computeNextZ(curm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
+
+    newZ = computeNextZ(curm->length(), curm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
     zList.push_back(newZ);
     newZ += (direction == BuildDir::RIGHT ? curm->length() : -curm->length());
     lastm = curm.get();
@@ -235,7 +265,7 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
   double physicalLengthOffset = lastm->physicalLength();
 
   for (; abs(newZ) < targetZ && n < targetMods; n++) {  // in case the rodtemplate vector is finished but we haven't hit the targetZ or targetMods yet, we keep on using the last module for dsDistance and length
-    newZ = computeNextZ(lastm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
+    newZ = computeNextZ(lastm->length(), lastm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
     zList.push_back(newZ);
     newZ += (direction == BuildDir::RIGHT ? lastm->length() : -lastm->length());
     parity = -parity;
@@ -247,7 +277,6 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
 
 
 template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair::computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter) {
-
   bool fixedStartZ = true;
   vector<double> zPlusList = computeZList(begin, end, startZ, BuildDir::RIGHT, zPlusParity(), fixedStartZ);
   vector<double> zMinusList = computeZList(begin, end, startZ, BuildDir::LEFT, -zPlusParity(), !fixedStartZ);
